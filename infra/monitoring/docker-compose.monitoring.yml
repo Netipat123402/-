@@ -1,0 +1,56 @@
+# ============================================================================
+# ROS — Monitoring stack (MR-03) · Prometheus + Alertmanager + Grafana + node-exporter
+# รันแยกหรือร่วมเครือข่ายกับ app stack:
+#   docker compose -f infra/docker/docker-compose.prod.yml \
+#                  -f infra/monitoring/docker-compose.monitoring.yml \
+#                  --env-file infra/docker/.env.prod up -d
+# (อยู่ network เดียวกันจึง scrape http://api:4000 ได้)
+# ============================================================================
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ros-prometheus
+    restart: unless-stopped
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: ros-alertmanager
+    restart: unless-stopped
+    volumes:
+      - ../monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ros-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3002:3000"
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: ros-node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    command: ["--path.rootfs=/host"]
+    ports:
+      - "9100:9100"
+
+volumes:
+  prometheus_data:
+  grafana_data:

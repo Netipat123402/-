@@ -1,0 +1,154 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/components/Toast';
+import { Avatar, Field, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { Icon } from '@/components/Icon';
+import { PROPERTY_STATUS, CONTRACT_STATUS, bahtFormat } from '@/lib/status';
+import { formatPhone } from '@/lib/format';
+
+interface PropLite { id: string; code: string; titleTh: string; status: string; monthlyRent: string; }
+interface ContractLite { id: string; code: string; status: string; }
+interface Owner {
+  id: string; fullName: string; phone?: string; email?: string;
+  address?: string; note?: string; idCardNo?: string | null;
+  properties?: PropLite[]; contracts?: ContractLite[];
+}
+
+export default function OwnerDetailPage() {
+  const { api, can } = useAuth();
+  const toast = useToast();
+  const router = useRouter();
+  const { id } = useParams<{ id: string }>();
+  const [o, setO] = useState<Owner | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [edit, setEdit] = useState(false);
+  const [form, setForm] = useState<Owner>({ id: '', fullName: '' });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try { const r = await api<Owner>(`/owners/${id}`); setO(r.data); setForm(r.data); }
+      catch { setO(null); } finally { setLoading(false); }
+    })();
+  }, [api, id]);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const r = await api<Owner>(`/owners/${id}`, { method: 'PATCH', body: JSON.stringify({
+        fullName: form.fullName, phone: form.phone || undefined, email: form.email || undefined,
+        address: form.address || undefined, note: form.note || undefined,
+      }) });
+      setO((prev) => ({ ...r.data, properties: prev?.properties, contracts: prev?.contracts }));
+      setEdit(false); toast.success('บันทึกแล้ว');
+    } catch (e) { toast.error((e as { message?: string }).message || 'บันทึกไม่สำเร็จ'); }
+    finally { setSaving(false); }
+  }
+
+  if (loading) return <div className="mx-auto max-w-3xl"><div className="h-40 animate-pulse rounded-card bg-canvas" /></div>;
+  if (!o) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบเจ้าของทรัพย์ <Link href="/owners" className="text-gold-dark underline">กลับ</Link></div>;
+
+  const props = o.properties ?? [];
+  const contracts = o.contracts ?? [];
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <Link href="/owners" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><Icon name="arrow-left" size={16} /> กลับ</Link>
+
+      {/* PRIMARY — ชื่อเด่น + อักษรย่อ + แตะโทรได้ */}
+      <div className="mt-4 flex items-center gap-3.5">
+        <Avatar name={o.fullName} size={52} />
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{o.fullName}</h1>
+          {o.phone && <PhoneLink phone={o.phone} className="mt-0.5 text-sm text-muted" />}
+        </div>
+      </div>
+
+      {/* PRIMARY — ข้อมูลติดต่อ */}
+      <div className="mt-6 card p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <SectionLabel>ข้อมูลติดต่อ</SectionLabel>
+          {can('owner', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={() => setEdit(true)}>แก้ไข</button>}
+        </div>
+        {edit ? (
+          <div className="space-y-4">
+            <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+            <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
+            <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
+              <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            </label>
+            <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">โน้ต</span>
+              <textarea className="field h-auto py-2.5" rows={2} placeholder="บันทึกภายใน เช่น ช่องทางติดต่อที่สะดวก" value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button className="btn-ghost" onClick={() => { setEdit(false); setForm(o); }}>ยกเลิก</button>
+              <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
+            </div>
+          </div>
+        ) : (
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-3.5">
+            <div><dt className="text-xs text-muted">เบอร์โทร</dt><dd className="mt-0.5 text-sm"><PhoneLink phone={o.phone} /></dd></div>
+            <div><dt className="text-xs text-muted">อีเมล</dt><dd className="mt-0.5 truncate text-sm text-ink">{o.email || '—'}</dd></div>
+          </dl>
+        )}
+      </div>
+
+      {/* SECONDARY — ทรัพย์ที่เป็นเจ้าของ */}
+      <div className="mt-6 card p-5">
+        <SectionLabel className="mb-4">ทรัพย์ที่เป็นเจ้าของ · {props.length}</SectionLabel>
+        {props.length === 0 ? (
+          <p className="text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {props.map((p) => (
+              <li key={p.id}>
+                <button onClick={() => router.push(`/properties/${p.id}`)}
+                  className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{p.titleTh}</p>
+                    <p className="text-xs text-muted">{p.code}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-medium text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
+                  <StatusBadge map={PROPERTY_STATUS} value={p.status} short />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* SECONDARY — สัญญา (ซ่อนเมื่อไม่มี) */}
+      {contracts.length > 0 && (
+        <div className="mt-6 card p-5">
+          <SectionLabel className="mb-4">สัญญา · {contracts.length}</SectionLabel>
+          <ul className="divide-y divide-border">
+            {contracts.map((c) => (
+              <li key={c.id}>
+                <button onClick={() => router.push(`/contracts/${c.id}`)}
+                  className="flex w-full items-center justify-between gap-3 py-3 text-left transition hover:opacity-70">
+                  <span className="text-sm font-medium">{c.code}</span>
+                  <StatusBadge map={CONTRACT_STATUS} value={c.status} short />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* ADVANCED — ข้อมูลเพิ่มเติม (จาง อยู่ท้ายสุด) */}
+      <div className="mt-6 card p-5">
+        <SectionLabel className="mb-4">ข้อมูลเพิ่มเติม</SectionLabel>
+        <dl className="space-y-3.5">
+          <div><dt className="text-xs text-muted">เลขบัตรประชาชน</dt><dd className="mt-0.5 text-sm text-ink">{o.idCardNo || '—'}</dd></div>
+          <div><dt className="text-xs text-muted">ที่อยู่</dt><dd className="mt-0.5 text-sm text-ink">{o.address || '—'}</dd></div>
+          <div><dt className="text-xs text-muted">โน้ต</dt><dd className="mt-0.5 whitespace-pre-wrap text-sm text-ink">{o.note || '—'}</dd></div>
+        </dl>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,39 @@
+# ============================================================================
+# ROS — Caddy reverse proxy + auto TLS (MR-07)
+# เข้าผ่าน 443 เท่านั้น · cert ออก/ต่ออายุอัตโนมัติ (Let's Encrypt)
+#
+# ตั้งโดเมนผ่าน env ใน docker-compose.prod.yml:
+#   PUBLIC_DOMAIN  เว็บลูกค้า   → web-public:3000
+#   ADMIN_DOMAIN   เว็บแอดมิน  → web-admin:3001
+#   API_DOMAIN     API         → api:4000
+#   ACME_EMAIL     อีเมลแจ้งเตือน cert
+#
+# ทดสอบ local (ไม่มีโดเมนจริง): ตั้งโดเมนเป็น localhost แล้ว Caddy จะใช้ cert ภายในให้เอง
+# ============================================================================
+
+{
+	email {$ACME_EMAIL}
+	# staging ของ Let's Encrypt (กัน rate limit ตอนทดสอบ) — uncomment เมื่อทดสอบ
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# ---- เว็บลูกค้า (public, SSR/ISR) ----
+{$PUBLIC_DOMAIN} {
+	encode gzip zstd
+	reverse_proxy web-public:3000
+}
+
+# ---- เว็บแอดมิน (CSR) ----
+{$ADMIN_DOMAIN} {
+	encode gzip zstd
+	reverse_proxy web-admin:3001
+}
+
+# ---- API (NestJS) ----
+{$API_DOMAIN} {
+	encode gzip zstd
+	# /metrics ปิดจากภายนอก (ให้ Prometheus ใน network เรียก api:4000 ตรง)
+	@metrics path /api/v1/metrics
+	respond @metrics 404
+	reverse_proxy api:4000
+}

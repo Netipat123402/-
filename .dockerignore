@@ -1,0 +1,30 @@
+# ============================================================================
+# ROS — .dockerignore (MR-02) — กัน context บวม + กันไฟล์ลับ/อาร์ติแฟกต์เข้า image
+# ============================================================================
+**/node_modules
+**/.next
+**/dist
+**/build
+**/out
+**/*.tsbuildinfo
+**/.prisma
+**/generated
+
+# secrets / env (image รับค่าผ่าน runtime env / compose)
+**/.env
+**/.env.*
+!**/.env.example
+
+# uploaded files (dev local storage) — ใช้ volume แทน
+apps/api/uploads
+
+# backups / docs / control scripts ไม่ต้องเข้า image
+infra/backup
+ควบคุมระบบ
+*.md
+.run
+.git
+.github
+.DS_Store
+coverage
+.nyc_output

@@ -1,0 +1,94 @@
+# ============================================================================
+# ROS — Prometheus alert rules (MR-03)
+# ครอบคลุม acceptance: 5xx, DB latency, disk, login_failed spike, token-reuse
+# ============================================================================
+groups:
+  - name: ros-availability
+    rules:
+      - alert: ApiDown
+        expr: up{job="ros-api"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "ROS API ล่ม (scrape ไม่ได้)"
+          description: "Prometheus ดึง /metrics ของ api ไม่ได้ > 1 นาที"
+
+  - name: ros-errors
+    rules:
+      - alert: High5xxRate
+        expr: |
+          sum(rate(ros_http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(ros_http_requests_total[5m])), 1) > 0.05
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "อัตรา 5xx สูง (>5%)"
+          description: "สัดส่วน response 5xx เกิน 5% ใน 5 นาที"
+
+      - alert: ServerErrorsAppeared
+        expr: increase(ros_unhandled_errors_total[5m]) > 0
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "มี server error (5xx) หลุดถึง exception filter"
+          description: "ตรวจ Sentry ด้วย request_id"
+
+  - name: ros-latency
+    rules:
+      - alert: HighRequestLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(ros_http_request_duration_seconds_bucket[5m])) by (le)) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "p95 latency > 1s"
+          description: "คำขอ HTTP ช้าผิดปกติต่อเนื่อง 10 นาที"
+
+      - alert: HighDbQueryLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(prisma_client_queries_duration_histogram_ms_bucket[5m])) by (le)) > 200
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "p95 DB query > 200ms"
+          description: "Prisma query latency สูง — ตรวจ index/lock (ดู DB audit)"
+
+  - name: ros-security
+    rules:
+      - alert: LoginFailedSpike
+        expr: increase(ros_login_failed_total[5m]) > 20
+        for: 0m
+        labels: { severity: warning }
+        annotations:
+          summary: "login ล้มเหลวพุ่งสูง (อาจเป็น brute force)"
+          description: "login_failed > 20 ครั้งใน 5 นาที"
+
+      - alert: RefreshTokenReuse
+        expr: increase(ros_token_reuse_total[5m]) > 0
+        for: 0m
+        labels: { severity: critical }
+        annotations:
+          summary: "ตรวจพบการใช้ refresh token ซ้ำ (token อาจถูกขโมย)"
+          description: "ระบบเพิกถอนทั้ง family แล้ว — ตรวจสอบบัญชีที่เกี่ยวข้องทันที"
+
+  - name: ros-resources
+    rules:
+      - alert: DiskAlmostFull
+        expr: |
+          node_filesystem_avail_bytes{mountpoint="/"}
+            / node_filesystem_size_bytes{mountpoint="/"} < 0.10
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "ดิสก์เหลือ < 10%"
+          description: "พื้นที่ root เหลือน้อย — กระทบ DB/uploads/backup"
+
+      - alert: HighApiMemory
+        expr: ros_process_resident_memory_bytes{job="ros-api"} > 1.5e9
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "API ใช้หน่วยความจำ > 1.5GB"
+          description: "อาจมี memory leak — ตรวจสอบ"

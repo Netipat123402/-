@@ -1,0 +1,28 @@
+{
+  "name": "@ros/db",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ROS — Production Database (Prisma + PostgreSQL)",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "tsx seed/seed.ts",
+    "db:studio": "prisma studio",
+    "db:format": "prisma format",
+    "db:validate": "prisma validate"
+  },
+  "prisma": {
+    "seed": "tsx seed/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.42",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

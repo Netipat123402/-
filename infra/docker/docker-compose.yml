@@ -1,0 +1,68 @@
+# ============================================================================
+# ROS — Infrastructure (Single VPS / Local Dev)
+# Phase 10 (VPS Edition): ทุกอย่างจบในเครื่องเดียวด้วย Docker Compose
+#
+# Phase 11 ใช้แค่ service: postgres
+# Redis + MinIO เตรียมไว้สำหรับ Phase 12 (api/storage/queue)
+#
+# Dev:  docker compose up -d postgres
+# Prod: เพิ่ม service web-public / web-admin / api / caddy ใน Phase 12
+# ============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ros-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ros}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ros_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ros}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ros} -d ${POSTGRES_DB:-ros}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ros-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-ros_dev_redis}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: ros-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-ros_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-ros_dev_minio_password}
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web Console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

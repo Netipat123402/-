@@ -1,0 +1,890 @@
+// ============================================================================
+// ROS — Real Estate Operating System
+// Production Database Schema (Phase 11)
+//
+// อ้างอิงดีไซน์: Phase 3 (Database Architecture)
+//   - PK: UUID v7 ทุกตาราง (เรียงตามเวลา, ปลอดภัย, พร้อม multi-branch)
+//   - Standard columns: created/updated/deleted (audit + soft delete) + branchId
+//   - เงิน: Decimal(12,2) | เวลา: TIMESTAMPTZ (UTC) | i18n: _th / _en
+//   - PII (idCardNo) เก็บเป็น ciphertext (เข้ารหัสที่ application layer)
+//
+// หมายเหตุการ implement:
+//   - created_by / updated_by / deleted_by / actor / verified_by เก็บเป็น UUID
+//     (logical FK -> users) ไม่ผูก relation ทาง Prisma เพื่อไม่ให้ User model
+//     บวม back-relation จำนวนมาก — บังคับความถูกต้องที่ application layer
+//   - ความสัมพันธ์ทางธุรกิจหลัก (owner, agent, property, lead, ...) ใช้ FK จริง
+//   - Index ขั้นสูง (GIN full-text, partial WHERE deleted_at IS NULL, trigram)
+//     อยู่ใน migration แยก: prisma/migrations/manual/ (Prisma schema แสดงไม่ได้)
+//   - Partition (audit/activity/notification) = optional future migration
+//     (เริ่มเล็กบน VPS เดียว ยังไม่ partition — ดู manual/partitioning.sql)
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  // metrics = เปิด $metrics.prometheus() สำหรับ /metrics (MR-03 — DB pool/query stats)
+  previewFeatures = ["postgresqlExtensions", "metrics"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [citext, pg_trgm]
+}
+
+// ============================================================================
+// ENUMS — Lifecycle & Type (Phase 1)
+// ============================================================================
+
+enum UserStatus {
+  active
+  suspended
+  invited
+
+  @@map("user_status")
+}
+
+enum PropertyType {
+  condo
+  house
+  townhome
+  apartment
+
+  @@map("property_type")
+}
+
+// 3 สถานะ (รื้อจาก 8 ขั้นเดิม): ร่าง → ว่าง(ลงประกาศ) → ไม่ว่าง
+// archived เดิม → ใช้ soft-delete (deletedAt) แทน
+enum PropertyStatus {
+  draft
+  available
+  rented
+
+  @@map("property_status")
+}
+
+enum Furnished {
+  fully
+  partial
+  unfurnished
+
+  @@map("furnished")
+}
+
+enum MediaType {
+  image
+  video
+  floor_plan
+
+  @@map("media_type")
+}
+
+enum LeadSource {
+  public_web
+  walk_in
+  phone
+  referral
+
+  @@map("lead_source")
+}
+
+// 3 สถานะ (รื้อจาก 9): ใหม่ → กำลังดูแล → ปิดจบ (ชนะ/แพ้ดูจาก customerId / lostReason)
+enum LeadStatus {
+  new
+  working
+  closed
+
+  @@map("lead_status")
+}
+
+// 3 สถานะ (รื้อจาก 6): รอพบ → พบแล้ว / ยกเลิก
+enum AppointmentStatus {
+  upcoming
+  done
+  cancelled
+
+  @@map("appointment_status")
+}
+
+// 3 สถานะ (รื้อจาก 8): ร่าง → มีผล → สิ้นสุด ("ใกล้ครบกำหนด" = คำนวณจาก endDate)
+enum ContractStatus {
+  draft
+  active
+  ended
+
+  @@map("contract_status")
+}
+
+enum DocType {
+  title_deed
+  id_card
+  house_registration
+  lease
+  receipt
+  power_of_attorney
+  property_photo
+  other
+
+  @@map("doc_type")
+}
+
+enum DocStatus {
+  uploaded
+  verified
+  active
+  archived
+
+  @@map("doc_status")
+}
+
+enum EntityType {
+  property
+  owner
+  customer
+  lead
+  contract
+  appointment
+  company
+
+  @@map("entity_type")
+}
+
+enum NotificationChannel {
+  line
+  email
+  in_app
+
+  @@map("notification_channel")
+}
+
+enum NotificationCategory {
+  lead
+  appointment
+  property
+  contract
+  system
+
+  @@map("notification_category")
+}
+
+enum NotificationStatus {
+  queued
+  delivered
+  read
+  failed
+
+  @@map("notification_status")
+}
+
+enum PermissionScope {
+  own
+  team
+  branch
+  all
+
+  @@map("permission_scope")
+}
+
+// ============================================================================
+// 1) IDENTITY & ACCESS CONTEXT
+// ============================================================================
+
+model Branch {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  code     String  @unique @db.VarChar(20)
+  name     String  @db.VarChar(150)
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  teams      Team[]
+  users      User[]
+  properties Property[]
+
+  @@index([isActive])
+  @@map("branches")
+}
+
+model Team {
+  id         String  @id @default(uuid(7)) @db.Uuid
+  branchId   String  @map("branch_id") @db.Uuid
+  name       String  @db.VarChar(150)
+  leadUserId String? @map("lead_user_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  branch   Branch @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  leadUser User?  @relation("TeamLead", fields: [leadUserId], references: [id], onDelete: SetNull)
+  members  User[] @relation("TeamMembers")
+
+  @@index([branchId])
+  @@map("teams")
+}
+
+model User {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  email        String     @unique @db.Citext
+  phone        String?    @db.VarChar(20)
+  fullName     String     @map("full_name") @db.VarChar(150)
+  passwordHash String     @map("password_hash") @db.Text
+  status       UserStatus @default(invited)
+  tokenVersion Int        @default(0) @map("token_version") // MR-22: เพิ่ม → access token เก่าใช้ไม่ได้ (logout-all/รีเซ็ตรหัส)
+  locale       String     @default("th") @db.VarChar(5)
+  teamId       String?    @map("team_id") @db.Uuid
+  branchId     String?    @map("branch_id") @db.Uuid
+  lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(6)
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  team   Team?   @relation("TeamMembers", fields: [teamId], references: [id], onDelete: SetNull)
+  branch Branch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  ledTeams           Team[]                   @relation("TeamLead")
+  userRoles          UserRole[]
+  assignedProperties Property[]               @relation("PropertyAssignee")
+  assignedLeads      Lead[]                   @relation("LeadAssignee")
+  agentAppointments  Appointment[]            @relation("AppointmentAgent")
+  agentContracts     Contract[]               @relation("ContractAgent")
+  notificationPrefs  NotificationPreference[]
+  notifications      Notification[]           @relation("NotificationRecipient")
+  refreshTokens      RefreshToken[]
+
+  @@index([teamId])
+  @@index([branchId])
+  @@index([status])
+  @@map("users")
+}
+
+// Refresh token session (Phase 7 §3) — เพิกถอนได้ + rotation + reuse detection
+// หมายเหตุ: ดีไซน์เดิมใช้ Redis allow-list; ที่นี่เก็บใน Postgres เพราะยังไม่มี Redis
+//          (ย้ายไป Redis ได้ภายหลัง — interface แยกใน TokenService)
+model RefreshToken {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64) // sha256 hex
+  familyId  String    @map("family_id") @db.Uuid // กลุ่มของ token chain (rotation)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  ipAddress String?   @map("ip_address") @db.Inet
+  userAgent String?   @map("user_agent") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model Role {
+  id          String  @id @default(uuid(7)) @db.Uuid
+  name        String  @unique @db.VarChar(50)
+  description String? @db.Text
+  isSystem    Boolean @default(false) @map("is_system")
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id       String          @id @default(uuid(7)) @db.Uuid
+  resource String          @db.VarChar(50)
+  action   String          @db.VarChar(50)
+  scope    PermissionScope @default(own)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action, scope])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId String @map("role_id") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ============================================================================
+// 2) OWNER CONTEXT
+// ============================================================================
+
+model Owner {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  fullName String  @map("full_name") @db.VarChar(150)
+  phone    String? @db.VarChar(20)
+  email    String? @db.VarChar(150)
+  idCardNo String? @map("id_card_no") @db.Text // PII: ciphertext (app-level encryption)
+  address  String? @db.Text
+  note     String? @db.Text
+  branchId String? @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  properties Property[]
+  contracts  Contract[]
+
+  @@index([branchId])
+  @@index([phone])
+  @@map("owners")
+}
+
+// ============================================================================
+// 3) PROPERTY CONTEXT
+// ============================================================================
+
+model Property {
+  id           String         @id @default(uuid(7)) @db.Uuid
+  code         String         @unique @db.VarChar(30)
+  ownerId      String         @map("owner_id") @db.Uuid
+  assignedToId String?        @map("assigned_to") @db.Uuid
+  propertyType PropertyType   @map("property_type")
+  status       PropertyStatus @default(draft)
+
+  titleTh       String  @map("title_th") @db.VarChar(200)
+  titleEn       String? @map("title_en") @db.VarChar(200)
+  descriptionTh String? @map("description_th") @db.Text
+  descriptionEn String? @map("description_en") @db.Text
+
+  address     String?  @db.Text
+  province    String?  @db.VarChar(100)
+  district    String?  @db.VarChar(100)
+  subdistrict String?  @db.VarChar(100)
+  projectName String?  @map("project_name") @db.VarChar(150)
+  latitude    Decimal? @db.Decimal(10, 7)
+  longitude   Decimal? @db.Decimal(10, 7)
+
+  monthlyRent   Decimal    @map("monthly_rent") @db.Decimal(12, 2)
+  depositMonths Int?       @map("deposit_months") @db.SmallInt
+  bedrooms      Int?       @db.SmallInt
+  bathrooms     Int?       @db.SmallInt
+  areaSqm       Decimal?   @map("area_sqm") @db.Decimal(8, 2)
+  floor         String?    @db.VarChar(20)
+  furnished     Furnished?
+  amenities     Json?      @db.JsonB
+
+  isFeatured Boolean @default(false) @map("is_featured") // แอดมินกดดาว = "ทรัพย์แนะนำ"
+  viewCount  Int     @default(0) @map("view_count")      // ยอดเข้าชม (สำหรับ "ทรัพย์ดูเยอะ")
+
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  branchId    String?   @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  owner         Owner                   @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  assignedTo    User?                   @relation("PropertyAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  branch        Branch?                 @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  media         PropertyMedia[]
+  statusHistory PropertyStatusHistory[]
+  leadInterests LeadInterest[]
+  appointments  Appointment[]
+  contracts     Contract[]
+
+  @@index([status])
+  @@index([propertyType])
+  @@index([ownerId])
+  @@index([assignedToId])
+  @@index([branchId])
+  @@index([province, district])
+  @@index([monthlyRent])
+  @@map("properties")
+}
+
+model PropertyMedia {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  propertyId String    @map("property_id") @db.Uuid
+  storageKey String    @map("storage_key") @db.Text
+  mediaType  MediaType @map("media_type")
+  sortOrder  Int       @default(0) @map("sort_order") @db.SmallInt
+  isCover    Boolean   @default(false) @map("is_cover")
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("property_media")
+}
+
+model PropertyStatusHistory {
+  id         String          @id @default(uuid(7)) @db.Uuid
+  propertyId String          @map("property_id") @db.Uuid
+  fromStatus PropertyStatus? @map("from_status")
+  toStatus   PropertyStatus  @map("to_status")
+  reason     String?         @db.Text
+  changedBy  String?         @map("changed_by") @db.Uuid
+  changedAt  DateTime        @default(now()) @map("changed_at") @db.Timestamptz(6)
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+
+  @@index([propertyId, changedAt])
+  @@map("property_status_history")
+}
+
+// ============================================================================
+// 4) LEAD & CUSTOMER CONTEXT
+// ============================================================================
+
+model Lead {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  code            String     @unique @db.VarChar(30)
+  fullName        String     @map("full_name") @db.VarChar(150)
+  phone           String     @db.VarChar(20)
+  email           String?    @db.VarChar(150)
+  source          LeadSource @default(public_web)
+  status          LeadStatus @default(new)
+  assignedToId    String?    @map("assigned_to") @db.Uuid
+  customerId      String?    @map("customer_id") @db.Uuid
+  lostReason      String?    @map("lost_reason") @db.Text
+  message         String?    @db.Text
+  preferredViewAt DateTime?  @map("preferred_view_at") @db.Timestamptz(6)
+
+  // PDPA consent (Phase 1)
+  consentAt      DateTime? @map("consent_at") @db.Timestamptz(6)
+  consentVersion String?   @map("consent_version") @db.VarChar(20)
+
+  branchId String? @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  assignedTo   User?          @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  customer     Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  interests    LeadInterest[]
+  appointments Appointment[]
+
+  @@index([status, assignedToId])
+  @@index([phone])
+  @@index([branchId])
+  @@map("leads")
+}
+
+model LeadInterest {
+  leadId     String @map("lead_id") @db.Uuid
+  propertyId String @map("property_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lead     Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@id([leadId, propertyId])
+  @@index([propertyId])
+  @@map("lead_interests")
+}
+
+model Customer {
+  id       String  @id @default(uuid(7)) @db.Uuid
+  fullName String  @map("full_name") @db.VarChar(150)
+  phone    String? @db.VarChar(20)
+  email    String? @db.VarChar(150)
+  idCardNo String? @map("id_card_no") @db.Text // PII: ciphertext
+  address  String? @db.Text
+  branchId String? @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  leads     Lead[]
+  contracts Contract[]
+
+  @@index([phone])
+  @@index([branchId])
+  @@map("customers")
+}
+
+// ============================================================================
+// 5) APPOINTMENT CONTEXT
+// ============================================================================
+
+model Appointment {
+  id           String            @id @default(uuid(7)) @db.Uuid
+  code         String            @unique @db.VarChar(30)
+  leadId       String?           @map("lead_id") @db.Uuid
+  propertyId   String?           @map("property_id") @db.Uuid
+  agentId      String            @map("agent_id") @db.Uuid
+  status       AppointmentStatus @default(upcoming)
+  title        String?           @db.Text
+  scheduledAt  DateTime          @map("scheduled_at") @db.Timestamptz(6)
+  durationMin  Int               @default(30) @map("duration_min") @db.SmallInt
+  location     String?           @db.Text
+  note         String?           @db.Text
+  cancelReason String?           @map("cancel_reason") @db.Text
+  branchId     String?           @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  lead     Lead?     @relation(fields: [leadId], references: [id], onDelete: Restrict)
+  property Property? @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  agent    User      @relation("AppointmentAgent", fields: [agentId], references: [id], onDelete: Restrict)
+
+  @@index([agentId, scheduledAt])
+  @@index([status])
+  @@index([leadId])
+  @@index([branchId])
+  @@map("appointments")
+}
+
+// ============================================================================
+// 6) CONTRACT CONTEXT
+// ============================================================================
+
+model Contract {
+  id               String         @id @default(uuid(7)) @db.Uuid
+  code             String         @unique @db.VarChar(30)
+  propertyId       String         @map("property_id") @db.Uuid
+  ownerId          String         @map("owner_id") @db.Uuid
+  customerId       String         @map("customer_id") @db.Uuid
+  agentId          String         @map("agent_id") @db.Uuid
+  status           ContractStatus @default(draft)
+  startDate        DateTime?      @map("start_date") @db.Date
+  endDate          DateTime?      @map("end_date") @db.Date
+  monthlyRent      Decimal        @map("monthly_rent") @db.Decimal(12, 2)
+  depositAmount    Decimal?       @map("deposit_amount") @db.Decimal(12, 2)
+  commissionAmount Decimal?       @map("commission_amount") @db.Decimal(12, 2)
+  signedAt         DateTime?      @map("signed_at") @db.Timestamptz(6)
+  renewedFromId    String?        @map("renewed_from_id") @db.Uuid
+  terminatedReason String?        @map("terminated_reason") @db.Text
+  branchId         String?        @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  property    Property       @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  owner       Owner          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  customer    Customer       @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  agent       User           @relation("ContractAgent", fields: [agentId], references: [id], onDelete: Restrict)
+  renewedFrom Contract?      @relation("ContractRenewal", fields: [renewedFromId], references: [id], onDelete: SetNull)
+  renewals    Contract[]     @relation("ContractRenewal")
+  terms       ContractTerm[]
+
+  @@index([status])
+  @@index([endDate])
+  @@index([propertyId])
+  @@index([customerId])
+  @@index([branchId])
+  @@map("contracts")
+}
+
+model ContractTerm {
+  id         String @id @default(uuid(7)) @db.Uuid
+  contractId String @map("contract_id") @db.Uuid
+  termKey    String @map("term_key") @db.VarChar(100)
+  termValue  String @map("term_value") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@map("contract_terms")
+}
+
+// ============================================================================
+// 7) DOCUMENT CONTEXT (no-orphan rule — Phase 1)
+// ============================================================================
+
+model Document {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  documentType     DocType   @map("document_type")
+  name             String    @db.VarChar(200)
+  status           DocStatus @default(uploaded)
+  currentVersionId String?   @unique @map("current_version_id") @db.Uuid
+  verifiedBy       String?   @map("verified_by") @db.Uuid
+  verifiedAt       DateTime? @map("verified_at") @db.Timestamptz(6)
+  branchId         String?   @map("branch_id") @db.Uuid
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy String?   @map("created_by") @db.Uuid
+  updatedBy String?   @map("updated_by") @db.Uuid
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  currentVersion DocumentVersion?  @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions       DocumentVersion[] @relation("DocumentVersions")
+  links          DocumentLink[]
+
+  @@index([documentType])
+  @@index([status])
+  @@index([branchId])
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id         String  @id @default(uuid(7)) @db.Uuid
+  documentId String  @map("document_id") @db.Uuid
+  versionNo  Int     @map("version_no") @db.SmallInt
+  storageKey String  @map("storage_key") @db.Text
+  fileSize   BigInt? @map("file_size")
+  mimeType   String? @map("mime_type") @db.VarChar(100)
+  checksum   String? @db.VarChar(64)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?  @map("created_by") @db.Uuid
+
+  document      Document  @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  currentForDoc Document? @relation("CurrentVersion")
+
+  @@unique([documentId, versionNo])
+  @@index([documentId])
+  @@map("document_versions")
+}
+
+model DocumentLink {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  documentId String     @map("document_id") @db.Uuid
+  entityType EntityType @map("entity_type")
+  entityId   String     @map("entity_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy String?  @map("created_by") @db.Uuid
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, entityType, entityId])
+  @@index([entityType, entityId])
+  @@map("document_links")
+}
+
+// ============================================================================
+// 8) NOTIFICATION CONTEXT
+// ============================================================================
+
+model Notification {
+  id              String               @id @default(uuid(7)) @db.Uuid
+  recipientUserId String?              @map("recipient_user_id") @db.Uuid
+  recipientLineId String?              @map("recipient_line_id") @db.VarChar(100)
+  channel         NotificationChannel
+  category        NotificationCategory
+  title           String               @db.VarChar(200)
+  body            String               @db.Text
+  entityType      EntityType?          @map("entity_type")
+  entityId        String?              @map("entity_id") @db.Uuid
+  status          NotificationStatus   @default(queued)
+  readAt          DateTime?            @map("read_at") @db.Timestamptz(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  recipientUser User? @relation("NotificationRecipient", fields: [recipientUserId], references: [id], onDelete: Cascade)
+
+  @@index([recipientUserId, status])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id        String               @id @default(uuid(7)) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  category  NotificationCategory
+  channel   NotificationChannel
+  isEnabled Boolean              @default(true) @map("is_enabled")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, channel])
+  @@map("notification_preferences")
+}
+
+// ============================================================================
+// 9) ACTIVITY & AUDIT CONTEXT
+// ============================================================================
+
+// Business timeline (append-only) — แสดงบน entity detail
+model ActivityLog {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  entityType EntityType @map("entity_type")
+  entityId   String     @map("entity_id") @db.Uuid
+  action     String     @db.VarChar(50)
+  actorId    String?    @map("actor_id") @db.Uuid
+  summary    String?    @db.Text
+  metadata   Json?      @db.JsonB
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId])
+  @@map("activity_logs")
+}
+
+// Security audit (immutable, no soft delete, no FK cascade — Phase 7)
+// actor เก็บเป็นค่า snapshot (ไม่ FK) เพื่อคงประวัติแม้ user ถูกลบ
+model AuditLog {
+  id         String      @id @default(uuid(7)) @db.Uuid
+  actorId    String?     @map("actor_id") @db.Uuid
+  actorRole  String?     @map("actor_role") @db.VarChar(50)
+  action     String      @db.VarChar(50)
+  entityType EntityType? @map("entity_type")
+  entityId   String?     @map("entity_id") @db.Uuid
+  oldValue   Json?       @map("old_value") @db.JsonB
+  newValue   Json?       @map("new_value") @db.JsonB
+  ipAddress  String?     @map("ip_address") @db.Inet
+  userAgent  String?     @map("user_agent") @db.Text
+  branchId   String?     @map("branch_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// 10) SETTINGS & i18n CONTEXT
+// ============================================================================
+
+model Setting {
+  id    String @id @default(uuid(7)) @db.Uuid
+  key   String @unique @db.VarChar(100)
+  value Json   @db.JsonB
+  scope String @default("global") @db.VarChar(20)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  updatedBy String?  @map("updated_by") @db.Uuid
+
+  @@map("settings")
+}
+
+model MasterData {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  category  String  @db.VarChar(50)
+  code      String  @db.VarChar(50)
+  labelTh   String  @map("label_th") @db.VarChar(150)
+  labelEn   String  @map("label_en") @db.VarChar(150)
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([category, code])
+  @@index([category])
+  @@map("master_data")
+}
+
+model Translation {
+  id        String @id @default(uuid(7)) @db.Uuid
+  namespace String @db.VarChar(50)
+  key       String @db.VarChar(150)
+  locale    String @db.VarChar(5)
+  value     String @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([namespace, key, locale])
+  @@index([namespace, locale])
+  @@map("translations")
+}
+
+// ============================================================================
+// 11) COMMUNITY BOARD (Phase 14) — กระดานชุมชนไม่ระบุตัวตน + admin moderation
+// ============================================================================
+enum CommunityCategory {
+  looking_room   // หาห้อง
+  looking_condo  // หาคอนโด
+  for_rent       // ปล่อยเช่า
+  looking_tenant // หาผู้เช่า
+  buy_sell       // ซื้อขาย
+
+  @@map("community_category")
+}
+
+enum CommunityStatus {
+  pending   // รออนุมัติ
+  published // อนุมัติแล้ว (แสดงบนเว็บ)
+  archived  // เก็บถาวร
+  rejected  // ไม่อนุมัติ
+
+  @@map("community_status")
+}
+
+model CommunityPost {
+  id          String            @id @default(uuid(7)) @db.Uuid
+  category    CommunityCategory
+  body        String            @db.Text
+  displayName String            @map("display_name") @db.VarChar(60) // ชื่อสุ่ม (ไม่ระบุตัวตน)
+  status      CommunityStatus   @default(pending)
+  authorIp    String?           @map("author_ip") @db.Inet
+  reviewedBy  String?           @map("reviewed_by") @db.Uuid
+  reviewedAt  DateTime?         @map("reviewed_at") @db.Timestamptz(6)
+
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  @@index([status, createdAt])
+  @@index([category, status])
+  @@map("community_posts")
+}

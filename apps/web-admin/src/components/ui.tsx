@@ -1,0 +1,559 @@
+'use client';
+
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useDebouncedValue } from '@/lib/useDebounce';
+import { useScrollLock } from '@/lib/useScrollLock';
+import { useFocusTrap } from '@/lib/useFocusTrap';
+import { badgeClass, type Tone } from '@/lib/status';
+import { Icon, type IconName } from '@/components/Icon';
+import PriceRange from '@/components/PriceRange';
+
+/** กฎกลาง: ตารางทุกหน้าแสดงไม่เกิน 8 แถว/หน้า (Global Design Rule) */
+export const PAGE_SIZE = 8;
+
+/** หัวข้อย่อยในหน้า (uppercase จาง) — มาตรฐานเดียวทั้งระบบ แทนของเดิมที่เขียนกัน 3 แบบ */
+export function SectionLabel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <h2 className={`text-xs font-semibold uppercase tracking-wide text-muted ${className}`}>{children}</h2>;
+}
+
+export function PageHeader({
+  title, subtitle, count, action,
+}: { title: string; subtitle?: string; count?: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+      <div className="flex min-w-0 items-baseline gap-2.5">
+        <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+        {count != null && count !== '' && (
+          <span className="shrink-0 text-sm font-normal text-muted">{count}</span>
+        )}
+      </div>
+      {action}
+      {subtitle && <p className="w-full text-sm text-muted">{subtitle}</p>}
+    </div>
+  );
+}
+
+export function StatusBadge({ map, value, short }: { map: Record<string, { label: string; tone: Tone }>; value: string; short?: boolean }) {
+  const s = map[value] ?? { label: value, tone: 'neutral' as Tone };
+  const label = short ? s.label.split(' · ')[0] : s.label; // มือถือ: ตัดส่วนหลัง " · " ออก
+  return <span className={badgeClass(s.tone)}>{label}</span>;
+}
+
+/** Spinner — "กำลังทำงานอยู่" (รอสั้น ๆ เช่น กดส่ง) */
+export function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
+  return <span role="status" aria-label="กำลังทำงาน" className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`} />;
+}
+
+/** ProgressBar — "เหลืออีกเท่าไหร่" (งานยาว เช่น อัปโหลด) */
+export function ProgressBar({ value }: { value: number }) {
+  const w = Math.min(100, Math.max(0, value));
+  return (
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/60" role="progressbar" aria-valuenow={w}>
+      <div className="h-full rounded-full bg-gold transition-[width] duration-200" style={{ width: `${w}%` }} />
+    </div>
+  );
+}
+
+export function ListSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="space-y-2 p-4">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="h-14 animate-pulse rounded-lg bg-canvas" />
+      ))}
+    </div>
+  );
+}
+
+export function EmptyState({ text, action, icon = 'search' }: { text: string; action?: React.ReactNode; icon?: IconName }) {
+  return (
+    <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-canvas text-faint"><Icon name={icon} size={22} /></span>
+      <p className="text-sm text-muted">{text}</p>
+      {action}
+    </div>
+  );
+}
+
+/** สถานะโหลดไม่สำเร็จ + ปุ่มลองใหม่ (MR-26) — ใช้ในหน้าที่ fetch เอง (ไม่ใช่ useList) */
+export function ErrorState({ onRetry, text = 'โหลดข้อมูลไม่สำเร็จ' }: { onRetry?: () => void; text?: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger"><Icon name="alert-triangle" size={22} /></span>
+      <p className="text-sm text-muted">{text}</p>
+      {onRetry && <button className="btn-ghost btn-sm" onClick={onRetry}>ลองใหม่</button>}
+    </div>
+  );
+}
+
+export function Pagination({ meta, page, setPage, limit = PAGE_SIZE }: {
+  meta: { page?: number; totalPages?: number; total?: number }; page: number; setPage: (p: number) => void; limit?: number;
+}) {
+  const totalPages = meta.totalPages ?? 1;
+  if (totalPages <= 1) return null;
+  const total = meta.total ?? 0;
+  const start = (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total || page * limit);
+  return (
+    <div className="mt-4 flex items-center justify-between gap-2 px-1">
+      <span className="text-sm tabular-nums text-muted">{total ? `${start}–${end} จาก ${total}` : `หน้า ${page} / ${totalPages}`}</span>
+      <div className="flex items-center gap-1.5">
+        <button aria-label="ก่อนหน้า" className="flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 enabled:hover:border-ink/40 enabled:hover:text-ink enabled:active:scale-90 disabled:opacity-40"
+          disabled={page <= 1} onClick={() => setPage(page - 1)}><Icon name="chevron-left" size={18} /></button>
+        <span className="min-w-[2.5rem] text-center text-sm font-medium">{page}/{totalPages}</span>
+        <button aria-label="ถัดไป" className="flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 enabled:hover:border-ink/40 enabled:hover:text-ink enabled:active:scale-90 disabled:opacity-40"
+          disabled={page >= totalPages} onClick={() => setPage(page + 1)}><Icon name="chevron-right" size={18} /></button>
+      </div>
+    </div>
+  );
+}
+
+/** Avatar วงกลมตัวอักษรย่อ — ใช้ในฟีดกิจกรรม/หัวข้อ (ไม่มีรูปจริงก็ใช้อักษรตัวแรก) */
+export function Avatar({ name, size = 38 }: { name?: string; size?: number }) {
+  const initial = (name?.trim()?.[0] ?? '?').toUpperCase();
+  return (
+    <span className="flex shrink-0 items-center justify-center rounded-full bg-ink font-semibold text-canvas"
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}>{initial}</span>
+  );
+}
+
+export function Modal({ open, onClose, title, children, footer, size = 'lg' }: {
+  open: boolean; onClose: () => void; title: string; children: React.ReactNode;
+  footer?: React.ReactNode; // ปุ่ม action — ตรึงไว้ล่างกล่อง (ไม่เลื่อนหาย/ไม่โดนแป้นพิมพ์กิน)
+  size?: 'lg' | 'xl'; // xl = ฟอร์มยาว/หลายคอลัมน์ (เช่น เพิ่มทรัพย์)
+}) {
+  // render ผ่าน portal ไป <body> เพื่อ "หนี" ancestor ใด ๆ ที่มี transform/filter
+  // (เช่น .animate-fade-rise ที่ครอบ children) — ancestor พวกนี้ทำให้ position:fixed
+  // ยึดกับมันแทน viewport → backdrop ไม่เต็มจอ + กล่องขยับ/เลื่อนตามได้ (มือถือ/iPad)
+  // mount guard กัน SSR (document ยังไม่มีตอน render ฝั่งเซิร์ฟเวอร์)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // ล็อกพื้นหลังแบบกันได้จริงบน iOS (position:fixed) — กันหน้า/กล่อง "ขยับ/เลื่อนได้" ใต้กล่อง
+  useScrollLock(open);
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId(); // ผูก aria-labelledby → screen reader อ่านหัวข้อกล่อง
+
+  // a11y dialog มาตรฐาน (Esc ปิด · focus trap · โฟกัสเริ่มที่กล่อง · คืนโฟกัสให้ตัวที่เปิดตอนปิด)
+  // gate ด้วย mounted → effect รันหลัง portal พร้อม (panelRef ถูกเซ็ต) แม้กรณี modal เปิดมาตั้งแต่แรก
+  useFocusTrap(open && mounted, panelRef, onClose);
+
+  if (!open || !mounted) return null;
+  return createPortal(
+    // จัดกึ่งกลางจอทุกขนาด (ตามที่ผู้ใช้ขอ) — ไม่ใช่แผ่นเด้งล่างที่โดนแป้นพิมพ์กิน
+    // ใช้ 100dvh กัน address-bar/คีย์บอร์ดมือถือ; กล่องเป็น flex-col → body เลื่อนได้ หัว/ท้ายตรึง
+    // backdrop = scrim เทาเนียนสม่ำเสมอ (ink/55, dark:black/55) ให้โฟกัสที่กล่อง ไม่เห็น "รอยต่อ"
+    // overscroll-contain = กัน scroll ลามไปหน้าพื้นหลัง
+    <div className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center overflow-y-auto overscroll-contain bg-ink/55 p-4 backdrop-blur-sm dark:bg-black/55"
+      style={{ minHeight: '100dvh' }} onClick={onClose}>
+      <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}
+        className={`flex max-h-[90dvh] w-full animate-modal-in flex-col overflow-hidden rounded-xl2 bg-surface shadow-lift outline-none ${size === 'xl' ? 'max-w-2xl' : 'max-w-lg'}`} onClick={(e) => e.stopPropagation()}>
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
+          <h2 id={titleId} className="font-semibold">{title}</h2>
+          <button onClick={onClose} aria-label="ปิด" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-canvas hover:text-ink"><Icon name="x" size={20} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
+        {footer && <div className="shrink-0 border-t border-border bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{footer}</div>}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+/**
+ * ConfirmDialog — กล่องยืนยันมาตรฐาน (แทน window.confirm/prompt)
+ * - destructive: tone="danger" → ปุ่มแดงเต็ม
+ * - ขอเหตุผล: withReason → มี textarea, ส่งค่าผ่าน onConfirm(reason)
+ */
+export function ConfirmDialog({
+  open, onClose, title, message, confirmLabel = 'ยืนยัน', tone = 'default',
+  withReason, reasonLabel = 'เหตุผล (ถ้ามี)', reasonPlaceholder, busy, onConfirm,
+}: {
+  open: boolean; onClose: () => void; title: string; message?: React.ReactNode;
+  confirmLabel?: string; tone?: 'default' | 'danger'; withReason?: boolean;
+  reasonLabel?: string; reasonPlaceholder?: string; busy?: boolean;
+  onConfirm: (reason?: string) => void;
+}) {
+  const [reason, setReason] = useState('');
+  useEffect(() => { if (open) setReason(''); }, [open]);
+  return (
+    <Modal open={open} onClose={onClose} title={title}
+      footer={
+        <div className="flex justify-end gap-2">
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>ยกเลิก</button>
+          <button type="button" disabled={busy} className={tone === 'danger' ? 'btn-danger' : 'btn-gold'}
+            onClick={() => onConfirm(withReason ? (reason.trim() || undefined) : undefined)}>
+            {busy ? 'กำลังทำ…' : confirmLabel}
+          </button>
+        </div>
+      }>
+      {message && <p className="text-sm leading-relaxed text-ink-soft">{message}</p>}
+      {withReason && (
+        <label className={`block ${message ? 'mt-4' : ''}`}>
+          <span className="mb-1.5 block text-sm font-medium text-ink-soft">{reasonLabel}</span>
+          <textarea className="field h-auto py-2.5" rows={3} placeholder={reasonPlaceholder}
+            value={reason} onChange={(e) => setReason(e.target.value)} />
+        </label>
+      )}
+    </Modal>
+  );
+}
+
+export function Field({ label, error, hint, ...props }: {
+  label: string; error?: string; hint?: string;
+} & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-1.5 block text-sm font-medium text-ink-soft">{label}</span>
+      <input className={`field ${error ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} {...props} />
+      {error ? (
+        <span className="mt-1 block text-xs text-danger">{error}</span>
+      ) : hint ? (
+        <span className="mt-1 block text-xs text-muted">{hint}</span>
+      ) : null}
+    </label>
+  );
+}
+
+// MR-38: ลบ SelectField (dead export — ไม่มีผู้ใช้; ใช้ Combobox แทนทั้งหมด)
+
+/**
+ * Combobox — ช่องเลือกที่ "พิมพ์ค้นหา + เลื่อน" ได้ (สำหรับลิสต์ยาว เช่น ทรัพย์/เจ้าของ/จังหวัด)
+ * หน้าตา error/hint รูปแบบเดียวกับ Field
+ */
+export function Combobox({ label, error, hint, value, onChange, options, placeholder = '— เลือก —', disabled, searchable = true, size, onSearch, loading, loadError, onRetry }: {
+  label: string; error?: string; hint?: string;
+  value: string; onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string; disabled?: boolean;
+  searchable?: boolean;   // false = ใช้เป็น select พรีเมียม (ไม่มีช่องค้นหา) สำหรับลิสต์สั้น
+  size?: 'sm';            // sm = สูง 36px สำหรับแถบเครื่องมือ
+  onSearch?: (q: string) => void;  // MR-24: ตั้ง = ค้นหาฝั่ง server (รองรับ >100 รายการ)
+  loading?: boolean;
+  loadError?: boolean;             // โหลดตัวเลือกล้มเหลว → โชว์ "ลองใหม่" แทน "ไม่พบรายการ"
+  onRetry?: () => void;            // คู่กับ loadError
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const labelId = useId(); // a11y: ผูก label (span) กับปุ่ม combobox → screen reader อ่านชื่อช่อง
+  // จำ label ของ option ที่เคยเห็น (MR-24) — กันป้ายหายเมื่อ server-search เปลี่ยนชุด options หลังเลือก
+  const labelCache = useRef(new Map<string, string>());
+  useEffect(() => { options.forEach((o) => labelCache.current.set(o.value, o.label)); }, [options]);
+  // ตำแหน่งเมนูแบบ fixed (อ้างอิง viewport) → ไม่โดน overflow ของ modal/การ์ดตัดทิ้ง + พลิกขึ้นถ้าที่ด้านล่างไม่พอ
+  const [pos, setPos] = useState<{ left: number; width: number; top?: number; bottom?: number; maxH: number } | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const cachedLabel = value ? labelCache.current.get(value) : undefined;
+  const selected = options.find((o) => o.value === value)
+    ?? (cachedLabel ? { value, label: cachedLabel } : undefined);
+  // server-search (onSearch) → ใช้ options ที่ server กรองมาแล้ว; ไม่งั้นกรองฝั่ง client
+  const filtered = onSearch
+    ? options
+    : searchable && q.trim()
+      ? options.filter((o) => o.label.toLowerCase().includes(q.trim().toLowerCase()))
+      : options;
+
+  function place() {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const openUp = spaceBelow < 300 && r.top > spaceBelow;
+    setPos({
+      left: r.left, width: r.width,
+      top: openUp ? undefined : r.bottom + 4,
+      bottom: openUp ? window.innerHeight - r.top + 4 : undefined,
+      maxH: Math.min(320, (openUp ? r.top : spaceBelow) - 12),
+    });
+  }
+  function toggle() { if (open) { setOpen(false); return; } setQ(''); onSearch?.(''); place(); setOpen(true); }
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) setOpen(false); };
+    // เลื่อน/รีไซส์ (รวมคีย์บอร์ดมือถือเด้ง = window resize + iOS เลื่อนจอหาช่อง) → ปรับตำแหน่งเมนูให้ยังชิด trigger
+    // เดิมสั่งปิด → บนมือถือ autoFocus ช่องค้นหาทำคีย์บอร์ดขึ้น → เด้งปิดทันที เปิดใช้ไม่ได้ · ตอนนี้ = popover เลื่อนตาม
+    const onScroll = (e: Event) => { if (!menuRef.current?.contains(e.target as Node)) place(); };
+    const onResize = () => place();
+    document.addEventListener('mousedown', onDoc);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => { document.removeEventListener('mousedown', onDoc); window.removeEventListener('scroll', onScroll, true); window.removeEventListener('resize', onResize); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      {label && <span id={labelId} className="mb-1.5 block text-sm font-medium text-ink-soft">{label}</span>}
+      <button type="button" disabled={disabled} ref={btnRef} aria-labelledby={label ? labelId : undefined}
+        aria-haspopup="listbox" aria-expanded={open}
+        onClick={toggle}
+        className={`field flex items-center justify-between text-left ${size === 'sm' ? 'h-9 text-sm' : ''} ${error ? 'border-danger focus:border-danger focus:ring-danger/20' : ''} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
+        <span className={`truncate ${selected ? '' : 'text-faint'}`}>{selected ? selected.label : placeholder}</span>
+        <Icon name="chevron-down" size={16} className={`ml-2 shrink-0 text-faint transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && !disabled && pos && (
+        <div ref={menuRef} style={{ position: 'fixed', left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH }}
+          className="z-[60] flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-lift">
+          {searchable && (
+            <div className="shrink-0 border-b border-border p-2">
+              {/* autoFocus เฉพาะเมาส์ (เดสก์ท็อป) — มือถือไม่เด้งคีย์บอร์ดบังเมนูตอนเปิด (แตะช่องเองถ้าจะกรอง) */}
+              <input autoFocus={typeof window !== 'undefined' && !window.matchMedia?.('(any-pointer: coarse)').matches}
+                className="field h-9" placeholder="พิมพ์เพื่อค้นหา…" value={q}
+                onChange={(e) => { setQ(e.target.value); onSearch?.(e.target.value); }} />
+            </div>
+          )}
+          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1">
+            {loading ? (
+              <li className="px-3 py-2 text-sm text-muted">กำลังค้นหา…</li>
+            ) : loadError ? (
+              <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm text-warning">
+                <span>โหลดไม่สำเร็จ</span>
+                {onRetry && <button type="button" onClick={onRetry} className="font-medium underline">ลองใหม่</button>}
+              </li>
+            ) : filtered.length === 0 ? (
+              <li className="px-3 py-2 text-sm text-muted">ไม่พบรายการ</li>
+            ) : filtered.map((o) => (
+              <li key={o.value || '__empty'}>
+                <button type="button" onClick={() => { onChange(o.value); setOpen(false); }}
+                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-canvas ${o.value === value ? 'font-medium text-gold-dark' : ''}`}>
+                  {o.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {error ? (
+        <span className="mt-1 block text-xs text-danger">{error}</span>
+      ) : hint ? (
+        <span className="mt-1 block text-xs text-muted">{hint}</span>
+      ) : null}
+    </div>
+  );
+}
+
+/** เบอร์โทรที่ "แตะแล้วโทรเลย" — หยุด event ไม่ให้ไปชนการแตะแถว (เปิด detail) */
+export function PhoneLink({ phone, className = '' }: { phone?: string | null; className?: string }) {
+  if (!phone) return <span className={className}>—</span>;
+  return (
+    <a href={`tel:${phone.replace(/[^0-9+]/g, '')}`} onClick={(e) => e.stopPropagation()}
+      className={`inline-flex items-center gap-1 transition hover:text-gold-dark ${className}`}>
+      <Icon name="phone" size={13} className="shrink-0 opacity-60" /> {phone}
+    </a>
+  );
+}
+
+/** ตัวกรองแบบ segmented (เลือกทีละอัน) — แทน FilterChips เดิม ดูสะอาดกว่า */
+export function Segmented({ options, value, onChange }: {
+  options: { value: string; label: string }[]; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="seg max-w-full overflow-x-auto">
+      {options.map((o) => (
+        <button key={o.value || 'all'} onClick={() => onChange(o.value)}
+          className={`seg-item whitespace-nowrap ${value === o.value ? 'seg-item-on' : 'hover:text-ink'}`}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// MR-38: ลบ FilterChips (dead export — ใช้ Segmented แทนทั้งหมด)
+
+// ---------------------------------------------------------------------------
+// FilterBar — แถบค้นหา+ตัวกรองมาตรฐานเดียวทั้งระบบ
+//   ช่องค้นหาอยู่นอก (ใช้บ่อย) · ตัวกรอง+เรียงลำดับซ่อนหลังปุ่มเดียว
+//   มือถือ: แผ่นเด้งจากล่าง · จอ ≥sm: ป็อปโอเวอร์ใต้ปุ่ม
+//   ทุกตัวกรองแสดงเป็น dropdown รูปแบบเดียวกัน — เรียบ ไม่รก
+// ---------------------------------------------------------------------------
+export interface FilterDef {
+  key: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options?: { value: string; label: string }[]; // ไม่ต้องมีถ้า type='date'
+  searchable?: boolean; // ลิสต์ยาว (เช่น จังหวัด) → พิมพ์ค้นหาได้
+  type?: 'date';        // 'date' = ใช้ตัวเลือกวันที่ (native date picker) แทน dropdown
+}
+
+export interface RangeDef {
+  label: string;
+  lo: number; hi: number; min: number; max: number; step: number;
+  display: string;       // ป้ายช่วงปัจจุบัน (เช่น "฿5,000 – ฿20,000")
+  active: boolean;       // กำลังกรองอยู่ → นับ badge
+  onChange: (lo: number, hi: number) => void;
+  onClear: () => void;
+}
+
+export function FilterBar({ search, sort, filters = [], range }: {
+  search?: { value: string; onChange: (v: string) => void; placeholder?: string };
+  sort?: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] };
+  filters?: FilterDef[];
+  range?: RangeDef;       // ตัวกรองช่วงค่า (สไลเดอร์ 2 หัว) — ออปชัน ไม่ส่ง = ไม่มี
+}) {
+  const [open, setOpen] = useState(false);
+
+  // MR-24: debounce ช่องค้นหาลิสต์ → ยิง API ครั้งเดียวหลังหยุดพิมพ์ (ไม่ยิงทุกตัวอักษร)
+  const [localSearch, setLocalSearch] = useState(search?.value ?? '');
+  useEffect(() => { setLocalSearch(search?.value ?? ''); }, [search?.value]);
+  const debouncedSearch = useDebouncedValue(localSearch, 350);
+  useEffect(() => {
+    if (search && debouncedSearch !== search.value) search.onChange(debouncedSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  const defOf = (f: FilterDef) => f.options?.[0]?.value ?? ''; // date filter (ไม่มี options) → ค่าว่าง = ไม่กรอง
+  const activeCount = filters.filter((f) => f.value !== defOf(f)).length + (range?.active ? 1 : 0);
+  const clearAll = () => { filters.forEach((f) => f.onChange(defOf(f))); range?.onClear(); };
+  const hasPanel = filters.length > 0 || !!sort || !!range;
+
+  return (
+    <div className="mt-4 flex items-center gap-2">
+      {search && (
+        <input className="field min-w-0 flex-1 sm:max-w-[280px]" placeholder={search.placeholder ?? 'ค้นหา…'}
+          value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} />
+      )}
+      {hasPanel && (
+        <div className="shrink-0 sm:ml-auto">
+          <button type="button" onClick={() => setOpen(true)} aria-expanded={open}
+            className={`btn-ghost btn-sm ${activeCount ? 'border-ink text-ink' : ''}`}>
+            <Icon name="menu" size={16} /> ตัวกรอง
+            {activeCount > 0 && (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-ink px-1 text-[11px] font-medium text-canvas">{activeCount}</span>
+            )}
+          </button>
+          {/* แผ่นตัวกรองลอยกลางจอ (Modal มาตรฐานเดียวกับฟอร์ม) — ไม่เด้งล่าง ไม่ล้น เหมือนกันทุกหมวด */}
+          <Modal open={open} onClose={() => setOpen(false)} title="ตัวกรอง"
+            footer={
+              <div className="flex items-center justify-between gap-2">
+                <button type="button" onClick={clearAll} disabled={activeCount === 0}
+                  className="text-sm text-muted enabled:hover:text-ink disabled:opacity-40">
+                  ล้างตัวกรอง{activeCount > 0 ? ` (${activeCount})` : ''}
+                </button>
+                <button type="button" className="btn-gold" onClick={() => setOpen(false)}>เสร็จ</button>
+              </div>
+            }>
+            <div className="space-y-4">
+              {range && (
+                <div>
+                  <div className="mb-2 flex items-baseline justify-between">
+                    <span className="text-sm font-medium text-ink-soft">{range.label}</span>
+                    <span className="text-sm tabular-nums text-muted">{range.display}</span>
+                  </div>
+                  <PriceRange min={range.min} max={range.max} step={range.step} lo={range.lo} hi={range.hi} onChange={range.onChange} />
+                </div>
+              )}
+              {filters.map((f) => (
+                f.type === 'date' ? (
+                  <label key={f.key} className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-ink-soft">{f.label}</span>
+                    <input type="date" className="field" value={f.value} onChange={(e) => f.onChange(e.target.value)} />
+                  </label>
+                ) : (
+                  <Combobox key={f.key} label={f.label} value={f.value} onChange={f.onChange}
+                    options={f.options ?? []} searchable={f.searchable ?? false} />
+                )
+              ))}
+              {sort && (
+                <Combobox label="เรียงลำดับ" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} />
+              )}
+            </div>
+          </Modal>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ListView — รายการ responsive: ตารางบนจอใหญ่ / การ์ดบนมือถือ (อัตโนมัติ)
+//   คอลัมน์ที่ flag primary/sub/right จะปรากฏบนการ์ดมือถือ
+//   คอลัมน์ปกติจะแสดงเฉพาะตาราง desktop
+// ---------------------------------------------------------------------------
+export interface Col<T> {
+  header: string;
+  cell: (it: T) => React.ReactNode;
+  primary?: boolean; // มือถือ: หัวการ์ด (ตัวหนา)
+  sub?: boolean;     // มือถือ: บรรทัดรอง (เล็ก/จาง)
+  right?: boolean;   // desktop ชิดขวา + มือถือไปอยู่มุมขวาบน
+  width?: string;    // desktop: คุมความกว้างคอลัมน์ (เช่น 'w-32') ให้ชิด ไม่ถ่าง
+}
+
+export function ListView<T>({
+  items, cols, keyOf, onRow, loading, empty, emptyIcon, emptyAction, leading,
+}: {
+  items: T[];
+  cols: Col<T>[];
+  keyOf: (it: T) => string;
+  onRow?: (it: T) => void;
+  loading?: boolean;
+  empty?: string;
+  emptyIcon?: IconName;
+  emptyAction?: React.ReactNode; // ปุ่มชวนทำต่อตอนว่าง (เช่น "เพิ่ม…" เมื่อยังไม่มีข้อมูล / "ล้างตัวกรอง" เมื่อกรองแล้วไม่เจอ)
+  leading?: (it: T) => React.ReactNode; // ภาพ/ไอคอนนำหน้า — จัดให้ข้อความ (หัว+รอง) เรียงขอบเดียวกันถัดจากภาพ
+}) {
+  // โหลดครั้งแรก (ยังไม่มีข้อมูล) → skeleton เต็มหน้า (PAGE_SIZE แถว) เพื่อสำรองความสูง = หน้าจริง
+  if (loading && items.length === 0) return <ListSkeleton rows={PAGE_SIZE} />;
+  if (!loading && items.length === 0) return <EmptyState text={empty ?? 'ยังไม่มีข้อมูล'} icon={emptyIcon} action={emptyAction} />;
+
+  const primary = cols.find((c) => c.primary);
+  const subs = cols.filter((c) => c.sub);
+  const rights = cols.filter((c) => c.right);
+
+  // เปลี่ยนหน้า: คงแถวเดิมไว้ (จางลง) จนข้อมูลใหม่มา → ความสูงไม่หด/กระโดด → ปุ่มลูกศรอยู่จุดเดิม
+  return (
+    <div className={loading ? 'pointer-events-none opacity-50 transition-opacity duration-150' : 'transition-opacity duration-150'}>
+      {/* เดสก์ท็อป (เมาส์/แทร็กแพด): ตาราง */}
+      <div className="hidden overflow-x-auto mouse:block">
+        <table className="w-full text-sm">
+          <thead className="text-left text-xs uppercase tracking-wide text-muted">
+            <tr className="border-b border-border">
+              {leading && <th className="w-[68px] py-3 pl-5" aria-hidden />}
+              {cols.map((c, i) => (
+                <th key={i} scope="col" className={`px-5 py-3 font-medium ${c.right ? 'text-right' : ''} ${c.width ?? ''}`}>{c.header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it) => (
+              <tr key={keyOf(it)}
+                className={`border-b border-border last:border-0 ${onRow ? 'cursor-pointer hover:bg-canvas' : ''}`}
+                onClick={onRow ? () => onRow(it) : undefined}>
+                {leading && <td className="py-3.5 pl-5">{leading(it)}</td>}
+                {cols.map((c, i) => (
+                  <td key={i} className={`py-3.5 ${c.right ? 'text-right' : ''} ${leading && i === 0 ? 'pl-3 pr-5' : 'px-5'}`}>{c.cell(it)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* สัมผัส (มือถือ/แท็บเล็ต): การ์ด — กริด 1 คอลัมน์ (มือถือ) → 2 คอลัมน์ (จอกว้าง/ไอแพด)
+          ใช้พื้นที่คุ้ม ไม่ยืด UI มือถือ · การ์ดยืนเดี่ยว (page wrapper เป็น card เฉพาะ mouse → ไม่ซ้อน card) */}
+      <ul className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:gap-3.5 sm:p-4 lg:grid-cols-3 mouse:hidden">
+        {items.map((it) => (
+          <li key={keyOf(it)}
+            className={`card flex items-start gap-3 p-4 ${onRow ? 'cursor-pointer transition duration-200 ease-standard hover:border-gold/40 hover:shadow-lift active:scale-[0.99] active:bg-canvas' : ''}`}
+            onClick={onRow ? () => onRow(it) : undefined}>
+            {leading && <div className="shrink-0">{leading(it)}</div>}
+            <div className="min-w-0 flex-1">
+              {primary && <div className="truncate font-medium">{primary.cell(it)}</div>}
+              {subs.map((c, i) => (
+                <div key={i} className="truncate text-xs text-muted">{c.cell(it)}</div>
+              ))}
+            </div>
+            {rights.length > 0 && (
+              <div className="flex shrink-0 flex-col items-end gap-1 text-right text-sm">
+                {rights.map((c, i) => <div key={i}>{c.cell(it)}</div>)}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

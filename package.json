@@ -1,0 +1,25 @@
+{
+  "name": "ros",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ROS — Real Estate Operating System (monorepo)",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "db"
+  ],
+  "scripts": {
+    "db:generate": "node db/node_modules/prisma/build/index.js generate --schema db/prisma/schema.prisma",
+    "db:migrate": "npm run db:migrate -w @ros/db",
+    "db:seed": "npm run db:seed -w @ros/db",
+    "db:studio": "npm run db:studio -w @ros/db",
+    "api:dev": "npm run start:dev -w @ros/api",
+    "api:build": "npm run build -w @ros/api"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  }
+}

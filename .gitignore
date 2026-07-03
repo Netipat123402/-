@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnp.*
+
+# build output
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# prisma generated client
+**/.prisma/
+**/generated/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# logs
+*.log
+npm-debug.log*
+
+# runtime pids/logs ของ control scripts
+.run/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# uploaded files (dev local storage)
+apps/api/uploads/
+
+# backup (MR-01) — config with secrets + local artifacts (ไม่ commit)
+infra/backup/backup.env
+infra/backup/launchd.*.log

@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Design tokens (RGB channels) — LIGHT · web-public ใช้โทนสว่างเสมอ (ไม่มีโหมดมืด) */
+  :root {
+    --c-ink: 26 26 26;
+    --c-ink-soft: 68 64 60;
+    --c-gold: 184 153 104;
+    --c-gold-dark: 160 127 79;
+    --c-gold-light: 196 163 90;
+    --c-surface: 253 253 252;
+    --c-canvas: 250 250 249;
+    --c-border: 231 229 226;
+    --c-muted: 120 113 108;
+    --c-faint: 168 162 158;
+    --c-success: 46 125 91;
+    --c-info: 59 110 143;
+  }
+  body { @apply bg-canvas text-ink antialiased; }
+  * { min-width: 0; }
+  /* a11y: โฟกัสคีย์บอร์ดเห็นชัดทุก control */
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #B89968;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .card { @apply rounded-card border border-border bg-surface shadow-card; }
+  .btn { @apply inline-flex h-12 items-center justify-center gap-2 rounded-lg px-5 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100; }
+  .btn-gold { @apply btn bg-gold text-white hover:bg-gold-dark; }
+  .btn-ink { @apply btn bg-ink text-white hover:bg-ink/90; }
+  .btn-line { @apply btn text-white; background-color: #06C755; }
+  .btn-outline { @apply btn border border-border bg-surface text-ink hover:bg-canvas; }
+  .btn-ghost { @apply btn border border-border bg-surface text-ink hover:bg-canvas; }
+  .btn-sm { @apply h-10 px-4; }
+  /* ช่องกรอก: 16px บนมือถือ (กัน iOS auto-zoom) → 14px จอ ≥sm */
+  .field { @apply h-12 w-full rounded-lg border border-border bg-surface px-3.5 text-base outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 sm:text-sm; }
+
+  /* dual-thumb price range — สองหัวบนรางเดียว (ต่ำสุด–สูงสุด) */
+  .range-dual { @apply pointer-events-none absolute inset-x-0 top-1/2 h-5 w-full -translate-y-1/2 appearance-none bg-transparent; }
+  .range-dual::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; pointer-events: auto;
+    height: 20px; width: 20px; border-radius: 9999px;
+    border: 2px solid rgb(var(--c-gold)); background: #fff; cursor: grab;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  }
+  .range-dual::-webkit-slider-thumb:active { cursor: grabbing; }
+  .range-dual::-moz-range-thumb {
+    pointer-events: auto; height: 20px; width: 20px; border-radius: 9999px;
+    border: 2px solid rgb(var(--c-gold)); background: #fff; cursor: grab;
+  }
+}
+
+@layer utilities {
+  /* A2: เนื้อหาเข้าจอแบบ fade + ยกเบา ๆ (รู้สึกลื่น/พรีเมียม) — เคารพ prefers-reduced-motion */
+  @keyframes fade-rise {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: none; }
+  }
+  /* fill = backwards (ไม่ใช่ both): กันจอกระพริบตอนเข้า แต่ไม่ "ค้าง" transform ไว้หลังจบ
+     — transform ที่ค้าง (แม้ identity) จะกลายเป็น containing block ดักจับ position:fixed
+       ทำให้ overlay เต็มจอ เช่น Lightbox/SearchBar ไม่เต็มจอ/ขยับตามได้ (มือถือ/iPad) */
+  .animate-fade-rise { animation: fade-rise 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-rise { animation: none; }
+  }
+}

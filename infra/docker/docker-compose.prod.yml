@@ -1,0 +1,213 @@
+# ============================================================================
+# ROS — Production stack (MR-02) · Single VPS / Docker Compose
+# Deploy จาก image ที่ build จาก Dockerfile (ไม่ใช่ `npm run dev`)
+#
+# ใช้งาน (จาก repo root):
+#   cp infra/docker/.env.prod.example infra/docker/.env.prod   # แล้วแก้ค่า
+#   docker compose -f infra/docker/docker-compose.prod.yml --env-file infra/docker/.env.prod build
+#   docker compose -f infra/docker/docker-compose.prod.yml --env-file infra/docker/.env.prod up -d
+#   # ครั้งแรก: seed ข้อมูลตั้งต้น (roles/permissions/admin)
+#   docker compose -f infra/docker/docker-compose.prod.yml --env-file infra/docker/.env.prod \
+#       run --rm migrate npm run db:seed -w @ros/db
+#
+# หมายเหตุ: TLS/reverse-proxy (Caddy) = MR-07 (ยังไม่รวมที่นี่ตามวินัย one-issue).
+#           ตอนนี้ expose พอร์ตตรงเพื่อทดสอบ — ก่อนเปิดสาธารณะจริงต้องทำ MR-07 ก่อน.
+# ============================================================================
+
+x-build-context: &build-context
+  context: ../..        # repo root (compose file อยู่ใน infra/docker/)
+
+services:
+  # ---- PostgreSQL ----
+  postgres:
+    image: postgres:16-alpine
+    container_name: ros-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ros}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?ต้องตั้ง POSTGRES_PASSWORD ใน .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-ros}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ros} -d ${POSTGRES_DB:-ros}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---- one-shot: รัน migration ก่อน api ขึ้น ----
+  migrate:
+    build:
+      <<: *build-context
+      dockerfile: apps/api/Dockerfile
+    image: ros-api:latest
+    container_name: ros-migrate
+    working_dir: /app
+    command: ["npx", "prisma", "migrate", "deploy", "--schema", "db/prisma/schema.prisma"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # ---- API (NestJS) ----
+  api:
+    build:
+      <<: *build-context
+      dockerfile: apps/api/Dockerfile
+    image: ros-api:latest
+    container_name: ros-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?required}
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?required}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?required}
+      WEB_PUBLIC_REVALIDATE_URL: ${WEB_PUBLIC_REVALIDATE_URL:-http://web-public:3000/api/revalidate}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # observability (MR-03)
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
+      # storage (MR-04) — s3=MinIO
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-ros-files}
+      STORAGE_PUBLIC_URL: ${STORAGE_PUBLIC_URL:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-ros_minio}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?required}
+      S3_FORCE_PATH_STYLE: "true"
+      # reverse proxy (MR-07) — req.ip จาก X-Forwarded-For
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+    volumes:
+      # uploads volume = fallback ตอน STORAGE_DRIVER=local เท่านั้น (s3 ไม่ใช้)
+      - api_uploads:/app/apps/api/uploads
+    # ไม่ expose host port — เข้าผ่าน Caddy (443) ที่ {$API_DOMAIN} เท่านั้น (MR-07)
+    expose:
+      - "4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+
+  # ---- web-admin (Next.js CSR) ----
+  web-admin:
+    build:
+      <<: *build-context
+      dockerfile: apps/web-admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:4000/api/v1}
+    image: ros-web-admin:latest
+    container_name: ros-web-admin
+    restart: unless-stopped
+    # ไม่ expose host port — เข้าผ่าน Caddy (443) เท่านั้น (MR-07)
+    expose:
+      - "3001"
+    depends_on:
+      - api
+
+  # ---- web-public (Next.js SSR/ISR) ----
+  web-public:
+    build:
+      <<: *build-context
+      dockerfile: apps/web-public/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:4000/api/v1}
+        API_BASE_INTERNAL: ${API_BASE_INTERNAL:-http://api:4000/api/v1}
+    image: ros-web-public:latest
+    container_name: ros-web-public
+    restart: unless-stopped
+    # ไม่ expose host port — เข้าผ่าน Caddy (443) เท่านั้น (MR-07)
+    expose:
+      - "3000"
+    depends_on:
+      - api
+
+  # ---- MinIO object storage (MR-04) ----
+  minio:
+    image: minio/minio:latest
+    container_name: ros-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-ros_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?required}
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # one-shot: สร้าง bucket + เปิด public-read เฉพาะ prefix properties/ (รูปทรัพย์) — MR-04
+  minio-init:
+    image: minio/mc:latest
+    container_name: ros-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set ros http://minio:9000 ${MINIO_ROOT_USER:-ros_minio} ${MINIO_ROOT_PASSWORD} &&
+      mc mb --ignore-existing ros/${STORAGE_BUCKET:-ros-files} &&
+      mc anonymous set download ros/${STORAGE_BUCKET:-ros-files}/properties &&
+      mc mb --ignore-existing ros/${BACKUP_BUCKET:-ros-backups} &&
+      echo 'minio buckets ready';
+      "
+    restart: "no"
+
+  # ---- Caddy reverse proxy + auto TLS (MR-07) — ทางเข้าเดียว (443) ----
+  caddy:
+    image: caddy:2-alpine
+    container_name: ros-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?required}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:?required}
+      API_DOMAIN: ${API_DOMAIN:?required}
+      ACME_EMAIL: ${ACME_EMAIL:?required}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data       # certs (ต่ออายุอัตโนมัติ) — เก็บถาวร
+      - caddy_config:/config
+    depends_on:
+      - api
+      - web-admin
+      - web-public
+
+  # ---- prepared สำหรับ MR-41 (Redis) — ปิดด้วย profile ----
+  redis:
+    image: redis:7-alpine
+    container_name: ros-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-ros_dev_redis}
+    volumes:
+      - redis_data:/data
+    profiles: ["future"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  api_uploads:
+  caddy_data:
+  caddy_config:

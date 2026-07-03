@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ROS Backup — macOS launchd job (สำรองข้อมูลอัตโนมัติทุกวัน 02:00)
+  ใช้แทน cron บน macOS (Postgres.app) — เครื่อง dev/single-VPS-แบบ Mac
+
+  ติดตั้ง:
+    1) แก้ <PROJECT_ROOT> ด้านล่างให้เป็น absolute path ของโปรเจกต์จริง
+    2) cp com.ros.backup.plist ~/Library/LaunchAgents/com.ros.backup.plist
+    3) launchctl load  ~/Library/LaunchAgents/com.ros.backup.plist
+    ตรวจ : launchctl list | grep com.ros.backup
+    ถอน  : launchctl unload ~/Library/LaunchAgents/com.ros.backup.plist
+
+  (บน Linux VPS ใช้ crontab แทน — ดู README.md)
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ros.backup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string><PROJECT_ROOT>/infra/backup/backup.sh</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key><integer>2</integer>
+        <key>Minute</key><integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string><PROJECT_ROOT>/infra/backup/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string><PROJECT_ROOT>/infra/backup/launchd.err.log</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
