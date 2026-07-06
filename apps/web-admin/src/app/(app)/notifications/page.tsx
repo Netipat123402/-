@@ -111,7 +111,7 @@ export default function NotificationsPage() {
               const unread = n.status !== 'read';
               const href = entityHref(n.entityType, n.entityId);
               const Body = (
-                <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-canvas`}>
+                <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-raised`}>
                   {unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />}
                   <div className={`min-w-0 flex-1 ${unread ? '' : 'pl-5'}`}>
                     <div className="flex items-center gap-2">
@@ -202,12 +202,12 @@ function CatChip({ label, icon, unread, on, onClick }: {
   return (
     <button type="button" onClick={onClick}
       className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
-        on ? 'border-ink bg-ink text-canvas' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
+        on ? 'border-gold bg-gold/15 text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
       }`}>
       <Icon name={icon} size={16} className={on ? '' : 'text-faint'} />
       {label}
       {unread > 0 && (
-        <span className={`rounded-full px-1.5 text-[11px] font-semibold ${on ? 'bg-white/20' : 'bg-gold/15 text-gold-dark'}`}>{unread}</span>
+        <span className={`rounded-full px-1.5 text-[11px] font-semibold ${on ? 'bg-gold/30 text-gold-dark' : 'bg-gold/15 text-gold-dark'}`}>{unread}</span>
       )}
     </button>
   );

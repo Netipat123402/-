@@ -137,13 +137,13 @@ export default function CalendarPage() {
               return (
                 <button key={i} onClick={() => setSelected(k)}
                   className={`flex aspect-square min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition sm:rounded-xl ${
-                    isSel ? 'bg-ink font-medium text-canvas shadow-sm' : isToday ? 'text-gold-dark ring-1 ring-gold' : 'hover:bg-canvas'
+                    isSel ? 'bg-gold font-medium text-[#1c1b18] shadow-sm' : isToday ? 'text-gold-dark ring-1 ring-gold' : 'hover:bg-raised'
                   }`}>
                   <span>{d.getDate()}</span>
                   {items.length > 0 && (
                     <span className="flex h-1 items-center gap-0.5">
                       {Array.from({ length: Math.min(items.length, 3) }).map((_, j) => (
-                        <span key={j} className={`h-1 w-1 rounded-full ${isSel ? 'bg-white/80' : 'bg-gold'}`} />
+                        <span key={j} className={`h-1 w-1 rounded-full ${isSel ? 'bg-[#1c1b18]/70' : 'bg-gold'}`} />
                       ))}
                     </span>
                   )}

@@ -22,8 +22,10 @@ module.exports = {
         ink: { DEFAULT: 'rgb(var(--c-ink) / <alpha-value>)', soft: 'rgb(var(--c-ink-soft) / <alpha-value>)' },
         gold: { DEFAULT: 'rgb(var(--c-gold) / <alpha-value>)', dark: 'rgb(var(--c-gold-dark) / <alpha-value>)', light: 'rgb(var(--c-gold-light) / <alpha-value>)' },
         surface: 'rgb(var(--c-surface) / <alpha-value>)',
+        raised: 'rgb(var(--c-raised) / <alpha-value>)',
         canvas: 'rgb(var(--c-canvas) / <alpha-value>)',
         border: 'rgb(var(--c-border) / <alpha-value>)',
+        'border-strong': 'rgb(var(--c-border-strong) / <alpha-value>)',
         muted: 'rgb(var(--c-muted) / <alpha-value>)',
         faint: 'rgb(var(--c-faint) / <alpha-value>)',
         success: 'rgb(var(--c-success) / <alpha-value>)',
@@ -34,7 +36,8 @@ module.exports = {
       fontFamily: {
         sans: ['"IBM Plex Sans Thai"', 'Inter', 'system-ui', 'sans-serif'],
       },
-      borderRadius: { card: '12px', xl2: '16px' },
+      // Redesign v2: มุมโค้งใหญ่ขึ้น (สไตล์แอพ Claude) — card 16, xl2 20
+      borderRadius: { card: '16px', xl2: '20px' },
       boxShadow: {
         card: '0 1px 3px rgba(0,0,0,0.06)',
       },

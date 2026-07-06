@@ -175,7 +175,7 @@ export default function DocumentSection({
                           </button>
                           {hasMenu && (
                             <button aria-label="จัดการเอกสาร" aria-expanded={expanded}
-                              className="-mr-1 shrink-0 rounded-lg p-1 text-muted transition hover:bg-canvas hover:text-ink"
+                              className="-mr-1 shrink-0 rounded-lg p-1 text-muted transition hover:bg-raised hover:text-ink"
                               onClick={() => setExpandedId(expanded ? null : d.id)}>
                               <Icon name="chevron-down" size={16} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
                             </button>

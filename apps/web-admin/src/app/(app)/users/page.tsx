@@ -183,7 +183,7 @@ export default function UsersPage() {
                     <Combobox label="สถานะ" searchable={false} value={edit?.status ?? ''}
                       onChange={(v) => setEdit((e) => e && { ...e, status: v })}
                       options={[{ value: 'active', label: 'ใช้งาน' }, { value: 'suspended', label: 'ระงับการใช้งาน' }]} />
-                    <button className="btn-primary w-full" disabled={savingEdit} onClick={saveEdit}>บันทึกการแก้ไข</button>
+                    <button className="btn-gold w-full" disabled={savingEdit} onClick={saveEdit}>บันทึกการแก้ไข</button>
                   </>
                 )}
                 <div className="pt-1">

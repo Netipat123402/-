@@ -11,7 +11,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/"
-        className="mt-6 inline-flex h-11 items-center rounded-lg bg-gold px-5 text-sm font-medium text-white transition hover:bg-gold-dark"
+        className="mt-6 inline-flex h-11 items-center rounded-lg bg-gold px-5 text-sm font-medium text-[#1c1b18] transition hover:bg-gold-light"
       >
         กลับหน้าหลัก
       </Link>

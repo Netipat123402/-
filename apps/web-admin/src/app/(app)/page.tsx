@@ -42,7 +42,7 @@ function AgendaSection({ title, icon, href, hrefLabel, count, children }: {
 function Row({ left, right, href }: { left: React.ReactNode; right: React.ReactNode; href?: string }) {
   const inner = <><span className="min-w-0 flex-1 truncate">{left}</span><span className="shrink-0">{right}</span></>;
   return href
-    ? <li><Link href={href} className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm hover:bg-canvas">{inner}</Link></li>
+    ? <li><Link href={href} className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm hover:bg-raised">{inner}</Link></li>
     : <li className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm">{inner}</li>;
 }
 
@@ -125,7 +125,7 @@ export default function DashboardPage() {
       <div className="mt-6 grid grid-cols-2 gap-3.5 sm:grid-cols-4 sm:gap-4">
         {kpis.map((c) => (
           <Link key={c.label} href={c.href}
-            className="card flex flex-col items-center gap-1.5 px-3 py-6 text-center transition hover:border-gold/40 hover:shadow-lift">
+            className="card flex flex-col items-center gap-1.5 px-3 py-6 text-center transition hover:border-gold/40 hover:bg-raised hover:shadow-lift">
             <Icon name={c.icon} size={18} className="text-faint" />
             <span className="mt-1 text-[30px] font-semibold leading-none tracking-tight tabular-nums">{loading ? '—' : bahtFormat(c.value)}</span>
             <span className="text-xs text-muted">{c.label}</span>

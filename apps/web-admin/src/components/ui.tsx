@@ -140,7 +140,7 @@ export function InfoRow({
     </div>
   );
 
-  const interactiveCls = 'group block outline-none transition hover:bg-canvas/60 focus-visible:bg-canvas focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold';
+  const interactiveCls = 'group block outline-none transition hover:bg-raised/60 focus-visible:bg-raised focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold';
   if (href) return <Link href={href} className={`${interactiveCls} ${className}`}>{inner}</Link>;
   if (onClick) return <button type="button" onClick={onClick} className={`${interactiveCls} w-full text-left ${className}`}>{inner}</button>;
   return <div className={className}>{inner}</div>;
@@ -175,7 +175,7 @@ export function InfoGroup({
     </>
   );
   if (bare) return <div className={className}>{body}</div>;
-  return <section className={`overflow-hidden rounded-xl border border-border bg-surface pb-1 ${className}`}>{body}</section>;
+  return <section className={`overflow-hidden rounded-card border border-border bg-surface pb-1 ${className}`}>{body}</section>;
 }
 
 /**
@@ -294,11 +294,11 @@ export function MoreMenu({
       {open && pos && createPortal(
         <div ref={menuRef} role="menu"
           style={{ position: 'fixed', left: pos.left, width: MENU_W, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH }}
-          className="z-[60] overflow-y-auto overscroll-contain rounded-lg border border-border bg-surface py-1 shadow-lift">
+          className="z-[60] overflow-y-auto overscroll-contain rounded-xl2 border border-border bg-surface py-1 shadow-lift">
           {items.map((it, i) => (
             <button key={i} type="button" role="menuitem" disabled={it.disabled}
               onClick={() => { setOpen(false); it.onClick(); }}
-              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-canvas disabled:pointer-events-none disabled:opacity-40 ${it.danger ? 'text-danger' : 'text-ink'}`}>
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-raised disabled:pointer-events-none disabled:opacity-40 ${it.danger ? 'text-danger' : 'text-ink'}`}>
               {it.icon && <Icon name={it.icon} size={16} className="shrink-0 opacity-70" />}
               {it.label}
             </button>
@@ -332,11 +332,12 @@ export function Pagination({ meta, page, setPage, limit = PAGE_SIZE }: {
   );
 }
 
-/** Avatar วงกลมตัวอักษรย่อ — ใช้ในฟีดกิจกรรม/หัวข้อ (ไม่มีรูปจริงก็ใช้อักษรตัวแรก) */
+/** Avatar วงกลมตัวอักษรย่อ — ใช้ในฟีดกิจกรรม/หัวข้อ (ไม่มีรูปจริงก็ใช้อักษรตัวแรก)
+ *  v2 a11y: bg-ink-soft (warm gray) แทน bg-ink — มีน้ำหนักทั้ง light (วงเข้ม) และ dark (เทา muted ไม่ขาวจ้า) */
 export function Avatar({ name, size = 38 }: { name?: string; size?: number }) {
   const initial = (name?.trim()?.[0] ?? '?').toUpperCase();
   return (
-    <span className="flex shrink-0 items-center justify-center rounded-full bg-ink font-semibold text-canvas"
+    <span className="flex shrink-0 items-center justify-center rounded-full bg-ink-soft font-semibold text-canvas"
       style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}>{initial}</span>
   );
 }
@@ -386,10 +387,10 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
     <div className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center overflow-y-auto overscroll-contain bg-ink/55 p-4 backdrop-blur-sm dark:bg-black/55"
       style={{ minHeight: '100dvh' }} onClick={requestClose}>
       <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}
-        className={`flex max-h-[90dvh] w-full animate-modal-in flex-col overflow-hidden rounded-xl2 bg-surface shadow-lift outline-none ${size === 'xl' ? 'max-w-2xl' : 'max-w-lg'}`} onClick={(e) => e.stopPropagation()}>
+        className={`flex max-h-[90dvh] w-full animate-modal-in flex-col overflow-hidden rounded-xl2 border border-border bg-surface shadow-lift outline-none ${size === 'xl' ? 'max-w-2xl' : 'max-w-lg'}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h2 id={titleId} className="font-semibold">{title}</h2>
-          <button onClick={requestClose} aria-label="ปิด" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-canvas hover:text-ink"><Icon name="x" size={20} /></button>
+          <button onClick={requestClose} aria-label="ปิด" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
         {footer && <div className="shrink-0 border-t border-border bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{footer}</div>}
@@ -539,7 +540,7 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
       </button>
       {open && !disabled && pos && (
         <div ref={menuRef} style={{ position: 'fixed', left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH }}
-          className="z-[60] flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-lift">
+          className="z-[60] flex flex-col overflow-hidden rounded-xl2 border border-border bg-surface shadow-lift">
           {searchable && (
             <div className="shrink-0 border-b border-border p-2">
               {/* autoFocus เฉพาะเมาส์ (เดสก์ท็อป) — มือถือไม่เด้งคีย์บอร์ดบังเมนูตอนเปิด (แตะช่องเองถ้าจะกรอง) */}
@@ -561,7 +562,7 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
             ) : filtered.map((o) => (
               <li key={o.value || '__empty'}>
                 <button type="button" onClick={() => { onChange(o.value); setOpen(false); }}
-                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-canvas ${o.value === value ? 'font-medium text-gold-dark' : ''}`}>
+                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-raised ${o.value === value ? 'font-medium text-gold-dark' : ''}`}>
                   {o.label}
                 </button>
               </li>
@@ -663,10 +664,10 @@ export function FilterBar({ search, sort, filters = [], range }: {
       {hasPanel && (
         <div className="shrink-0 sm:ml-auto">
           <button type="button" onClick={() => setOpen(true)} aria-expanded={open}
-            className={`btn-ghost btn-sm ${activeCount ? 'border-ink text-ink' : ''}`}>
+            className={`btn-ghost btn-sm ${activeCount ? 'border-gold text-gold-dark' : ''}`}>
             <Icon name="menu" size={16} /> ตัวกรอง
             {activeCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-ink px-1 text-[11px] font-medium text-canvas">{activeCount}</span>
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-[11px] font-medium text-[#1c1b18]">{activeCount}</span>
             )}
           </button>
           {/* แผ่นตัวกรองลอยกลางจอ (Modal มาตรฐานเดียวกับฟอร์ม) — ไม่เด้งล่าง ไม่ล้น เหมือนกันทุกหมวด */}
@@ -764,7 +765,7 @@ export function ListView<T>({
           <tbody>
             {items.map((it) => (
               <tr key={keyOf(it)}
-                className={`border-b border-border last:border-0 ${onRow ? 'cursor-pointer hover:bg-canvas' : ''}`}
+                className={`border-b border-border last:border-0 ${onRow ? 'cursor-pointer transition hover:bg-raised' : ''}`}
                 onClick={onRow ? () => onRow(it) : undefined}>
                 {leading && <td className="py-3.5 pl-5">{leading(it)}</td>}
                 {cols.map((c, i) => (
@@ -781,7 +782,7 @@ export function ListView<T>({
       <ul className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 sm:gap-3.5 sm:p-4 lg:grid-cols-3 mouse:hidden">
         {items.map((it) => (
           <li key={keyOf(it)}
-            className={`card flex items-start gap-3 p-4 ${onRow ? 'cursor-pointer transition duration-200 ease-standard hover:border-gold/40 hover:shadow-lift active:scale-[0.99] active:bg-canvas' : ''}`}
+            className={`card flex items-start gap-3 p-4 ${onRow ? 'cursor-pointer transition duration-200 ease-standard hover:border-gold/40 hover:bg-raised active:scale-[0.99]' : ''}`}
             onClick={onRow ? () => onRow(it) : undefined}>
             {leading && <div className="shrink-0">{leading(it)}</div>}
             <div className="min-w-0 flex-1">

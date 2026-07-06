@@ -117,7 +117,7 @@ export default function PropertyDetailPage() {
           <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
         )}
         {p.status === 'draft' && !can('property', 'approve') && can('property', 'change_status') && (
-          <button className="btn-primary btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/submit-review`, { method: 'POST', body: '{}' }), 'ส่งให้หัวหน้าเผยแพร่แล้ว')}>ขอเผยแพร่</button>
+          <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/submit-review`, { method: 'POST', body: '{}' }), 'ส่งให้หัวหน้าเผยแพร่แล้ว')}>ขอเผยแพร่</button>
         )}
         {p.status !== 'draft' && can('property', 'update') && (
           <button className="btn-gold btn-sm" disabled={busy} onClick={openEdit}>แก้ไขข้อมูล</button>
@@ -218,16 +218,16 @@ export default function PropertyDetailPage() {
                 {has && (
                   <>
                     <button aria-label="รูปก่อนหน้า" onClick={() => setImgIdx((idx - 1 + p.media.length) % p.media.length)}
-                      className="absolute left-2.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white backdrop-blur-sm transition duration-150 hover:bg-ink/70 active:scale-90 active:bg-ink/80"><Icon name="chevron-left" size={20} /></button>
+                      className="absolute left-2.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75"><Icon name="chevron-left" size={20} /></button>
                     <button aria-label="รูปถัดไป" onClick={() => setImgIdx((idx + 1) % p.media.length)}
-                      className="absolute right-2.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white backdrop-blur-sm transition duration-150 hover:bg-ink/70 active:scale-90 active:bg-ink/80"><Icon name="chevron-right" size={20} /></button>
-                    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-ink/55 px-2.5 py-1 text-xs font-medium text-white">{idx + 1} / {p.media.length}</span>
+                      className="absolute right-2.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75"><Icon name="chevron-right" size={20} /></button>
+                    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white">{idx + 1} / {p.media.length}</span>
                   </>
                 )}
-                {active.isCover && <span className="absolute left-3 top-3 z-10 badge bg-gold text-white">ปก</span>}
+                {active.isCover && <span className="absolute left-3 top-3 z-10 badge bg-gold text-[#1c1b18]">ปก</span>}
                 {can('property', 'update') && (
                   <div className="absolute right-3 top-3 z-10 flex gap-1.5 opacity-0 transition group-hover:opacity-100">
-                    {!active.isCover && <button className="rounded-lg bg-ink/65 px-2.5 py-1 text-xs text-white hover:bg-ink/85" onClick={() => run(() => api(`/properties/${p.id}/media/${active.id}/cover`, { method: 'POST', body: '{}' }))}>ตั้งเป็นปก</button>}
+                    {!active.isCover && <button className="rounded-lg bg-black/60 px-2.5 py-1 text-xs text-white hover:bg-black/80" onClick={() => run(() => api(`/properties/${p.id}/media/${active.id}/cover`, { method: 'POST', body: '{}' }))}>ตั้งเป็นปก</button>}
                     <button className="rounded-lg bg-danger/85 px-2.5 py-1 text-xs text-white hover:bg-danger" onClick={() => run(async () => { await api(`/properties/${p.id}/media/${active.id}`, { method: 'DELETE' }); setImgIdx(0); })}>ลบ</button>
                   </div>
                 )}

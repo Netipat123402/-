@@ -313,7 +313,7 @@ export default function AppointmentsPage() {
               {active.status === 'upcoming' ? (
                 <div className="space-y-2">
                   {can('appointment', 'change_status') && (
-                    <button className="btn-primary w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
+                    <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
                   )}
                   {can('appointment', 'change_status') && (
                     <div className="flex gap-2">
