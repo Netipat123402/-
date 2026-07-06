@@ -69,7 +69,20 @@ export class PropertyRepository {
       where: { AND: [scopeWhere, { id }] },
       include: {
         media: { where: { deletedAt: null }, orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }] },
-        owner: { select: { id: true, fullName: true, phone: true } },
+        // Phase 11: การ์ดเจ้าของ = ชื่อ/เบอร์/อีเมล/จำนวนทรัพย์ที่ถือ (additive)
+        owner: {
+          select: {
+            id: true, fullName: true, phone: true, email: true,
+            _count: { select: { properties: { where: { deletedAt: null } } } },
+          },
+        },
+        // Phase 13: สัญญาที่ยัง live (active) — โชว์ลิงก์แทนทางตัน + ใช้ตัดสิน guard สถานะ (additive)
+        contracts: {
+          where: { status: 'active', deletedAt: null },
+          select: { id: true, code: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
       },
     });
   }

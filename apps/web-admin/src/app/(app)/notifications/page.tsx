@@ -22,9 +22,19 @@ const CATEGORY_TH: Record<string, { label: string; color: string; icon: IconName
 // ลำดับหมวดที่อยากให้แสดงก่อน (หมวดอื่นต่อท้าย)
 const CAT_ORDER = ['property', 'appointment', 'lead', 'contract', 'user', 'system'];
 
-const ENTITY_LINK: Record<string, string> = {
-  lead: '/leads', property: '/properties', appointment: '/appointments', contract: '/contracts',
-};
+// deep-link ไป entity "ถูกตัว" (Phase 50): lead/appointment ใช้ ?focus= (เปิด modal) · ที่มีหน้า detail ใช้ /:id
+function entityHref(entityType?: string, entityId?: string): string | undefined {
+  if (!entityType || !entityId) return undefined;
+  switch (entityType) {
+    case 'lead': return `/leads?focus=${entityId}`;
+    case 'appointment': return `/appointments?focus=${entityId}`;
+    case 'property': return `/properties/${entityId}`;
+    case 'contract': return `/contracts/${entityId}`;
+    case 'owner': return `/owners/${entityId}`;
+    case 'customer': return `/customers/${entityId}`;
+    default: return undefined;
+  }
+}
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -99,7 +109,7 @@ export default function NotificationsPage() {
             {visible.map((n) => {
               const c = CATEGORY_TH[n.category] ?? CATEGORY_TH.system;
               const unread = n.status !== 'read';
-              const href = n.entityType ? ENTITY_LINK[n.entityType] : undefined;
+              const href = entityHref(n.entityType, n.entityId);
               const Body = (
                 <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-canvas`}>
                   {unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />}

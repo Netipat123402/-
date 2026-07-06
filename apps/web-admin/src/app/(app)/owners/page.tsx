@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
+import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
 import { Avatar, Col, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
 import { Icon } from '@/components/Icon';
@@ -23,8 +24,9 @@ export default function OwnersPage() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('name');
+  const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
-  if (q) params.set('q', q);
+  if (dq) params.set('q', dq);
   const { rows, meta, loading, reload } = useList<Owner>(`/owners?${params}`);
   // เรียงฝั่ง server แล้ว (ส่ง sort ไป API → ถูกต้องข้ามหน้า) — MR-12
 

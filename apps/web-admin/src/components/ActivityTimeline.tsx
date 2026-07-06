@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Icon } from '@/components/Icon';
+import { thaiifyActivity } from '@/lib/status';
 
 interface Activity { id: string; action: string; summary?: string; createdAt: string; }
 
@@ -40,7 +41,7 @@ export default function ActivityTimeline({ path, limit = 5 }: { path: string; li
         {shown.map((a) => (
           <li key={a.id} className="relative">
             <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-gold" />
-            <p className="text-sm">{a.summary || a.action}</p>
+            <p className="text-sm">{a.summary ? thaiifyActivity(a.summary) : a.action}</p>
             <p className="text-xs text-muted">{timeAgo(a.createdAt)}</p>
           </li>
         ))}

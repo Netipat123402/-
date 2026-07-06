@@ -175,7 +175,7 @@ export default function CalendarPage() {
                       <span className="inline-flex items-center gap-1.5 font-semibold"><Icon name="clock" size={15} className="text-faint" />{new Date(a.scheduledAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>
                       <StatusBadge map={APPOINTMENT_STATUS} value={a.status} short />
                     </div>
-                    <p className="mt-2 font-medium">{a.title || a.lead?.fullName || `นัด ${a.code}`}</p>
+                    <p className="mt-2 font-medium">{a.lead?.fullName || a.title || `นัด ${a.code}`}</p>
                     {a.property && <p className="truncate text-sm text-muted">{a.property.titleTh}</p>}
                     {a.location && <p className="mt-0.5 text-xs text-muted">{a.location}</p>}
                     <p className="mt-1.5 font-mono text-[11px] text-muted">{a.code}</p>
@@ -187,7 +187,8 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="เพิ่มนัด (นอกรอบ)">
+      <Modal open={open} onClose={() => setOpen(false)} title="เพิ่มนัด (นอกรอบ)"
+        confirmOnClose={!!(form.title.trim() || form.location.trim())}>
         <form onSubmit={createAppt} className="space-y-4">
           <Field label="หัวข้อนัด *" error={fe.title} placeholder="เช่น ประชุมทีม, นัดเจ้าของทรัพย์" value={form.title}
             onChange={(e) => { setForm((f) => ({ ...f, title: e.target.value })); setFe((x) => ({ ...x, title: undefined })); }} />

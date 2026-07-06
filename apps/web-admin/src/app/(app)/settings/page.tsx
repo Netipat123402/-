@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { Field, PageHeader } from '@/components/ui';
+import { Field, InfoGroup, InfoRow, PageHeader } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 interface Setting { key: string; value: Record<string, unknown> }
@@ -70,22 +70,12 @@ export default function SettingsPage() {
         </div>
       </form>
 
-      <div className="mt-6 card p-5">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">ระบบ & นโยบาย</h2>
-        <dl className="divide-y divide-border text-sm">
-          {([
-            ['เวอร์ชันนโยบายความเป็นส่วนตัว', (consent.current as string) ?? '—'],
-            ['เก็บข้อมูลสัญญา', retention.contract_days ? `${Math.round(Number(retention.contract_days) / 365)} ปี` : '—'],
-            ['เก็บข้อมูลลูกค้า', retention.customer_days ? `${Math.round(Number(retention.customer_days) / 365)} ปี` : '—'],
-          ] as [string, string][]).map(([k, v]) => (
-            <div key={k} className="flex items-center justify-between gap-4 py-2.5">
-              <dt className="text-muted">{k}</dt>
-              <dd className="font-medium">{v}</dd>
-            </div>
-          ))}
-        </dl>
-        <p className="mt-3 text-xs text-muted">ค่าระบบเหล่านี้ปรับได้ในเฟสถัดไป</p>
-      </div>
+      <InfoGroup label="ระบบ & นโยบาย" className="mt-6">
+        <InfoRow label="เวอร์ชันนโยบายความเป็นส่วนตัว" value={(consent.current as string) || undefined} />
+        <InfoRow label="เก็บข้อมูลสัญญา" value={retention.contract_days ? `${Math.round(Number(retention.contract_days) / 365)} ปี` : undefined} />
+        <InfoRow label="เก็บข้อมูลลูกค้า" value={retention.customer_days ? `${Math.round(Number(retention.customer_days) / 365)} ปี` : undefined} />
+      </InfoGroup>
+      <p className="mt-3 text-center text-xs text-muted">ค่าระบบเหล่านี้ปรับได้ในเฟสถัดไป</p>
     </div>
   );
 }

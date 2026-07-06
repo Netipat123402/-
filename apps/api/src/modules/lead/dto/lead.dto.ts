@@ -2,7 +2,7 @@ import { LeadSource, LeadStatus } from '@prisma/client';
 import { PartialType, PickType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import {
-  IsArray, IsDate, IsEnum, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min,
+  IsArray, IsBoolean, IsDate, IsEnum, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min,
 } from 'class-validator';
 
 export class CreateLeadDto {
@@ -36,6 +36,10 @@ export class UpdateLeadDto extends PartialType(
 export class AssignLeadDto {
   @IsUUID()
   assignedToId!: string;
+
+  /** รับดูแลคลิกเดียว (Phase 16): assign + เปลี่ยน new→working ใน transaction เดียว (default: assign อย่างเดียว) */
+  @IsOptional() @IsBoolean()
+  startWorking?: boolean;
 }
 
 export class ChangeLeadStatusDto {

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
@@ -86,6 +87,229 @@ export function ErrorState({ onRetry, text = 'โหลดข้อมูลไ�
   );
 }
 
+/**
+ * InfoRow — กฎกลาง "1 บรรทัด = 1 ข้อมูล" (R1): label ซ้าย(จาง) / value ขวา(เข้ม) คั่นด้วย divide-y
+ * ใช้แทน grid หลายคอลัมน์ในหน้ารายละเอียด/modal (ที่กวาดตาซ้าย-ขวาแล้วลายตา)
+ *  - href / onClick → ทั้งแถวกดได้ + chevron ขวา (ให้ affordance ว่าคลิกได้)
+ *  - action        → element เล็กชิดขวา (เช่น ปุ่มคัดลอก) แสดงคู่กับ value
+ *  - hideEmpty     → ค่าว่าง/undefined → ไม่ render แถว (แทนโชว์ "—" เรียงยาวรก)
+ *  - stack         → ค่ายาว (โน้ต/ที่อยู่): label บน / value ล่าง เต็มกว้าง อ่านง่ายบนมือถือ
+ *  - strong/mono   → value เด่น (เงิน) / mono+tabular (code, ตัวเลข)
+ * touch: แถวสูงขึ้น (py-3) ให้ hit-area ≥44px
+ */
+export function InfoRow({
+  label, value, href, onClick, action, hideEmpty, stack, strong, mono, className = '',
+}: {
+  label: React.ReactNode;
+  value?: React.ReactNode;
+  href?: string;
+  onClick?: () => void;
+  action?: React.ReactNode;
+  hideEmpty?: boolean;
+  stack?: boolean;
+  strong?: boolean;
+  mono?: boolean;
+  className?: string;
+}) {
+  const isEmpty = value == null || value === '' || value === '—';
+  const interactive = !!(href || onClick);
+  if (hideEmpty && isEmpty && !action && !interactive) return null;
+
+  const valueNode = (
+    <span
+      className={[
+        'break-words text-sm',
+        strong ? 'font-semibold' : '',
+        mono ? 'font-mono tabular-nums' : '',
+        isEmpty ? 'text-faint' : 'text-ink',
+      ].filter(Boolean).join(' ')}
+    >
+      {isEmpty ? '—' : value}
+    </span>
+  );
+  const chevron = interactive
+    ? <Icon name="chevron-right" size={16} className="shrink-0 text-faint transition group-hover:text-muted" />
+    : null;
+
+  // meeting-center: label ชิดขวา (จบที่เส้นกลาง) / value ชิดซ้าย (เริ่มที่เส้นกลาง) → เนื้อหามาเจอกันตรงกลาง
+  // stack = ค่ายาว → align บนสุด (ค่าห่อหลายบรรทัดในครึ่งขวาได้)
+  const inner = (
+    <div className={`grid grid-cols-2 gap-x-6 py-2.5 touch:py-3 ${stack ? 'items-start' : 'items-center'}`}>
+      <span className="text-right text-sm text-muted">{label}</span>
+      <span className="flex min-w-0 items-center gap-2 text-left">{valueNode}{action}{chevron}</span>
+    </div>
+  );
+
+  const interactiveCls = 'group block outline-none transition hover:bg-canvas/60 focus-visible:bg-canvas focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold';
+  if (href) return <Link href={href} className={`${interactiveCls} ${className}`}>{inner}</Link>;
+  if (onClick) return <button type="button" onClick={onClick} className={`${interactiveCls} w-full text-left ${className}`}>{inner}</button>;
+  return <div className={className}>{inner}</div>;
+}
+
+/**
+ * InfoGroup — กล่อง (card) ครอบชุด InfoRow: หัวข้อ SectionLabel + rows คั่น divide-y
+ * รวมหลายข้อมูลในกล่องเดียวได้ แต่ภายในไล่ลงทีละบรรทัดตามกฎ R1
+ *  - action → element มุมขวาของหัวข้อ (เช่น ปุ่ม "แก้ไข")
+ *  - bare   → ไม่ห่อ card (ใช้เมื่อฝังในกล่องที่มีอยู่แล้ว)
+ */
+export function InfoGroup({
+  label, action, children, bare, className = '',
+}: {
+  label?: React.ReactNode;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  bare?: boolean;
+  className?: string;
+}) {
+  const body = (
+    <>
+      {(label || action) && (
+        // หัวข้อกึ่งกลาง (ตามที่ผู้ใช้ขอ) · action (ถ้ามี) ชิดขวาแบบ absolute ไม่ดันหัวข้อ
+        <div className="relative flex items-center justify-center gap-3 px-4 pb-2 pt-3.5 sm:px-5">
+          {label && <SectionLabel>{label}</SectionLabel>}
+          {action && <span className="absolute right-4 sm:right-5">{action}</span>}
+        </div>
+      )}
+      {/* เต็มความกว้าง — label/value ในแต่ละแถวมาเจอกันที่ "เส้นกลาง" (จัดใน InfoRow แล้ว) */}
+      <div className="divide-y divide-border/60 px-4 sm:px-5">{children}</div>
+    </>
+  );
+  if (bare) return <div className={className}>{body}</div>;
+  return <section className={`overflow-hidden rounded-xl border border-border bg-surface pb-1 ${className}`}>{body}</section>;
+}
+
+/**
+ * DetailHeader — หัวหน้ารายละเอียดมาตรฐาน (R1: 1 บรรทัด 1 ข้อมูล, ไล่บน→ล่าง)
+ * บรรทัด: [back] · code(mono จาง)+badge+meta · ชื่อ(display) · subtitle จาง · ราคา ฿(gold เด่น tabular)
+ * ใช้ร่วมทุกโมดูล (ทรัพย์/สัญญา/…) — badge ส่งเป็น node ให้ generic ข้ามโมดูล
+ */
+export function DetailHeader({
+  backHref, backLabel = 'กลับ', code, badge, meta, title, subtitle, price, priceSuffix, className = '',
+}: {
+  backHref?: string;
+  backLabel?: string;
+  code?: React.ReactNode;
+  badge?: React.ReactNode;
+  meta?: React.ReactNode;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  price?: React.ReactNode;
+  priceSuffix?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      {backHref && (
+        <Link href={backHref} className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink">
+          <Icon name="arrow-left" size={16} /> {backLabel}
+        </Link>
+      )}
+      <div className={backHref ? 'mt-3' : ''}>
+        {(code || badge || meta) && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {code && <span className="font-mono text-xs text-muted">{code}</span>}
+            {badge}
+            {meta}
+          </div>
+        )}
+        <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+        {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
+        {price != null && price !== '' && (
+          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-gold-dark">
+            ฿{price}
+            {priceSuffix && <span className="ml-0.5 text-sm font-normal text-muted">{priceSuffix}</span>}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** ActionBar — แถวปุ่มมาตรฐาน (R3: 1 primary gold / รอง ghost / อันตราย+รองยุบใน MoreMenu) */
+export function ActionBar({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <div className={`flex flex-wrap items-center gap-2 ${className}`}>{children}</div>;
+}
+
+/**
+ * MoreMenu — ปุ่ม ⋯ + เมนู action รอง/อันตราย (fixed-position + flip + portal เหมือน Combobox)
+ * ไม่ใช้ scroll-lock (เป็น popover เล็ก ไม่ใช่ modal) → ไม่ชน R2; ปิดเมื่อคลิกนอก/Esc/เลื่อน-รีไซส์=ปรับตำแหน่ง
+ */
+export function MoreMenu({
+  items, label = 'ตัวเลือกเพิ่มเติม', align = 'end', className = '',
+}: {
+  items: { label: string; onClick: () => void; icon?: IconName; danger?: boolean; disabled?: boolean }[];
+  label?: string;
+  align?: 'start' | 'end';
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number; maxH: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const MENU_W = 208;
+
+  function place() {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const openUp = spaceBelow < 240 && r.top > spaceBelow;
+    const rawLeft = align === 'end' ? r.right - MENU_W : r.left;
+    setPos({
+      left: Math.max(8, Math.min(rawLeft, window.innerWidth - MENU_W - 8)),
+      top: openUp ? undefined : r.bottom + 4,
+      bottom: openUp ? window.innerHeight - r.top + 4 : undefined,
+      maxH: Math.min(320, (openUp ? r.top : spaceBelow) - 12),
+    });
+  }
+  function toggle() { if (open) { setOpen(false); return; } place(); setOpen(true); }
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (!btnRef.current?.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) setOpen(false); };
+    // Esc: capture-phase + stopPropagation → เมื่ออยู่ใน Modal ให้เมนูปิดก่อน ไม่ทะลุไปปิด Modal (ต่างเลเยอร์)
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } };
+    const onScroll = (e: Event) => { if (!menuRef.current?.contains(e.target as Node)) place(); };
+    const onResize = () => place();
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  if (items.length === 0) return null;
+
+  return (
+    <>
+      <button type="button" ref={btnRef} aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={toggle}
+        className={`flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 hover:border-ink/40 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold active:scale-90 ${className}`}>
+        <Icon name="more-horizontal" size={18} />
+      </button>
+      {open && pos && createPortal(
+        <div ref={menuRef} role="menu"
+          style={{ position: 'fixed', left: pos.left, width: MENU_W, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxH }}
+          className="z-[60] overflow-y-auto overscroll-contain rounded-lg border border-border bg-surface py-1 shadow-lift">
+          {items.map((it, i) => (
+            <button key={i} type="button" role="menuitem" disabled={it.disabled}
+              onClick={() => { setOpen(false); it.onClick(); }}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition hover:bg-canvas disabled:pointer-events-none disabled:opacity-40 ${it.danger ? 'text-danger' : 'text-ink'}`}>
+              {it.icon && <Icon name={it.icon} size={16} className="shrink-0 opacity-70" />}
+              {it.label}
+            </button>
+          ))}
+        </div>,
+        document.body,
+      )}
+    </>
+  );
+}
+
 export function Pagination({ meta, page, setPage, limit = PAGE_SIZE }: {
   meta: { page?: number; totalPages?: number; total?: number }; page: number; setPage: (p: number) => void; limit?: number;
 }) {
@@ -117,10 +341,13 @@ export function Avatar({ name, size = 38 }: { name?: string; size?: number }) {
   );
 }
 
-export function Modal({ open, onClose, title, children, footer, size = 'lg' }: {
+export function Modal({ open, onClose, title, children, footer, size = 'lg', confirmOnClose = false }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode;
   footer?: React.ReactNode; // ปุ่ม action — ตรึงไว้ล่างกล่อง (ไม่เลื่อนหาย/ไม่โดนแป้นพิมพ์กิน)
   size?: 'lg' | 'xl'; // xl = ฟอร์มยาว/หลายคอลัมน์ (เช่น เพิ่มทรัพย์)
+  // BUG-L2: ฟอร์มที่ "มีข้อมูลค้าง" ส่ง confirmOnClose=true → ปิดผ่าน backdrop/Esc/ปุ่ม × จะถามยืนยันก่อน
+  // (ปุ่มในฟอร์ม เช่น "ยกเลิก/บันทึก" ยังควบคุมเองในหน้า) · read-only modal ไม่ต้องส่ง = ปิดได้เลย
+  confirmOnClose?: boolean;
 }) {
   // render ผ่าน portal ไป <body> เพื่อ "หนี" ancestor ใด ๆ ที่มี transform/filter
   // (เช่น .animate-fade-rise ที่ครอบ children) — ancestor พวกนี้ทำให้ position:fixed
@@ -129,34 +356,51 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg' }: {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  // สถานะ "กำลังถามละทิ้งข้อมูล" — เมื่อ true จะซ้อน ConfirmDialog ทับ
+  const [askDiscard, setAskDiscard] = useState(false);
+  useEffect(() => { if (!open) setAskDiscard(false); }, [open]); // reset เมื่อกล่องปิด
+
   // ล็อกพื้นหลังแบบกันได้จริงบน iOS (position:fixed) — กันหน้า/กล่อง "ขยับ/เลื่อนได้" ใต้กล่อง
+  // (ref-count → ตอนซ้อน ConfirmDialog ล็อก 2 ชั้นไม่ leak)
   useScrollLock(open);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId(); // ผูก aria-labelledby → screen reader อ่านหัวข้อกล่อง
 
+  // ปิดผ่าน gesture ที่ "พลาดได้" (backdrop/Esc/×): มีข้อมูลค้าง → ถามก่อน, ไม่งั้นปิดเลย
+  const requestClose = () => { if (confirmOnClose) setAskDiscard(true); else onClose(); };
+
   // a11y dialog มาตรฐาน (Esc ปิด · focus trap · โฟกัสเริ่มที่กล่อง · คืนโฟกัสให้ตัวที่เปิดตอนปิด)
   // gate ด้วย mounted → effect รันหลัง portal พร้อม (panelRef ถูกเซ็ต) แม้กรณี modal เปิดมาตั้งแต่แรก
-  useFocusTrap(open && mounted, panelRef, onClose);
+  // gate ด้วย !askDiscard → ตอนถามยืนยัน "ปิด trap ฟอร์มชั่วคราว" ให้ ConfirmDialog เป็นเจ้าของ Esc/Tab
+  //   คนเดียว (กัน keydown listener 2 ตัวรับ Esc พร้อมกัน → เปิด-ปิดกันเอง)
+  useFocusTrap(open && mounted && !askDiscard, panelRef, requestClose);
 
   if (!open || !mounted) return null;
   return createPortal(
-    // จัดกึ่งกลางจอทุกขนาด (ตามที่ผู้ใช้ขอ) — ไม่ใช่แผ่นเด้งล่างที่โดนแป้นพิมพ์กิน
-    // ใช้ 100dvh กัน address-bar/คีย์บอร์ดมือถือ; กล่องเป็น flex-col → body เลื่อนได้ หัว/ท้ายตรึง
-    // backdrop = scrim เทาเนียนสม่ำเสมอ (ink/55, dark:black/55) ให้โฟกัสที่กล่อง ไม่เห็น "รอยต่อ"
-    // overscroll-contain = กัน scroll ลามไปหน้าพื้นหลัง
+    <>
+    {/* จัดกึ่งกลางจอทุกขนาด (ตามที่ผู้ใช้ขอ) — ไม่ใช่แผ่นเด้งล่างที่โดนแป้นพิมพ์กิน
+        ใช้ 100dvh กัน address-bar/คีย์บอร์ดมือถือ; กล่องเป็น flex-col → body เลื่อนได้ หัว/ท้ายตรึง
+        backdrop = scrim เทาเนียนสม่ำเสมอ (ink/55, dark:black/55) ให้โฟกัสที่กล่อง ไม่เห็น "รอยต่อ"
+        overscroll-contain = กัน scroll ลามไปหน้าพื้นหลัง */}
     <div className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center overflow-y-auto overscroll-contain bg-ink/55 p-4 backdrop-blur-sm dark:bg-black/55"
-      style={{ minHeight: '100dvh' }} onClick={onClose}>
+      style={{ minHeight: '100dvh' }} onClick={requestClose}>
       <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}
         className={`flex max-h-[90dvh] w-full animate-modal-in flex-col overflow-hidden rounded-xl2 bg-surface shadow-lift outline-none ${size === 'xl' ? 'max-w-2xl' : 'max-w-lg'}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h2 id={titleId} className="font-semibold">{title}</h2>
-          <button onClick={onClose} aria-label="ปิด" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-canvas hover:text-ink"><Icon name="x" size={20} /></button>
+          <button onClick={requestClose} aria-label="ปิด" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-canvas hover:text-ink"><Icon name="x" size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
         {footer && <div className="shrink-0 border-t border-border bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{footer}</div>}
       </div>
-    </div>,
+    </div>
+    {/* ถามก่อนทิ้งข้อมูล — ซ้อนบนฟอร์ม (BUG-L2) */}
+    <ConfirmDialog open={askDiscard} onClose={() => setAskDiscard(false)}
+      title="ละทิ้งข้อมูลที่กรอก?" tone="danger" confirmLabel="ละทิ้ง"
+      message="ข้อมูลที่กรอกไว้ยังไม่ถูกบันทึก ต้องการปิดหน้าต่างนี้หรือไม่?"
+      onConfirm={() => { setAskDiscard(false); onClose(); }} />
+    </>,
     document.body,
   );
 }

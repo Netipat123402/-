@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Property, PropertyStatus } from '@prisma/client';
+import { ContractStatus, Prisma, Property, PropertyStatus } from '@prisma/client';
 import { PropertyRepository } from './property.repository';
 import { canTransition } from './property.lifecycle';
 import { propertySmartWhere } from '../../common/search/property-search';
@@ -331,6 +331,18 @@ export class PropertyService {
     const from = property.status;
     if (!canTransition(from, toStatus)) {
       throw new ConflictException(`เปลี่ยนสถานะจาก ${from} ไป ${toStatus} ไม่ได้`);
+    }
+
+    // Phase 13 (ข้อ 14): กันปลด rented→available ด้วยมือ ถ้ายังมีสัญญา active ผูกอยู่
+    // (มิฉะนั้นสถานะทรัพย์จะขัดกับสัญญา) — เส้นทางคืนทรัพย์ที่ถูกต้อง = ปิด/สิ้นสุดสัญญา (ผ่าน PropertySync)
+    // หมายเหตุ: PropertySync.sync() อัปเดตตรง ไม่ผ่าน applyTransition → contract-end sync ไม่ถูกบล็อก
+    if (from === PropertyStatus.rented && toStatus === PropertyStatus.available) {
+      const liveContracts = await this.prisma.contract.count({
+        where: { propertyId: property.id, deletedAt: null, status: ContractStatus.active },
+      });
+      if (liveContracts > 0) {
+        throw new ConflictException('ทรัพย์นี้ผูกกับสัญญาที่มีผลอยู่ — ปิดหรือสิ้นสุดสัญญาก่อน จึงจะทำเครื่องหมายว่างได้');
+      }
     }
 
     const updateData: Prisma.PropertyUpdateInput = {

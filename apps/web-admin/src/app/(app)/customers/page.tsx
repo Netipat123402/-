@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useList } from '@/lib/useList';
+import { useDebouncedValue } from '@/lib/useDebounce';
 import { Avatar, Col, FilterBar, ListView, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
 
 interface Customer { id: string; fullName: string; phone?: string; email?: string; contractCount?: number; }
@@ -17,15 +18,21 @@ export default function CustomersPage() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('name');
+  const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
-  if (q) params.set('q', q);
+  if (dq) params.set('q', dq);
   const { rows, meta, loading } = useList<Customer>(`/customers?${params}`);
   // เรียงฝั่ง server แล้ว (sort ไป API → ถูกต้องข้ามหน้า) — MR-12
 
-  // หลัก = ชื่อ · รอง = เบอร์ (แตะโทร) + จำนวนสัญญา (อีเมลย้ายไปหน้า detail)
+  // หลัก = ชื่อ · รอง = เบอร์(แตะโทร) + อีเมล (Phase 45: ไม่ให้หน้าโล้น) · ขวา = จำนวนสัญญา (นับทุกสัญญาไม่ถูกลบ)
   const cols: Col<Customer>[] = [
     { header: 'ชื่อ', primary: true, cell: (c) => c.fullName },
-    { header: 'เบอร์โทร', sub: true, cell: (c) => <PhoneLink phone={c.phone} /> },
+    { header: 'เบอร์โทร · อีเมล', sub: true, cell: (c) => (
+      <span className="inline-flex min-w-0 items-center gap-1">
+        <PhoneLink phone={c.phone} />
+        {c.email && <span className="truncate text-muted"> · {c.email}</span>}
+      </span>
+    ) },
     { header: 'สัญญา', right: true, width: 'w-28', cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
   ];
 

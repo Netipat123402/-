@@ -20,7 +20,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const show = useCallback((type: ToastType, msg: string) => {
     const id = Date.now() + Math.random();
-    setItems((cur) => [...cur, { id, type, msg }]);
+    // dedupe: ข้อความ+ชนิดเดียวกันยัง active อยู่ → ไม่ซ้อนใบใหม่ (แก้ toast แดง ×3 ตอน error ยิงซ้ำ)
+    setItems((cur) => (cur.some((x) => x.type === type && x.msg === msg) ? cur : [...cur, { id, type, msg }]));
+    // ตั้ง timer เสมอ — ถ้าถูก dedupe (id ไม่อยู่ในลิสต์) filter จะเป็น no-op ปลอดภัย
     setTimeout(() => setItems((cur) => cur.filter((x) => x.id !== id)), 3200);
   }, []);
 
