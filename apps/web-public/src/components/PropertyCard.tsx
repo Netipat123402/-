@@ -69,7 +69,7 @@ export default function PropertyCardView({ p }: { p: PropertyCard }) {
   ].filter(Boolean).join(' · ');
 
   return (
-    <Link href={`/properties/${p.code}`} className="card group block overflow-hidden transition hover:shadow-lift">
+    <Link href={`/properties/${p.code}`} className="card group block overflow-hidden transition hover:border-gold/40 hover:shadow-lift">
       <CardImages type={p.type} images={p.images ?? []} cover={p.coverImage} alt={title} lang={lang} />
       <div className="p-4">
         {/* นำด้วยชื่อทรัพย์ → สเปก → ราคาทองเด่น (อ่านง่าย พรีเมียม ไม่ซ้ำ) */}
