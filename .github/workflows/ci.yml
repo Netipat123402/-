@@ -19,6 +19,7 @@ jobs:
   verify:
     name: Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
+    timeout-minutes: 30   # headroom กัน job ค้าง/ถูกตัดกลางคัน (เดิมไม่กำหนด → cancel งง ๆ)
     steps:
       - uses: actions/checkout@v4
 
@@ -49,6 +50,17 @@ jobs:
 
       - name: Test (jest — api)
         run: npm test -w @ros/api
+
+      # cache .next/cache → Next build ไม่ต้อง compile ใหม่หมด = เร็วขึ้นมาก ลดเวลา/นาที CI (แก้ต้นเหตุ cancel 15m)
+      - name: Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/web-admin/.next/cache
+            apps/web-public/.next/cache
+          key: nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nextjs-${{ hashFiles('package-lock.json') }}-
 
       - name: Build (api)
         run: npm run build -w @ros/api
