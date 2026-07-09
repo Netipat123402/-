@@ -135,9 +135,14 @@
 - **เทสแล้ว:** tsc เขียว · เดสก์ท็อป 10รูป(2×2+`+5`) & 2รูป(ใหญ่+1) ไม่มีช่องโหว่ · คลิก `+5`→Lightbox เปิดที่รูป 5 ถูกต้อง · both blocks wired · overflow-x = 0 · lang key `viewAllPhotos`
 - **หมายเหตุ:** window resize ทดสอบ <1024px ไม่ได้ (ติด min-width) แต่ mobile block = โค้ด carousel เดิมที่เทสแล้ว (แค่ห่อ lg:hidden)
 
-### 🟡 P4 — public Home ยกระดับ (search panel + category strip + section rhythm + featured)
+### ✅ P4 — public Home ยกระดับ — **DONE 2026-07-09**
 - Scope: home hero search เป็น panel มี label + category strip เด่น + spacing section เพิ่ม · Reason: Information Scent/Jakob · Expected: เริ่มค้นหาไว
 - Safety: SearchBar/CommunityBoard reuse · Regression: home ทุก breakpoint + i18n(TH/EN)
+- **วิเคราะห์ก่อนทำ (keep/remove/add):** hero/search/type-cards(=category strip)/carousels = ดีอยู่แล้ว เก็บ · **ไม่ทำ D hero-tabs** (ซ้ำ type-cards) · ช่องว่าง = ไม่มี trust signal + ไม่มี flow guide
+- **ทำจริง (เพิ่ม):** (A) ชิปยอดนิยมใต้ search — เลือกเฉพาะ filter ที่ type-cards ทำไม่ได้ (BTS/MRT/pet/ราคา) กันซ้ำ · (B) Why-ROS trust band (คัดสรร/มืออาชีพ/ตอบไว/นัดชมฟรี — copy honest) · (C) "เช่าง่ายใน 3 ขั้นตอน" (ค้นหา→นัดชม→ย้ายเข้า) · (E) rhythm
+- **ไอคอน:** ใช้ของเดิมหมด (ไม่เพิ่ม) · lang keys ใหม่ TH/EN ครบ
+- **เทสแล้ว:** tsc เขียว · desktop เห็นทุก section · TH/EN สลับถูก · chips มี query filter ถูก · overflow-x = 0
+- **หมายเหตุ scope:** เอาชิป type (คอนโด/บ้าน) ออก เพราะซ้ำ type-cards → เหลือชิปที่ value-add ล้วน
 
 ### 🟡 P5 — public Listings (desktop filter sidebar + category tabs + results-count)
 - Scope: `/properties` desktop = sidebar filter (reuse Combobox/PriceRange/Segmented) · mobile = sheet(เดิม) · Reason: Progressive Disclosure · Expected: กรองเร็ว เห็น filter ตลอด

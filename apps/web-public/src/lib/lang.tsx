@@ -97,6 +97,25 @@ const DICT = {
   unsaveAria: { th: 'นำออกจากรายการโปรด', en: 'Remove from favorites' },
   photosUnit: { th: 'รูป', en: 'photos' },
   viewAllPhotos: { th: 'ดูรูปทั้งหมด', en: 'View all photos' },
+  // home: popular quick-search chips
+  popularLabel: { th: 'ยอดนิยม', en: 'Popular' },
+  chipNearBts: { th: 'ใกล้ BTS', en: 'Near BTS' },
+  chipNearMrt: { th: 'ใกล้ MRT', en: 'Near MRT' },
+  chipUnder15k: { th: 'ต่ำกว่า ฿15,000', en: 'Under ฿15,000' },
+  // home: why-ROS trust band
+  trustCurated: { th: 'คัดสรรคุณภาพ', en: 'Curated quality' },
+  trustPro: { th: 'นายหน้ามืออาชีพ', en: 'Professional agents' },
+  trustFast: { th: 'ตอบกลับไว', en: 'Fast response' },
+  trustFreeViewing: { th: 'นัดชมฟรี', en: 'Free viewings' },
+  // home: how it works (3 steps)
+  howItWorksTitle: { th: 'เช่าง่ายใน 3 ขั้นตอน', en: 'Rent in 3 simple steps' },
+  howItWorksSub: { th: 'ตั้งแต่ค้นหาจนถึงย้ายเข้า ทีมงานดูแลให้ทุกขั้นตอน', en: 'From search to move-in, our team guides you all the way' },
+  step1Title: { th: 'ค้นหา', en: 'Search' },
+  step1Sub: { th: 'เลือกทรัพย์ที่ใช่จากรายการคัดสรร', en: 'Browse curated listings that fit you' },
+  step2Title: { th: 'นัดชม', en: 'Book a viewing' },
+  step2Sub: { th: 'นัดเวลาเข้าชมกับทีมงานมืออาชีพ', en: 'Schedule a visit with our team' },
+  step3Title: { th: 'ย้ายเข้า', en: 'Move in' },
+  step3Sub: { th: 'เซ็นสัญญาแล้วรับกุญแจได้เลย', en: 'Sign the lease and get your keys' },
 } satisfies Record<string, { th: string; en: string }>;
 
 export type DictKey = keyof typeof DICT;
