@@ -51,11 +51,11 @@ export default async function PropertyDetailPage({ params }: { params: { code: s
           <p className="text-sm text-muted"><MetaLine type={p.type} province={p.location.province} /></p>
           {p.location.projectName ? (
             <>
-              <h1 className="mt-1.5 text-[1.6rem] font-semibold leading-snug tracking-tight lg:text-3xl">{p.location.projectName}</h1>
+              <h1 className="mt-1.5 font-serif text-[1.6rem] font-semibold leading-snug tracking-tight lg:text-3xl">{p.location.projectName}</h1>
               <Localized as="p" th={p.title.th} en={p.title.en} className="mt-1 text-sm text-muted" />
             </>
           ) : (
-            <Localized as="h1" th={p.title.th} en={p.title.en} className="mt-1.5 text-[1.6rem] font-semibold leading-snug tracking-tight lg:text-3xl" />
+            <Localized as="h1" th={p.title.th} en={p.title.en} className="mt-1.5 font-serif text-[1.6rem] font-semibold leading-snug tracking-tight lg:text-3xl" />
           )}
           <PriceMonthly amount={p.monthlyRent} />
 

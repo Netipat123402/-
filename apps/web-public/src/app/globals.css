@@ -34,7 +34,7 @@
 @layer components {
   .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium; }
   .card { @apply rounded-card border border-border bg-surface shadow-card; }
-  .btn { @apply inline-flex h-12 items-center justify-center gap-2 rounded-lg px-5 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100; }
+  .btn { @apply inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100; }
   .btn-gold { @apply btn bg-gold text-white hover:bg-gold-dark; }
   .btn-ink { @apply btn bg-ink text-white hover:bg-ink/90; }
   .btn-line { @apply btn text-white; background-color: #06C755; }

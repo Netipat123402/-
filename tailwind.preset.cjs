@@ -35,6 +35,8 @@ module.exports = {
       },
       fontFamily: {
         sans: ['"IBM Plex Sans Thai"', 'Inter', 'system-ui', 'sans-serif'],
+        // serif เฉพาะ heading ใหญ่หน้า public (editorial luxury) — body/specs/ปุ่ม ยังใช้ sans
+        serif: ['"Noto Serif Thai"', 'Georgia', 'Cambria', 'serif'],
       },
       // Redesign v2: มุมโค้งใหญ่ขึ้น (สไตล์แอพ Claude) — card 16, xl2 20
       borderRadius: { card: '16px', xl2: '20px' },

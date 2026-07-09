@@ -69,7 +69,7 @@ export default async function HomePage() {
           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)', backgroundSize: '56px 56px', WebkitMaskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)', maskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)' }} />
         <div className="relative mx-auto max-w-content">
           <p className="text-sm font-medium tracking-wide text-gold-light"><T k="heroLabel" /></p>
-          <h1 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold leading-tight tracking-tight lg:text-5xl">
+          <h1 className="mx-auto mt-3 max-w-3xl font-serif text-4xl font-semibold leading-tight tracking-tight lg:text-5xl">
             <T k="heroTitle1" /><br /><T k="heroTitle2" />
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-white/70">
@@ -144,7 +144,7 @@ export default async function HomePage() {
       {/* ขั้นตอนใช้งาน 3 สเต็ป — ค้นหา → นัดชม → ย้ายเข้า */}
       <section className="mx-auto max-w-content px-4 py-16 lg:px-8">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl"><T k="howItWorksTitle" /></h2>
+          <h2 className="font-serif text-2xl font-semibold tracking-tight lg:text-3xl"><T k="howItWorksTitle" /></h2>
           <p className="mx-auto mt-2 max-w-lg text-muted"><T k="howItWorksSub" /></p>
         </div>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">

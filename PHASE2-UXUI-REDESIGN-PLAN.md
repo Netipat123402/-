@@ -152,9 +152,12 @@
 - **เทสจริง (browser):** แท็บ→?type ✓ · BTS chip→?train ✓ · รวมกัน (type+train) ✓ · ล้าง→เหลือ type ✓ · ค้นหา "Noble"→type+q ✓ · results-count อัปเดตทุกครั้ง ✓ · overflow-x=0 · desktop/mobile search แยกถูก · aside hidden<lg · tsc เขียว
 - **เลือกโครง:** ทำ mockup hi-fi เทียบ A/B/C ให้เจ้าของ → เลือก A
 
-### 🟡 P6 — public detail sidebar trust/urgency + serif-heading(ทดลอง) + pill-button(ทดลอง)
-- Scope: AppointmentForm เสริม trust · ทดลอง serif heading + pill primary (behind flag/scoped) · Reason: trust→conversion, editorial luxury · Expected: ติดต่อมากขึ้น + พรีเมียม
-- Safety: **ทดลองบน public ก่อน · เจ้าของ approve ก่อนล็อก** (system-level)
+### ✅ P6 — trust/urgency + serif heading + pill button — **DONE 2026-07-09** (เจ้าของ approve แล้ว)
+- Scope: AppointmentForm เสริม trust · ทดลอง serif heading + pill primary · Reason: trust→conversion, editorial luxury · Expected: ติดต่อมากขึ้น + พรีเมียม
+- Safety: **ทดลองบน public ก่อน · เจ้าของ approve ก่อนล็อก** (system-level) — **ทำ mockup เรนเดอร์จริงเทียบ → เจ้าของอนุมัติทั้งคู่**
+- **ทำจริง:** (1) โหลด Noto Serif Thai (layout font link) + tailwind `serif` family → ใส่ `font-serif` **เฉพาะ heading ใหญ่** (hero h1, section titles Featured/how-it-works, listings/saved h1, detail project h1) · body/specs/ปุ่ม คง sans · (2) `.btn` (globals.css) `rounded-lg`→`rounded-full` = **pill ทั้งระบบ public** (btn-gold/ink/line/outline/ghost cascade) · (3) AppointmentForm เติม trust: "ตอบใน 24 ชม." + "นัดชมฟรี ไม่มีข้อผูกมัด"
+- **ไม่กระทบ admin:** serif เพิ่มใน preset ร่วมแต่ admin ไม่ใช้ `font-serif` + ไม่โหลดฟอนต์ · `.btn` pill อยู่ใน globals ของ web-public เท่านั้น
+- **เทสแล้ว (computed styles):** hero/featured/detail h1 = Noto Serif Thai (loaded ✓) · .btn-gold/submit = radius 9999px · trust lines ขึ้น 2 บรรทัด · overflow-x=0 · tsc เขียว · (หมายเหตุ: Chrome screenshot ใช้ไม่ได้ session นี้ — verify ผ่าน computed style ซึ่งแม่นกว่า)
 
 ### 🟠 P7 — public mobile app-like (search เด่น · card+heart · พิจารณา bottom-nav)
 - Scope: มือถือ public ให้เหมือน RE app (Hommie) · Reason: Jakob/thumb-reach · Expected: ใช้บนมือถือลื่น

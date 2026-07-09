@@ -65,7 +65,7 @@ export default function FeaturedCarousel({ items, titleKey = 'featured', subKey 
     <section>
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <h2 className={`font-semibold tracking-tight ${size === 'lg' ? 'text-2xl' : 'text-xl'}`}>{t(titleKey)}</h2>
+          <h2 className={`font-serif font-semibold tracking-tight ${size === 'lg' ? 'text-2xl' : 'text-xl'}`}>{t(titleKey)}</h2>
           <p className="mt-1 text-sm text-muted">{t(subKey)}</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">

@@ -113,6 +113,11 @@ export default function AppointmentForm({ propertyCode }: { propertyCode: string
       <button className="btn-gold w-full" disabled={state === 'loading'}>
         {state === 'loading' ? <><Spinner className="h-4 w-4" /> {t('sending')}</> : t('submitRequest')}
       </button>
+      {/* trust/urgency — ลดความกังวลก่อนตัดสินใจติดต่อ (honest: ตอบไว + ฟรี ไม่ผูกมัด) */}
+      <ul className="space-y-1.5 border-t border-border pt-3.5 text-xs text-muted">
+        <li className="flex items-center gap-2"><Icon name="clock" size={14} className="shrink-0 text-gold-dark" />{t('trustReply24')}</li>
+        <li className="flex items-center gap-2"><Icon name="check" size={14} className="shrink-0 text-gold-dark" />{t('trustFreeNoObligation')}</li>
+      </ul>
     </form>
   );
 }

@@ -45,7 +45,7 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
 
   return (
     <main className="mx-auto max-w-content px-4 py-8 lg:px-8">
-      <h1 className="text-2xl font-semibold tracking-tight"><T k="browseTitle" /></h1>
+      <h1 className="font-serif text-2xl font-semibold tracking-tight"><T k="browseTitle" /></h1>
 
       {/* ค้นหา — มือถือ: SearchBar เดิม (input+sheet) · เดสก์ท็อป: ช่องค้นหา (ตัวกรองไปอยู่ sidebar)
           key = คิวรีปัจจุบัน → remount SearchBar ให้ sync state จาก URL เมื่อแท็บ/ตัวกรองเปลี่ยน (กัน internal state ค้าง) */}

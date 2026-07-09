@@ -69,6 +69,8 @@ const DICT = {
   // appointment form
   bookViewing: { th: 'นัดดูทรัพย์', en: 'Book a viewing' },
   bookViewingSub: { th: 'กรอกข้อมูลเพื่อให้ทีมงานติดต่อกลับ', en: 'Leave your details and our team will get back to you' },
+  trustReply24: { th: 'ทีมงานตอบกลับภายใน 24 ชม.', en: 'Our team replies within 24 hours' },
+  trustFreeNoObligation: { th: 'นัดชมฟรี ไม่มีข้อผูกมัด', en: 'Free viewing, no obligation' },
   successTitle: { th: 'ได้รับข้อมูลแล้ว', en: 'Request received' },
   successSub: { th: 'ทีมงานจะติดต่อกลับโดยเร็วที่สุด ขอบคุณครับ', en: 'Our team will contact you shortly. Thank you!' },
   fieldName: { th: 'ชื่อ-นามสกุล', en: 'Full name' },

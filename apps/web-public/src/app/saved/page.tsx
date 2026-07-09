@@ -54,7 +54,7 @@ export default function SavedPage() {
     <main className="mx-auto max-w-content px-4 py-8 lg:px-8">
       <div className="flex items-center gap-2.5">
         <Icon name="heart" size={22} fill="currentColor" className="text-gold-dark" />
-        <h1 className="text-2xl font-semibold tracking-tight">{t('saved')}</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight">{t('saved')}</h1>
         {cards && cards.length > 0 && (
           <span className="text-lg font-medium text-muted">{cards.length}</span>
         )}
