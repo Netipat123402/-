@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
-import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, StatusBadge } from '@/components/ui';
+import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, SectionNav, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
 
@@ -184,8 +184,16 @@ export default function ContractDetailPage() {
         </>
       )}
 
+      {/* section nav — กระโดดไปแต่ละส่วน (เข้าชุด property) */}
+      <SectionNav items={[
+        { id: 'c-parties', label: 'คู่สัญญา' },
+        { id: 'c-finance', label: 'การเงิน' },
+        { id: 'c-period', label: 'ระยะเวลา' },
+        { id: 'c-terms', label: 'เงื่อนไข' },
+        { id: 'c-docs', label: 'เอกสาร' },
+      ]} />
       {/* คู่สัญญา (ข้อ 6) — meeting-center: role ขวา / ชื่อ+เบอร์ ซ้าย · ทุกแถวกดเข้าได้ */}
-      <InfoGroup label="คู่สัญญา" className="mt-6">
+      <InfoGroup label="คู่สัญญา" id="c-parties" className="mt-6">
         {c.customer && (
           <InfoRow label="ลูกค้า" href={`/customers/${c.customer.id}`} strong
             value={<span>{c.customer.fullName}{c.customer.phone && <span className="font-normal text-muted"> · {c.customer.phone}</span>}</span>} />
@@ -202,18 +210,18 @@ export default function ContractDetailPage() {
       </InfoGroup>
 
       {/* การเงิน + ระยะเวลา (ข้อ 6 · Phase 32) */}
-      <InfoGroup label="การเงิน" className="mt-4">
+      <InfoGroup label="การเงิน" id="c-finance" className="mt-4">
         <InfoRow label="ค่าเช่า / เดือน" value={`฿${bahtFormat(Number(c.monthlyRent))}`} strong mono />
         <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
         <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
       </InfoGroup>
-      <InfoGroup label="ระยะเวลา" className="mt-4">
+      <InfoGroup label="ระยะเวลา" id="c-period" className="mt-4">
         <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
         <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">ใกล้ครบกำหนด</span>}</span>} />
         <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
       </InfoGroup>
 
-      <div className="mt-6 card p-5">
+      <div id="c-terms" className="mt-6 scroll-mt-28 card p-5">
         <h2 className="mb-4 font-semibold">เงื่อนไขเพิ่มเติม</h2>
         {terms.length === 0 ? <p className="mb-3 text-sm text-muted">ยังไม่มีเงื่อนไข</p> : (
           <ul className="mb-3 divide-y divide-border">
@@ -234,7 +242,7 @@ export default function ContractDetailPage() {
         )}
       </div>
 
-      <div className="mt-6 card p-5">
+      <div id="c-docs" className="mt-6 scroll-mt-28 card p-5">
         <h2 className="mb-4 font-semibold">เอกสารสัญญา</h2>
         <DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} />
       </div>
