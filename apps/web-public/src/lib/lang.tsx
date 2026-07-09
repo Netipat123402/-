@@ -96,6 +96,7 @@ const DICT = {
   saveAria: { th: 'บันทึกเข้ารายการโปรด', en: 'Save to favorites' },
   unsaveAria: { th: 'นำออกจากรายการโปรด', en: 'Remove from favorites' },
   photosUnit: { th: 'รูป', en: 'photos' },
+  viewAllPhotos: { th: 'ดูรูปทั้งหมด', en: 'View all photos' },
 } satisfies Record<string, { th: string; en: string }>;
 
 export type DictKey = keyof typeof DICT;

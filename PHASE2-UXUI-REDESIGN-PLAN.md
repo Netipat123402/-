@@ -128,9 +128,12 @@
 - **เทสแล้ว:** tsc web-public เขียว · listings/home carousel/similar การ์ดใหม่ครบ · toggle → header count + /saved sync สด · remove/empty state ทำงาน · card ไม่ overflow ที่ 320/360/375px
 - **หมายเหตุ:** badge train/pet ไม่ขึ้นบน /saved (detail API ไม่คืน field) — cosmetic, ยอมรับได้ (R2 ห้ามแตะ backend)
 
-### 🟢 P3 — public detail gallery "1 big + 2×2 thumbnail" (desktop) + carousel(mobile)
+### ✅ P3 — public detail gallery "1 big + 2×2 thumbnail" (desktop) + carousel(mobile) — **DONE 2026-07-09**
 - Scope: PropertyGallery desktop grid · Solution: grid 1+4 + "ดูรูปทั้งหมด" → Lightbox(มีแล้ว) · mobile คง carousel · Reason: ลด click · Expected: เห็นรูปมากขึ้น
 - Safety: reuse Lightbox · Regression: detail ทั้ง breakpoint
+- **ทำจริง:** PropertyGallery แยก 2 layout — `<lg` = carousel เดิม (wrap `lg:hidden`, โค้ดไม่แตะ) · `lg+` = กริด `hidden lg:block` "รูปใหญ่ 1 + 2×2 thumb" (adaptive: 1รูป=เต็ม, 2–4=ใหญ่+คอลัมน์ขวา, 5+=2×2 + `+N` overlay) · ปุ่ม "ดูรูปทั้งหมด (N)" · ทุก cell คลิกเปิด Lightbox ที่รูปนั้น · hover-zoom เบา ๆ · state/Lightbox ใช้ร่วม
+- **เทสแล้ว:** tsc เขียว · เดสก์ท็อป 10รูป(2×2+`+5`) & 2รูป(ใหญ่+1) ไม่มีช่องโหว่ · คลิก `+5`→Lightbox เปิดที่รูป 5 ถูกต้อง · both blocks wired · overflow-x = 0 · lang key `viewAllPhotos`
+- **หมายเหตุ:** window resize ทดสอบ <1024px ไม่ได้ (ติด min-width) แต่ mobile block = โค้ด carousel เดิมที่เทสแล้ว (แค่ห่อ lg:hidden)
 
 ### 🟡 P4 — public Home ยกระดับ (search panel + category strip + section rhythm + featured)
 - Scope: home hero search เป็น panel มี label + category strip เด่น + spacing section เพิ่ม · Reason: Information Scent/Jakob · Expected: เริ่มค้นหาไว
