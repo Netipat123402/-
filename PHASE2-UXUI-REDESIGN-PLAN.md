@@ -1,0 +1,198 @@
+# 🎨 PHASE 2 — UX/UI REDESIGN PLAN + HANDOVER (ROS)
+
+> **ขั้นตอนต่อจาก** `DESIGN-REFERENCE-ANALYSIS.md` (reverse-engineering 16 ภาพ เสร็จแล้ว)
+> **นี่คือแผน — ยังไม่ลงมือแก้ UI** · session หน้าอ่านไฟล์นี้ไฟล์เดียวแล้วทำต่อได้ทันที
+> **Reference หลัก:** Desktop = **d-02 "Reome"** (landing) · Mobile = **m-01 "Hommie"** (RE app)
+> **กฎเหล็ก:** ไม่ลอก(เรียนหลักการ) · คง gold+warm+minimal ของ ROS · **ห้ามระบบพัง** · ทำทีละเฟส เทสทุกเฟส
+
+---
+
+## 0) 🔧 ESSENTIALS สำหรับ resume (อ่านก่อน)
+
+### สภาพโปรเจกต์ตอนนี้
+- **โฟลเดอร์จริง = `~/Desktop/ไม่มีชื่อโฟลเดอร์ สำเนา 2`** (ต้นฉบับถูกลบ · กู้+ทำต่อในสำเนานี้ · ดู `RECOVERY-NOTES.md`)
+- **dev server เจ้าของเปิดเอง:** web-admin :3001 · web-public :3000 · api :4000 (cwd = สำเนา 2 · login `admin@ros.local`/`ChangeMe!2026`)
+- **เทส:** `npx tsc --noEmit` ในแอปที่แก้ + Tailwind compile + **Chrome control ดูจริง** (เจ้าของเปิดไว้) · ห้าม `next build` ทับพอร์ต dev
+- **git:** branch `recover/redesign-v2` · **main มี 8 commit (merged PR#1)** · local มี ~5 commit รอ push (contract-nav · home-cards · hero · listings-hover · CI) · push ต้อง token เจ้าของ
+- **backup:** iCloud Drive + `ros-backup-*.bundle` (Desktop) — งานปลอดภัย 3 ชั้น
+
+### สถานะ UI ปัจจุบัน (ทำมาแล้วใน session ก่อน)
+- **web-admin (ดาร์ก "Claude app"):** token-based · Style B document layout (InfoGroup/InfoRow หัว-เนื้อ-ท้าย) · SectionNav (property/contract) · footer สรุป · a11y AA · theme-leak 0
+- **web-public (light premium):** hero (gold spotlight + กริด) · category cards (icon circle) · listings (gold hover) · property detail (2-col + sticky AppointmentForm) · SpecStrip · a11y gold #8C6E42
+- **components กลาง (reuse ก่อนสร้างใหม่):** `apps/web-admin/src/components/ui.tsx` (InfoRow/InfoGroup/DetailHeader/ActionBar/MoreMenu/Modal/ConfirmDialog/Field/Combobox/Segmented/FilterBar/ListView/Pagination/SectionNav/SectionLabel/Avatar/StatusBadge/Badge/EmptyState/ErrorState/ListSkeleton) · `web-public`: PropertyCard/SearchBar/FeaturedCarousel/AppointmentForm/T(SpecStrip/AmenityBadges/PriceMonthly)/Icon
+
+### กฎ ROS ที่ต้องยึด (ห้ามหลุด)
+1 บรรทัด = 1 ข้อมูล (R1) · minimal (ตัดของไม่จำเป็น) · gold accent เดียว + warm neutral · **Icon component เท่านั้น (ห้ามอิโมจิ)** · responsive แยกตามอุปกรณ์ (ไม่ scale) · touch ≥44px · reuse component ก่อนสร้างใหม่ · เทส-แก้-เทส · **R2: backend/logic/RBAC ห้ามแตะ (ธีม/สีเปลี่ยนได้)**
+
+---
+
+# PHASE 01 — สรุป Reverse Engineering ของ 2 reference ที่เลือก
+
+## 🖥️ Desktop 02 "Reome" — จุดเด่น
+1. **Hero full-bleed photo** + headline ขาวกลาง + **search bar ทับรอยต่อ hero** (overlap) = จุดโฟกัสทันที
+2. **Category/feature strip เป็นการ์ดลอย** ใต้ search (icon+label 4-5 อัน) = ทางลัดเข้าหมวด
+3. **Section header กลาง** ("Browse the ...") + **3-col property cards** (รูป + title + ★rating + price)
+4. โครงเรียบ อ่านง่าย — landing เพื่อ "เริ่มค้นหา" เป็นหลัก
+
+## 📱 Mobile 01 "Hommie" — จุดเด่น
+1. **Home:** greeting/title ("Find Your Best Real Estate") + **search เด่น** + **segmented tabs** (Home/Villa/Apartment) + "Popular" listing cards (รูป + price bold + ★ + heart) + **bottom nav 5 ไอคอน**
+2. **Detail:** รูป gallery + card เนื้อหา (ราคา + specs "6×7.5m²/3 Beds/2 Baths" + owner + CTA "Rent Now")
+3. **flow ครบ + สม่ำเสมอ:** splash→onboard→home→detail→payment→success · card-based · bottom nav ทุกหน้า · heart (favorite) บน card
+4. **สะอาด · ปุ่ม pill · price สีแบรนด์ bold · icon specs**
+
+## จุดที่เหมาะ/ไม่เหมาะกับ ROS (+เหตุผล)
+| | เหมาะ (นำมา) | ไม่เหมาะ/ตัด (เหตุผล) |
+|---|---|---|
+| **Desktop 02** | hero+search overlap · category strip · section+3-col card+rating | photo-hero (ROS ใช้ CSS spotlight ดีอยู่แล้ว + ไม่มี asset) → **ปรับเป็นเสริม photo ทีหลังถ้ามีรูป** · text/ข้อมูลใน ref เบลอ (AI) → ใช้แค่โครง |
+| **Mobile 01** | home(search+tabs+popular+card) · bottom nav · detail(specs icon+price+CTA) · heart favorite · flow สม่ำเสมอ | login/chat/payment/OTP (ROS public = browse+ติดต่อ ไม่มี account/จ่ายเงิน) → **ตัด** · palette ฟ้า → **แปลงเป็น gold** ของ ROS |
+
+**จุดควรปรับ:** ROS public ตอนนี้เป็น "เว็บ" มากกว่า "แอป" บนมือถือ → ยกให้เป็น **app-like** (bottom nav? / search เด่น / card + heart) ตาม Hommie
+**จุดควรออกแบบใหม่:** public listings (เพิ่ม category tabs + filter ชัด) · property card (specs-icon + heart + rating) · mobile bottom-nav สำหรับ public
+**จุดควรตัด:** อย่าเพิ่ม login/chat/payment (นอก scope · R2 ห้ามแตะ backend)
+
+---
+
+# PHASE 02 — Current vs Recommended (ตาราง)
+
+| พื้นที่ | Current (ROS) | Recommended (จาก ref+กฎ) | Reason (UX law/กฎ) | Expected Result |
+|---|---|---|---|---|
+| **public Home hero** | CSS spotlight+grid + search bar เรียบ | คง spotlight (พรีเมียม) + **ยก search เป็น panel มี label/segment** + category strip เด่น | Jakob's Law (คุ้นแบบ landing RE) · Information Scent | เริ่มค้นหาเร็ว · เข้าหมวดง่าย |
+| **public category** | 4 การ์ด icon-circle | คงการ์ด + ทำเป็น **entry สู่ listings ที่ filter ไว้** + (mobile) tabs แบบ Hommie | Hick's Law (ลดตัวเลือก) · Fitts (target ใหญ่) | คลิกน้อยลงถึงผลลัพธ์ |
+| **public listings** | grid card + FilterBar(modal) | **desktop: filter sidebar** (Rento) + **category tabs** (Hommie) + results-count | Progressive Disclosure · ลดกวาดสายตา | กรอง/สแกนเร็ว เห็น filter ตลอด |
+| **PropertyCard** | รูป4:3 + title + meta + price gold + badge + hover-gold | +**specs icon-row** (bed/bath/area) + **heart(favorite)** + (rating ถ้ามี) + type-badge | Miller's Law (จัดกลุ่ม) · scan ด้วย icon | ตัดสินใจเร็วขึ้นต่อ card |
+| **public detail gallery** | carousel เดียว | **desktop: "1 big + 2×2 thumbnail"** (allstate) + ดูรูปทั้งหมด | ลด click · เห็นภาพรวมเร็ว | เห็นรูปมากขึ้นในคลิกเดียว |
+| **public detail specs** | SpecStrip (ไม่มี icon) | **specs-bar icon + label + เส้นคั่น** | icon = scan เร็ว (Gestalt) | อ่าน spec ไว |
+| **public detail sidebar** | AppointmentForm sticky | +**trust/urgency** (ตอบใน 24ชม./ยืนยันฟรี) + สรุปชัด | trust → conversion | ติดต่อมากขึ้น |
+| **public mobile** | เว็บ responsive | **app-like: search เด่น + (พิจารณา)bottom-nav + card+heart** | Jakob (คุ้น RE app) · thumb-reach | ใช้บนมือถือลื่น |
+| **admin (dark CRM)** | Style B + SectionNav ครบ | **คงหลัก** · เสริม specs-icon · ตรวจ consistency | dense CRM ต่างจาก consumer app | ไม่รื้อ · ขัดเงา |
+| **typography (public)** | sans (Plex) | **ทดลอง serif heading** (editorial luxury) | von Restorff (heading เด่น) · แบรนด์ | รู้สึกพรีเมียมขึ้น |
+| **button (public)** | rounded-lg | **ทดลอง pill (rounded-full)** primary | hospitality-feel | อ่อนโยน พรีเมียม |
+
+---
+
+# PHASE 03 — Design Direction (ใหม่)
+
+**ทิศ: "Warm Editorial Luxury · Minimal · Low-Cognitive-Load"**
+- **Luxury/Premium:** gold accent เดียว + warm neutral + whitespace เยอะ + (ทดลอง) serif heading → รู้สึก "แพง/น่าเชื่อถือ" (สำคัญกับอสังหาฯ = ตัดสินใจเงินก้อนใหญ่)
+- **Minimal/Clean:** 1 บรรทัด 1 ข้อมูล · ตัดของไม่จำเป็น · flat+border → อ่านง่าย ไม่ล้า
+- **Fast reading / Low cognitive load:** icon ช่วย scan · price bold anchor · group ข้อมูล · progressive disclosure (Show More)
+- **แยกบุคลิก 2 แอป:** **admin = dark, dense, efficient** (มืออาชีพทำงานเร็ว) · **public = light, editorial, inviting** (ลูกค้าเลือกบ้าน สบายตา)
+
+**ผลต่อผู้ใช้:** ลูกค้า(public) เชื่อใจ+เลือกง่าย+ติดต่อมากขึ้น · เจ้าหน้าที่(admin) ทำงานเร็ว ตาไม่ล้า หาข้อมูลไว
+
+---
+
+# PHASE 04 — UX/UI AUDIT (ทุกหน้า — ทำ session หน้า)
+
+> ตารางนี้ = checklist audit · session หน้าเติมรายละเอียดปัญหา/แก้ต่อแต่ละหน้า (ตามโครง 10 ข้อในเฟส implement)
+
+## web-public
+| หน้า | ต้อง audit |
+|---|---|
+| Home (`/`) | hero · search · category · featured/carousel · community(ปิดอยู่) · footer |
+| Listings (`/properties`) | search · filter(modal→sidebar?) · category tabs · card · pagination · empty/loading |
+| Detail (`/properties/[code]`) | gallery · header(title/price/specs) · sections(card) · amenities · sticky form · similar |
+| Privacy | typography/spacing |
+
+## web-admin (dark CRM — คงหลัก Style B, ขัดเงา)
+| กลุ่ม | หน้า |
+|---|---|
+| Dashboard | `/` (KPI · todo · seg) |
+| List pages | properties · leads · appointments · contracts · owners · customers · users · notifications · community · audit |
+| Detail | properties/[id] · contracts/[id] · customers/[id] · owners/[id] · leads(modal) · appointments(modal) |
+| Create/Edit | PropertyForm · QuickAddProperty · ฟอร์มสร้างในแต่ละ list |
+| Special | calendar · search · settings · login |
+| Components | ทุกตัวใน ui.tsx (audit consistency: card/button/form/table/modal/empty/loading/nav/badge) |
+
+---
+
+# PHASE 05+ — แผน Implementation (ทีละเฟส · เทสทุกเฟส · แต่ละเฟสมีโครง 10 ข้อ)
+
+> **เรียงตาม คุ้ม→เสี่ยงต่ำ** · ทำ **public ก่อน** (ตรง reference สุด) แล้วค่อย admin · **1 เฟส = 1 PR เล็ก + regression test + browser verify**
+> โครง 10 ข้อต่อเฟส: Scope · Current Problem · Root Cause · UX Problem · UI Problem · Business Impact · User Impact · Solution · Reason(UX law) · Expected Result
+
+### 🟢 P1 — Specs icon-row (public SpecStrip + admin InfoRow เสริม icon) `[คุ้มสุด เสี่ยงต่ำ]`
+- Scope: เพิ่ม icon (bed/bath/area/parking) ให้ specs · Current: text ล้วน สแกนช้า · Solution: SpecStrip เติม `<Icon>` ต่อช่อง · Reason: Gestalt/icon-scan, ref ทุกไฟล์ใช้ · Expected: อ่าน spec ไว
+- Safety: SpecStrip เป็น presentational · reuse Icon · ไม่แตะ data · Regression: property card/detail ทั้ง 2 แอป · Test: browser ทุก breakpoint
+
+### 🟢 P2 — PropertyCard เสริม (heart favorite · type-badge icon · specs-icon · rating) 
+- Scope: ยก PropertyCard (public) ให้ครบตาม Hommie/Houseland · Solution: เพิ่ม heart(client state/localStorage — **ไม่แตะ backend**) · type-badge(House/Condo+icon) · specs-icon-row · rating(ถ้า API มี, ไม่มี=ซ่อน) · Reason: Miller/Fitts · Expected: ตัดสินใจต่อ card เร็ว
+- Safety: heart = client-only (ห้ามสร้าง API) · Regression: listings + featured carousel + similar
+
+### 🟢 P3 — public detail gallery "1 big + 2×2 thumbnail" (desktop) + carousel(mobile)
+- Scope: PropertyGallery desktop grid · Solution: grid 1+4 + "ดูรูปทั้งหมด" → Lightbox(มีแล้ว) · mobile คง carousel · Reason: ลด click · Expected: เห็นรูปมากขึ้น
+- Safety: reuse Lightbox · Regression: detail ทั้ง breakpoint
+
+### 🟡 P4 — public Home ยกระดับ (search panel + category strip + section rhythm + featured)
+- Scope: home hero search เป็น panel มี label + category strip เด่น + spacing section เพิ่ม · Reason: Information Scent/Jakob · Expected: เริ่มค้นหาไว
+- Safety: SearchBar/CommunityBoard reuse · Regression: home ทุก breakpoint + i18n(TH/EN)
+
+### 🟡 P5 — public Listings (desktop filter sidebar + category tabs + results-count)
+- Scope: `/properties` desktop = sidebar filter (reuse Combobox/PriceRange/Segmented) · mobile = sheet(เดิม) · Reason: Progressive Disclosure · Expected: กรองเร็ว เห็น filter ตลอด
+- Safety: **filter logic เดิมห้ามแตะ** (แค่ย้าย layout) · Regression: filter/sort/pagination/URL params
+
+### 🟡 P6 — public detail sidebar trust/urgency + serif-heading(ทดลอง) + pill-button(ทดลอง)
+- Scope: AppointmentForm เสริม trust · ทดลอง serif heading + pill primary (behind flag/scoped) · Reason: trust→conversion, editorial luxury · Expected: ติดต่อมากขึ้น + พรีเมียม
+- Safety: **ทดลองบน public ก่อน · เจ้าของ approve ก่อนล็อก** (system-level)
+
+### 🟠 P7 — public mobile app-like (search เด่น · card+heart · พิจารณา bottom-nav)
+- Scope: มือถือ public ให้เหมือน RE app (Hommie) · Reason: Jakob/thumb-reach · Expected: ใช้บนมือถือลื่น
+- Safety: ตรวจ overflow/touch · Regression: ทุกหน้า public บนมือถือจริง
+
+### 🔵 P8 — admin ขัดเงา (specs-icon · consistency audit · empty/loading illustration)
+- Scope: admin คง Style B · เสริม icon + ตรวจ consistency ทุก component · Reason: consistency (Nielsen) · Expected: ระบบสม่ำเสมอขึ้น
+- Safety: **R2 — logic/RBAC ห้ามแตะ** · Regression: CRUD ทุก module + RBAC 7 บทบาท
+
+### 🔵 P9 — Responsive re-layout ทุก breakpoint (ตรวจ+แก้ทั้ง 2 แอป)
+- Breakpoints: mobile-s/mobile-l/foldable/tablet-portrait/tablet-landscape/small-laptop/laptop/desktop/large/ultrawide
+- Rule: **re-layout ไม่ scale** · ห้าม overflow/wrap ผิด/grid พัง/table ใช้ไม่ได้ · Test: Chrome resize + touch emulation ทุกขนาด
+
+### 🔵 P10 — Before/After + Regression เต็ม + Quality Gate
+- ทำ before/after gallery · regression checklist เต็ม · a11y/perf review · commit+push+PR
+
+---
+
+# 📐 GLOBAL RULES (ยึดทุกเฟส)
+
+**Design:** 1บรรทัด1ข้อมูล · ลดกวาดสายตา · บน→ล่าง · ลด cognitive load/click/decision · ตัดข้อมูล/ปุ่ม/flow ซ้ำ · whitespace เหมาะ · visual rhythm · group ข้อมูลที่เกี่ยว · action ใกล้ข้อมูล · gold accent เดียว · Icon component เท่านั้น
+
+**Responsive:** แก้ desktop = ออกแบบ mobile/tablet/laptop พร้อมกัน · re-layout ไม่ scale · ห้าม overflow/wrap/grid-break/card-break/button-overflow/modal-overflow/table-broken
+
+**Component:** reuse ก่อนสร้างใหม่ · สร้างใหม่ต้องมีเหตุผล+ผลกระทบทั้งระบบ · แก้ที่ component กลาง = cascade (ระวัง)
+
+**System Safety (ก่อนแก้ทุกครั้ง):** ตรวจ dependency · shared component · **API/state/route/permission/DB mapping/validation/business logic ห้ามแตะ (R2)** · แก้เฉพาะ presentational/style/layout
+
+**Regression Test (หลังทุกเฟส):** UI/UX · CRUD(create/edit/delete) · nav/search/filter/sort/pagination · responsive ทุกขนาด · permission(RBAC 7 บทบาท) · validation · loading/error/success/empty · keyboard/focus/a11y · cross-browser/device · `tsc` เขียว 3 แอป
+
+**Quality Gate (ก่อนเฟสถัดไป):** UX/UI/Responsive/Design-consistency/Component-consistency/Business-flow/QA/Regression/a11y/Perf ผ่าน 100%
+
+**Definition of Done:** UX ดีขึ้นชัด · UI เรียบหรูเป็นระบบ · responsive ครบ · ไม่มี regression/flow-break/component-break/data-loss/broken-button/wrong-link · เทสครบ · ตรงกฎ ROS · production-ready ไม่กระทบ module อื่น
+
+---
+
+# 🚦 ลำดับ + เกณฑ์ตัดสินใจ (session หน้า)
+
+1. **เริ่ม P1 (specs icon-row)** — คุ้มสุด เสี่ยงต่ำ พิสูจน์ flow ทำงาน
+2. ทำ P2→P3 (card + gallery) — public visual ยกชัด
+3. P4→P5 (home + listings) — โครง public
+4. **P6 หยุดขอ approve** ก่อนล็อก serif/pill (system-level design)
+5. P7 (mobile) → P8 (admin) → P9 (responsive) → P10 (regression+ship)
+
+**สิ่งที่ต้องเจ้าของตัดสินก่อน (system-level):**
+- serif heading บน public? (Noto Serif Thai) · pill button primary? · bottom-nav บน public mobile? · photo hero (ต้องส่งรูป) · announcement/utility bar?
+
+---
+
+# 📎 อ้างอิงในโปรเจกต์
+- `DESIGN-REFERENCE-ANALYSIS.md` (22 เฟส reverse-eng + design translation) · `RECOVERY-NOTES.md` · `RECOVERY-TEST-CHECKLIST.md` · `BEFORE-AFTER-D14-D16.md` · `FIX-LOG.md` · `SESSION-HANDOVER-2026-07-05.md` · `SYSTEM-FLOW-GUIDE.md`
+- reference renders (ชั่วคราว): `/tmp/uxpdf/m-01..08.jpg` · `d-01..08.jpg` (render ใหม่จาก PDF ด้วย `/tmp/render2.swift` ถ้าหาย)
+
+---
+
+## ⚠️ กันพลาด (สำคัญที่สุด)
+1. **ห้ามแตะ backend/logic/RBAC/API/DB** (R2) — แก้แค่ style/layout/presentational
+2. **reuse component กลาง** — อย่าสร้างซ้ำ
+3. **เทสทุกเฟส** (tsc + browser ทุก breakpoint + regression) ก่อนไปเฟสหน้า
+4. **push commit ที่ค้าง** (ต้อง token เจ้าของ) — งานใหม่อย่าลืม backup bundle
+5. **system-level design (serif/pill/nav) เสนอ+ขอ approve ก่อน** — ห้ามเงียบ
+6. งานอยู่ใน **"สำเนา 2"** — ระวังโฟลเดอร์ผิด
