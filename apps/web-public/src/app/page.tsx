@@ -59,8 +59,10 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {TYPE_SHORTCUTS.map(({ code, k }) => (
             <Link key={code} href={`/properties?type=${code}`}
-              className="card flex flex-col items-center gap-2 py-5 text-center font-medium text-ink-soft transition hover:border-gold hover:text-ink hover:shadow-lift">
-              <Icon name={TYPE_ICON[code] ?? 'building'} size={24} className="text-gold-dark" />
+              className="card group flex flex-col items-center gap-2.5 py-6 text-center font-medium text-ink-soft transition hover:border-gold hover:text-ink hover:shadow-lift">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-canvas text-gold-dark transition group-hover:bg-gold/10">
+                <Icon name={TYPE_ICON[code] ?? 'building'} size={22} />
+              </span>
               <T k={k} />
             </Link>
           ))}
