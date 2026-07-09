@@ -143,7 +143,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
       {options.map((o) => (
         <button type="button" key={o.code} onClick={() => onChange(o.code)}
           className={`rounded-lg border px-3 py-2 text-sm transition ${
-            value === o.code ? 'border-ink bg-ink text-canvas' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
+            value === o.code ? 'border-gold bg-gold/15 text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
           }`}>
           {o.labelTh}
         </button>
@@ -159,7 +159,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
           <button type="button" key={label} onClick={() => setStep(i)}
             className={`flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${i === step ? 'bg-canvas' : ''}`}>
             <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-              i === step ? 'bg-ink text-canvas' : i < step ? 'bg-gold text-canvas' : 'bg-canvas text-muted ring-1 ring-border'
+              i === step ? 'bg-gold text-[#1c1b18]' : i < step ? 'bg-gold/30 text-gold-dark' : 'bg-canvas text-muted ring-1 ring-border'
             }`}>
               {i < step ? <Icon name="check" size={15} /> : i + 1}
             </span>
@@ -260,7 +260,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
                   {b.items.map((a) => (
                     <button type="button" key={a.code} onClick={() => toggleAmenity(a.code)}
                       className={`rounded-full px-3 py-1.5 text-sm transition ${
-                        f.amenities?.[a.code] ? 'bg-gold text-white' : 'border border-border bg-surface text-ink-soft hover:bg-canvas'
+                        f.amenities?.[a.code] ? 'bg-gold text-[#1c1b18]' : 'border border-border bg-surface text-ink-soft hover:bg-raised'
                       }`}>
                       {a.labelTh}
                     </button>

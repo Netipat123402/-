@@ -48,6 +48,26 @@ export const PROPERTY_TYPE: Record<string, string> = {
   condo: 'คอนโด', house: 'บ้านเดี่ยว', townhome: 'ทาวน์โฮม', apartment: 'อพาร์ทเมนท์',
 };
 
+/** ป้ายสถานะแบบสั้น (แทรกในประโยคประวัติ/ฟีด) — ไทยล้วน */
+const ACTIVITY_STATUS_TH: Record<string, string> = {
+  draft: 'ร่าง', available: 'ว่าง', rented: 'ไม่ว่าง',
+  new: 'ใหม่', working: 'กำลังดูแล', closed: 'ปิดจบ',
+  upcoming: 'รอพบ', done: 'พบแล้ว', cancelled: 'ยกเลิก', no_show: 'ไม่มาตามนัด',
+  active: 'มีผล', ended: 'สิ้นสุด',
+};
+
+/**
+ * แปลง enum อังกฤษที่ฝังในข้อความประวัติ → ไทย (Phase 12)
+ * เช่น "เปลี่ยนสถานะ draft → available" → "เปลี่ยนสถานะ ร่าง → ว่าง"
+ * display-only, ไม่แตะข้อมูลจริง · แทนเฉพาะ token ที่ตรงคำเต็ม (word-boundary)
+ */
+export function thaiifyActivity(summary: string): string {
+  return summary.replace(
+    /\b(draft|available|rented|new|working|closed|upcoming|done|cancelled|no_show|active|ended)\b/g,
+    (m) => ACTIVITY_STATUS_TH[m] ?? m,
+  );
+}
+
 export type { Tone };
 
 export function badgeClass(tone: Tone): string {

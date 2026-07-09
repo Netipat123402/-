@@ -33,6 +33,9 @@ const ICONS = {
   phone: (<path d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5v3a1.6 1.6 0 0 1-1.7 1.6A14.5 14.5 0 0 1 5 6.2 1.6 1.6 0 0 1 6.5 4Z" />),
   moon: (<path d="M20.5 13.2A8 8 0 1 1 10.8 3.5a6.3 6.3 0 0 0 9.7 9.7Z" />),
   sun: (<><circle cx="12" cy="12" r="4" /><path d="M12 2v2.5" /><path d="M12 19.5V22" /><path d="M4.2 4.2l1.8 1.8" /><path d="M18 18l1.8 1.8" /><path d="M2 12h2.5" /><path d="M19.5 12H22" /><path d="M4.2 19.8l1.8-1.8" /><path d="M18 6l1.8-1.8" /></>),
+  'more-horizontal': (<><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></>),
+  pencil: (<><path d="M4 20h4l10.5-10.5a2 2 0 0 0-2.83-2.83L5 17v3Z" /><path d="M13.5 6.5 17.5 10.5" /></>),
+  trash: (<><path d="M4 7h16" /><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /><path d="M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18.5 7" /><path d="M10 11v6" /><path d="M14 11v6" /></>),
 } as const;
 
 export type IconName = keyof typeof ICONS;

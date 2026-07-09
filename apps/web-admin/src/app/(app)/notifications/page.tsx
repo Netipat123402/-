@@ -22,9 +22,19 @@ const CATEGORY_TH: Record<string, { label: string; color: string; icon: IconName
 // ลำดับหมวดที่อยากให้แสดงก่อน (หมวดอื่นต่อท้าย)
 const CAT_ORDER = ['property', 'appointment', 'lead', 'contract', 'user', 'system'];
 
-const ENTITY_LINK: Record<string, string> = {
-  lead: '/leads', property: '/properties', appointment: '/appointments', contract: '/contracts',
-};
+// deep-link ไป entity "ถูกตัว" (Phase 50): lead/appointment ใช้ ?focus= (เปิด modal) · ที่มีหน้า detail ใช้ /:id
+function entityHref(entityType?: string, entityId?: string): string | undefined {
+  if (!entityType || !entityId) return undefined;
+  switch (entityType) {
+    case 'lead': return `/leads?focus=${entityId}`;
+    case 'appointment': return `/appointments?focus=${entityId}`;
+    case 'property': return `/properties/${entityId}`;
+    case 'contract': return `/contracts/${entityId}`;
+    case 'owner': return `/owners/${entityId}`;
+    case 'customer': return `/customers/${entityId}`;
+    default: return undefined;
+  }
+}
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -99,9 +109,9 @@ export default function NotificationsPage() {
             {visible.map((n) => {
               const c = CATEGORY_TH[n.category] ?? CATEGORY_TH.system;
               const unread = n.status !== 'read';
-              const href = n.entityType ? ENTITY_LINK[n.entityType] : undefined;
+              const href = entityHref(n.entityType, n.entityId);
               const Body = (
-                <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-canvas`}>
+                <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-raised`}>
                   {unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />}
                   <div className={`min-w-0 flex-1 ${unread ? '' : 'pl-5'}`}>
                     <div className="flex items-center gap-2">
@@ -192,12 +202,12 @@ function CatChip({ label, icon, unread, on, onClick }: {
   return (
     <button type="button" onClick={onClick}
       className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
-        on ? 'border-ink bg-ink text-canvas' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
+        on ? 'border-gold bg-gold/15 text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
       }`}>
       <Icon name={icon} size={16} className={on ? '' : 'text-faint'} />
       {label}
       {unread > 0 && (
-        <span className={`rounded-full px-1.5 text-[11px] font-semibold ${on ? 'bg-white/20' : 'bg-gold/15 text-gold-dark'}`}>{unread}</span>
+        <span className={`rounded-full px-1.5 text-[11px] font-semibold ${on ? 'bg-gold/30 text-gold-dark' : 'bg-gold/15 text-gold-dark'}`}>{unread}</span>
       )}
     </button>
   );

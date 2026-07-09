@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { Avatar, ConfirmDialog, Field, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { Avatar, ConfirmDialog, Field, InfoRow, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
-import { CONTRACT_STATUS } from '@/lib/status';
+import { CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import DocumentSection from '@/components/DocumentSection';
 import { formatPhone } from '@/lib/format';
 
-interface ContractLite { id: string; code: string; status: string; }
+interface ContractLite { id: string; code: string; status: string; monthlyRent?: string; }
 interface Customer { id: string; fullName: string; phone?: string; email?: string; address?: string; contracts?: ContractLite[]; }
 
 export default function CustomerDetailPage() {
@@ -62,7 +62,7 @@ export default function CustomerDetailPage() {
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <SectionLabel>ข้อมูลติดต่อ</SectionLabel>
           {can('customer', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={() => setEdit(true)}>แก้ไข</button>}
         </div>
@@ -80,11 +80,12 @@ export default function CustomerDetailPage() {
             </div>
           </div>
         ) : (
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3.5">
-            <div><dt className="text-xs text-muted">เบอร์โทร</dt><dd className="mt-0.5 text-sm"><PhoneLink phone={c.phone} /></dd></div>
-            <div><dt className="text-xs text-muted">อีเมล</dt><dd className="mt-0.5 truncate text-sm text-ink">{c.email || '—'}</dd></div>
-            <div className="col-span-2"><dt className="text-xs text-muted">ที่อยู่</dt><dd className="mt-0.5 text-sm text-ink">{c.address || '—'}</dd></div>
-          </dl>
+          <div className="divide-y divide-border/60">
+            <InfoRow label="เบอร์โทร" value={c.phone ? <PhoneLink phone={c.phone} /> : undefined} hideEmpty />
+            <InfoRow label="อีเมล" value={c.email || undefined} hideEmpty />
+            <InfoRow label="ที่อยู่" value={c.address || undefined} stack hideEmpty />
+            {!c.phone && !c.email && !c.address && <p className="py-2.5 text-center text-sm text-muted">ยังไม่มีข้อมูลติดต่อ — กด “แก้ไข” เพื่อเพิ่ม</p>}
+          </div>
         )}
       </div>
 
@@ -96,13 +97,22 @@ export default function CustomerDetailPage() {
             {c.contracts.map((ct) => (
               <li key={ct.id}>
                 <button onClick={() => router.push(`/contracts/${ct.id}`)}
-                  className="flex w-full items-center justify-between gap-3 py-3 text-left transition hover:opacity-70">
+                  className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
                   <span className="font-mono text-sm font-medium">{ct.code}</span>
+                  {ct.monthlyRent != null && <span className="ml-auto shrink-0 text-sm font-medium tabular-nums text-gold-dark">฿{bahtFormat(Number(ct.monthlyRent))}</span>}
                   <StatusBadge map={CONTRACT_STATUS} value={ct.status} short />
+                  <Icon name="chevron-right" size={15} className="shrink-0 text-faint" />
                 </button>
               </li>
             ))}
           </ul>
+          {/* ท้าย: สรุปค่าเช่าปัจจุบัน (เฉพาะสัญญา active) — ข้อมูลใหม่ ไม่ซ้ำหัว */}
+          {c.contracts.some((ct) => ct.status === 'active') && (
+            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
+              <span className="text-muted">ค่าเช่าปัจจุบัน</span>
+              <span className="font-medium tabular-nums text-ink">฿{bahtFormat(c.contracts.filter((ct) => ct.status === 'active').reduce((s, ct) => s + Number(ct.monthlyRent ?? 0), 0))}/เดือน</span>
+            </div>
+          )}
         </div>
       )}
 

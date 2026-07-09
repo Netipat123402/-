@@ -21,7 +21,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#ffffff',
+  themeColor: '#141312',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th" suppressHydrationWarning>
       <head>
         {/* ใช้ธีมที่บันทึกไว้ก่อนเพนต์ (กันจอกระพริบ flash) — ค่าเริ่มต้น = สว่าง, เลือกมืดได้เอง */}
-        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('ros-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}" }} />
+        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('ros-theme')!=='light')document.documentElement.classList.add('dark')}catch(e){}" }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

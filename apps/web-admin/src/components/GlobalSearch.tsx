@@ -120,7 +120,7 @@ export default function GlobalSearch({ variant }: {
           idx++; const i = idx;
           return (
             <button key={it.id} onMouseEnter={() => setSel(i)} onClick={() => go(it.href)}
-              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition ${i === sel ? 'bg-canvas' : 'hover:bg-canvas'}`}>
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition ${i === sel ? 'bg-canvas' : 'hover:bg-raised'}`}>
               {it.icon && <Icon name={it.icon} size={16} className="shrink-0 text-faint" />}
               <span className="min-w-0 flex-1 truncate">
                 <span className="font-medium">{it.label}</span>
@@ -144,7 +144,7 @@ export default function GlobalSearch({ variant }: {
             className="h-12 flex-1 border-0 bg-transparent text-base outline-none placeholder:text-faint" />
           {q && (
             <button type="button" aria-label="ล้าง" onClick={() => setQ('')}
-              className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-canvas hover:text-ink"><Icon name="x" size={18} /></button>
+              className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={18} /></button>
           )}
         </div>
         <div className="mt-3 overflow-hidden rounded-xl border border-border bg-surface py-1">

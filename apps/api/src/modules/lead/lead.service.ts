@@ -143,15 +143,26 @@ export class LeadService {
   }
 
   async assign(user: AuthenticatedUser, id: string, dto: AssignLeadDto, meta: RequestMeta) {
-    await this.requireInScope(user, id, 'assign');
-    const lead = await this.prisma.lead.update({ where: { id }, data: { assignedToId: dto.assignedToId, updatedBy: user.id } });
-    await this.activity.log({ entityType: 'lead', entityId: id, action: 'assign', actorId: user.id, summary: `มอบหมาย Lead ให้ ${dto.assignedToId}` });
-    await this.notifications.notifyUser(dto.assignedToId, {
-      category: 'lead', entityType: 'lead', entityId: id,
-      title: 'คุณได้รับมอบหมาย Lead ใหม่',
-      body: `${lead.fullName} (${lead.phone}) — โปรดติดตาม`,
+    const existing = await this.requireInScope(user, id, 'assign');
+    // Phase 16: "รับดูแลคลิกเดียว" — assign + (ถ้ายัง new) เริ่มดูแล ใน UPDATE เดียว (atomic, ไม่มี half-state)
+    const alsoStart = !!dto.startWorking && canTransitionLead(existing.status, LeadStatus.working);
+    const lead = await this.prisma.lead.update({
+      where: { id },
+      data: { assignedToId: dto.assignedToId, ...(alsoStart ? { status: LeadStatus.working } : {}), updatedBy: user.id },
     });
-    await this.audit.record(user, { action: 'assign', entityType: 'lead', entityId: id, newValue: { assignedToId: dto.assignedToId }, ...meta });
+    await this.activity.log({ entityType: 'lead', entityId: id, action: 'assign', actorId: user.id, summary: `มอบหมาย Lead ให้ ${dto.assignedToId}` });
+    if (alsoStart) {
+      await this.activity.log({ entityType: 'lead', entityId: id, action: 'status_change', actorId: user.id, summary: `Lead: ${existing.status} → working`, metadata: { from: existing.status, to: 'working' } });
+    }
+    // แจ้งเตือนเฉพาะเมื่อมอบให้ "คนอื่น" (รับดูแลเอง = ไม่ต้องเด้งหาตัวเอง)
+    if (dto.assignedToId !== user.id) {
+      await this.notifications.notifyUser(dto.assignedToId, {
+        category: 'lead', entityType: 'lead', entityId: id,
+        title: 'คุณได้รับมอบหมาย Lead ใหม่',
+        body: `${lead.fullName} (${lead.phone}) — โปรดติดตาม`,
+      });
+    }
+    await this.audit.record(user, { action: 'assign', entityType: 'lead', entityId: id, newValue: { assignedToId: dto.assignedToId, ...(alsoStart ? { status: 'working' } : {}) }, ...meta });
     return lead;
   }
 

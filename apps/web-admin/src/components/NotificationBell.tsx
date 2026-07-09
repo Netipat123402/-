@@ -154,10 +154,10 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={boxRef}>
       <button onClick={() => { setOpen((v) => !v); if (!open) loadAll(); }} aria-label="การแจ้งเตือน"
-        className="relative flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-canvas">
+        className="relative flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised">
         <Icon name="bell" size={20} />
         {badge > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold text-white ring-2 ring-surface">
+          <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold text-[#1c1b18] ring-2 ring-surface">
             {badge > 9 ? '9+' : badge}
           </span>
         )}
@@ -189,7 +189,7 @@ export default function NotificationBell() {
                     </div>
                     {shown.map((it) => (
                       <button key={it.id} onClick={() => go(it.href)}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-left transition hover:bg-canvas">
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-left transition hover:bg-raised">
                         <Icon name={it.icon} size={16} className="shrink-0 text-muted" />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm text-ink">{it.title}</span>
@@ -218,7 +218,7 @@ export default function NotificationBell() {
                     const unread = n.status !== 'read';
                     return (
                       <button key={n.id} onClick={() => openEvent(n)}
-                        className={`flex w-full gap-2.5 px-4 py-2 text-left transition hover:bg-canvas ${unread ? 'bg-gold/[0.04]' : ''}`}>
+                        className={`flex w-full gap-2.5 px-4 py-2 text-left transition hover:bg-raised ${unread ? 'bg-gold/[0.04]' : ''}`}>
                         <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${unread ? 'bg-gold' : 'bg-transparent'}`} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
@@ -236,7 +236,7 @@ export default function NotificationBell() {
           )}
 
           <button onClick={() => go('/notifications')}
-            className="block w-full border-t border-border px-4 py-2.5 text-center text-xs font-medium text-gold-dark hover:bg-canvas">
+            className="block w-full border-t border-border px-4 py-2.5 text-center text-xs font-medium text-gold-dark hover:bg-raised">
             ดูทั้งหมด
           </button>
         </div>

@@ -33,7 +33,7 @@ export default function Lightbox({
   if (!mounted) return null;
   return createPortal(
     <div ref={boxRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="ดูรูปเต็มจอ"
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/90 p-4 outline-none" onClick={onClose}>
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 outline-none" onClick={onClose}>
       <button aria-label="ปิด" className="absolute right-4 top-4 text-white/80 hover:text-white" onClick={onClose}><Icon name="x" size={28} /></button>
       {images.length > 1 && (
         <>

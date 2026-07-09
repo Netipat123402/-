@@ -33,7 +33,7 @@ export default function ProfileMenu() {
   return (
     <div className="relative" ref={ref}>
       <button onClick={() => setOpen((v) => !v)}
-        className="hidden items-center gap-2 rounded-full p-0.5 pr-1 transition hover:bg-canvas mouse:flex">
+        className="hidden items-center gap-2 rounded-full p-0.5 pr-1 transition hover:bg-raised mouse:flex">
         <span className="hidden max-w-[140px] truncate text-sm text-muted mouse:block">{user.fullName}</span>
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-medium text-canvas">
           {user.fullName.charAt(0)}
@@ -50,7 +50,7 @@ export default function ProfileMenu() {
             <div className="py-1">
               {items.map((it) => (
                 <Link key={it.href} href={it.href} onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-canvas">{it.label}</Link>
+                  className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-raised">{it.label}</Link>
               ))}
             </div>
           )}
@@ -58,7 +58,7 @@ export default function ProfileMenu() {
             <ThemeToggle />
           </div>
           <button onClick={() => { setOpen(false); logout(); }}
-            className="block w-full border-t border-border px-4 py-2.5 text-left text-sm text-danger hover:bg-canvas">
+            className="block w-full border-t border-border px-4 py-2.5 text-left text-sm text-danger hover:bg-raised">
             ออกจากระบบ
           </button>
         </div>

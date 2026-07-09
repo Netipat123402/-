@@ -6,8 +6,9 @@ import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
 import { useToast } from '@/components/Toast';
 import { useLookup, useSearchLookup } from '@/lib/lookups';
+import { useDebouncedValue } from '@/lib/useDebounce';
 import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
-import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, Segmented, StatusBadge , PAGE_SIZE} from '@/components/ui';
+import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, SectionLabel, Segmented, StatusBadge , PAGE_SIZE} from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { thaiDate } from '@/lib/format';
 
@@ -49,9 +50,10 @@ export default function ContractsPage() {
   const [status, setStatus] = useState(sp.get('status') ?? '');
   const [sort, setSort] = useState('code');
   const [q, setQ] = useState('');
+  const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
   if (status) params.set('status', status);
-  if (q) params.set('q', q);
+  if (dq) params.set('q', dq);
   const { rows, meta, loading, reload } = useList<Contract>(`/contracts?${params}`);
   const filtered = !!(q || status);
   const clearFilters = () => { setQ(''); setStatus(''); setPage(1); };
@@ -74,7 +76,35 @@ export default function ContractsPage() {
     setForm((f) => ({ ...f, [k]: v }));
     if (k in fe) setFe((e) => ({ ...e, [k]: undefined }));
   }
-  function close() { setOpen(false); setFe({}); setErr(''); }
+  const [seedOwner, setSeedOwner] = useState<{ value: string; label: string } | null>(null); // seed ป้ายเจ้าของที่ auto-fill
+  function close() { setOpen(false); setFe({}); setErr(''); setSeedOwner(null); }
+
+  // เปิดฟอร์ม + ตั้งค่า default วันเริ่ม=วันนี้ / วันสิ้นสุด=+12 เดือน (Phase 35 ลดการกรอก)
+  function openCreate() {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const iso = (dt: Date) => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+    const today = new Date(); const end = new Date(today); end.setFullYear(end.getFullYear() + 1);
+    setForm({ ...blank, startDate: iso(today), endDate: iso(end) });
+    setFe({}); setErr(''); setSeedOwner(null); setOpen(true);
+  }
+
+  // เลือกทรัพย์ → auto-fill เจ้าของ + ค่าเช่า + มัดจำ (จากข้อมูลทรัพย์) — ลดการกรอกซ้ำ
+  async function pickProperty(id: string) {
+    setField('propertyId', id);
+    if (!id) return;
+    try {
+      const r = await api<{ owner?: { id: string; fullName: string }; monthlyRent?: string; depositMonths?: number }>(`/properties/${id}`);
+      const p = r.data;
+      setForm((f) => ({
+        ...f,
+        propertyId: id,
+        ownerId: p.owner?.id ?? f.ownerId,
+        monthlyRent: p.monthlyRent != null ? String(Number(p.monthlyRent)) : f.monthlyRent,
+        depositAmount: p.depositMonths && p.monthlyRent ? String(p.depositMonths * Number(p.monthlyRent)) : f.depositAmount,
+      }));
+      if (p.owner) setSeedOwner({ value: p.owner.id, label: p.owner.fullName });
+    } catch { /* auto-fill พลาด = ผู้ใช้เลือกเองได้ ไม่ต้องแจ้ง error */ }
+  }
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -98,7 +128,7 @@ export default function ContractsPage() {
         startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
         endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
       }) });
-      setOpen(false); setForm(blank); setFe({}); reload();
+      setOpen(false); setForm(blank); setFe({}); setSeedOwner(null); reload();
       toast.success('สร้างสัญญาแล้ว');
     } catch (e2) { setErr((e2 as { message?: string }).message || 'สร้างสัญญาไม่สำเร็จ'); }
     finally { setSaving(false); }
@@ -125,7 +155,7 @@ export default function ContractsPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <PageHeader title="สัญญา" count={`${meta.total ?? 0} ฉบับ`}
-        action={can('contract', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> สัญญา</button>} />
+        action={can('contract', 'create') && <button className="btn-gold btn-sm" onClick={openCreate}><Icon name="plus" size={16} /> สัญญา</button>} />
       {/* P11: สถานะสัญญา = quick-filter แตะเดียว (ร่าง/มีผล/สิ้นสุด) */}
       <div className="mt-4 -mb-1">
         <Segmented options={STATUS_OPTIONS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
@@ -141,32 +171,45 @@ export default function ContractsPage() {
           empty={filtered ? 'ไม่พบสัญญาตามเงื่อนไขที่เลือก' : 'ยังไม่มีสัญญา'}
           emptyAction={filtered
             ? <button className="btn-ghost btn-sm" onClick={clearFilters}>ล้างตัวกรอง</button>
-            : (can('contract', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> เพิ่มสัญญา</button>)}
+            : (can('contract', 'create') && <button className="btn-gold btn-sm" onClick={openCreate}><Icon name="plus" size={16} /> เพิ่มสัญญา</button>)}
           onRow={(c) => router.push(`/contracts/${c.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
 
-      {/* create */}
-      <Modal open={open} onClose={close} title="สร้างสัญญา">
-        <form onSubmit={create} className="space-y-4">
-          <Sel label="ทรัพย์ (เฉพาะที่ว่าง)" req error={fe.propertyId} val={form.propertyId} set={(v) => setField('propertyId', v)} opts={props.options} onSearch={props.setQuery} loading={props.loading} loadError={props.error} onRetry={props.reload} />
-          <Sel label="เจ้าของ" req error={fe.ownerId} val={form.ownerId} set={(v) => setField('ownerId', v)} opts={owners.options} onSearch={owners.setQuery} loading={owners.loading} loadError={owners.error} onRetry={owners.reload} />
-          <Sel label="ลูกค้า" req error={fe.customerId} val={form.customerId} set={(v) => setField('customerId', v)} opts={customers.options} onSearch={customers.setQuery} loading={customers.loading} loadError={customers.error} onRetry={customers.reload} />
-          {customers.options.length === 0 && <p className="-mt-2 text-xs text-warning">* ยังไม่มีลูกค้า — แปลง Lead เป็นลูกค้าก่อน (หน้า Lead)</p>}
-          <Sel label="พนักงาน (เว้นว่าง = ตัวฉันเอง)" val={form.agentId} set={(v) => setField('agentId', v)} opts={[{ value: '', label: '— ตัวฉันเอง —' }, ...agents.options]} />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Field label="ค่าเช่า/เดือน *" type="number" error={fe.monthlyRent} value={form.monthlyRent} onChange={(e) => setField('monthlyRent', e.target.value)} />
-            <Field label="มัดจำ (บาท)" type="number" value={form.depositAmount} onChange={(e) => setField('depositAmount', e.target.value)} />
-            <Field label="ค่านายหน้า" type="number" value={form.commissionAmount} onChange={(e) => setField('commissionAmount', e.target.value)} />
+      {/* create (Phase 35) — จัด 3 หมวด + auto-fill (เลือกทรัพย์ → เติมเจ้าของ/ค่าเช่า/มัดจำ) + default วันที่ */}
+      <Modal open={open} onClose={close} title="สร้างสัญญา"
+        confirmOnClose={!!(form.propertyId || form.customerId || form.ownerId || form.monthlyRent)}>
+        <form onSubmit={create} className="space-y-5">
+          <div className="space-y-3">
+            <SectionLabel>คู่สัญญา</SectionLabel>
+            <Sel label="ทรัพย์ (เฉพาะที่ว่าง)" req error={fe.propertyId} val={form.propertyId} set={pickProperty} opts={props.options} onSearch={props.setQuery} loading={props.loading} loadError={props.error} onRetry={props.reload} />
+            <Sel label="เจ้าของ" req error={fe.ownerId} val={form.ownerId} set={(v) => setField('ownerId', v)} opts={seedOwner && !owners.options.some((o) => o.value === seedOwner.value) ? [seedOwner, ...owners.options] : owners.options} onSearch={owners.setQuery} loading={owners.loading} loadError={owners.error} onRetry={owners.reload} />
+            <Sel label="ลูกค้า" req error={fe.customerId} val={form.customerId} set={(v) => setField('customerId', v)} opts={customers.options} onSearch={customers.setQuery} loading={customers.loading} loadError={customers.error} onRetry={customers.reload} />
+            {customers.options.length === 0 && <p className="-mt-2 text-xs text-warning">* ยังไม่มีลูกค้า — แปลง Lead เป็นลูกค้าก่อน (หน้า Lead)</p>}
+            <Sel label="พนักงาน (เว้นว่าง = ตัวฉันเอง)" val={form.agentId} set={(v) => setField('agentId', v)} opts={[{ value: '', label: '— ตัวฉันเอง —' }, ...agents.options]} />
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="วันเริ่มสัญญา *" type="date" error={fe.startDate}
-              hint={form.startDate ? thaiDate(form.startDate) : undefined}
-              value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} />
-            <Field label="วันสิ้นสุด *" type="date" error={fe.endDate}
-              hint={form.endDate ? thaiDate(form.endDate) : undefined}
-              value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} />
+
+          <div className="space-y-3">
+            <SectionLabel>การเงิน</SectionLabel>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Field label="ค่าเช่า/เดือน *" type="number" error={fe.monthlyRent} value={form.monthlyRent} onChange={(e) => setField('monthlyRent', e.target.value)} />
+              <Field label="มัดจำ (บาท)" type="number" value={form.depositAmount} onChange={(e) => setField('depositAmount', e.target.value)} />
+              <Field label="ค่านายหน้า" type="number" value={form.commissionAmount} onChange={(e) => setField('commissionAmount', e.target.value)} />
+            </div>
           </div>
+
+          <div className="space-y-3">
+            <SectionLabel>ระยะเวลา</SectionLabel>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="วันเริ่มสัญญา *" type="date" error={fe.startDate}
+                hint={form.startDate ? thaiDate(form.startDate) : undefined}
+                value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} />
+              <Field label="วันสิ้นสุด *" type="date" error={fe.endDate}
+                hint={form.endDate ? thaiDate(form.endDate) : undefined}
+                value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} />
+            </div>
+          </div>
+
           {err && <p className="text-sm text-danger">{err}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn-ghost" onClick={close}>ยกเลิก</button>

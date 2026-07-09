@@ -179,7 +179,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link key={it.href} href={it.href}
                 aria-current={isActive(it.href) ? 'page' : undefined}
                 className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-[11px] leading-tight transition ${
-                  isActive(it.href) ? 'bg-ink text-canvas' : 'text-ink-soft hover:bg-canvas'
+                  isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
                 }`}>
                 <Icon name={it.icon} size={20} className={isActive(it.href) ? '' : 'opacity-80'} />
                 <span>{it.label}</span>
@@ -193,7 +193,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const Brand = () => (
     <div className="flex h-16 items-center justify-center">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-base font-semibold text-canvas">R</div>
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold text-base font-semibold text-[#1c1b18]">R</div>
     </div>
   );
 
@@ -216,7 +216,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           รวม: โปรไฟล์ผู้ใช้ + เมนูทั้งหมด + ระบบ(ตั้งค่า/กิจกรรม/ผู้ใช้) + ออกจากระบบ (กันเมนูตกหล่น) */}
       {drawer && (
         <>
-          <div className="fixed inset-0 z-40 bg-ink/40 mouse:hidden" onClick={() => setDrawer(false)} />
+          <div className="fixed inset-0 z-40 bg-ink/40 dark:bg-black/50 mouse:hidden" onClick={() => setDrawer(false)} />
           <aside ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="เมนูและโปรไฟล์"
             className="fixed inset-y-0 right-0 z-50 flex w-[280px] flex-col overflow-y-auto border-l border-border bg-surface outline-none mouse:hidden">
             {/* หัวโปรไฟล์ */}
@@ -238,7 +238,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <Link key={it.href} href={it.href} onClick={() => setDrawer(false)}
                       aria-current={isActive(it.href) ? 'page' : undefined}
                       className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                        isActive(it.href) ? 'bg-ink text-canvas' : 'text-ink-soft hover:bg-canvas'
+                        isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
                       }`}>
                       <Icon name={it.icon} size={18} className={isActive(it.href) ? '' : 'opacity-70'} />
                       {it.label}
@@ -253,7 +253,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <Link key={it.href} href={it.href} onClick={() => setDrawer(false)}
                       aria-current={isActive(it.href) ? 'page' : undefined}
                       className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                        isActive(it.href) ? 'bg-ink text-canvas' : 'text-ink-soft hover:bg-canvas'
+                        isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
                       }`}>
                       <Icon name={it.icon} size={18} className={isActive(it.href) ? '' : 'opacity-70'} />
                       {it.label}
@@ -266,7 +266,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <ThemeToggle />
             </div>
             <button onClick={() => { setDrawer(false); logout(); }}
-              className="border-t border-border px-5 py-3.5 text-left text-sm font-medium text-danger hover:bg-canvas">
+              className="border-t border-border px-5 py-3.5 text-left text-sm font-medium text-danger hover:bg-raised">
               ออกจากระบบ
             </button>
           </aside>
@@ -279,7 +279,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {/* มือถือซ้าย: + เพิ่มทรัพย์ → เปิดฟอร์มมีสเต็ป 1-4 (ตัวเดียวกับเดสก์ท็อป) ในกล่องกลางจอ */}
           {can('property', 'create') && (
             <button onClick={() => setQuickAdd(true)} aria-label="เพิ่มทรัพย์"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-canvas mouse:hidden">
+              className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised mouse:hidden">
               <Icon name="plus" size={22} />
             </button>
           )}
@@ -311,7 +311,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             const on = 'href' in s ? isActive(s.href) : drawer; // action ที่เหลือ = โปรไฟล์ (drawer)
             const center = 'center' in s && s.center;
             const cls = `flex h-11 w-11 items-center justify-center rounded-full transition ${
-              on ? 'bg-ink text-canvas' : `${center ? 'text-gold-dark' : 'text-muted'} hover:bg-canvas hover:text-ink`
+              on ? 'bg-raised text-gold-dark' : `${center ? 'text-gold-dark' : 'text-muted'} hover:bg-raised hover:text-ink`
             }`;
             const icon = <Icon name={s.icon} size={24} />;
             return 'href' in s ? (

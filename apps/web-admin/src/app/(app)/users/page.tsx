@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
 import { useToast } from '@/components/Toast';
-import { Col, Combobox, ConfirmDialog, Field, FilterBar, ListView, Modal, PageHeader } from '@/components/ui';
+import { Col, Combobox, ConfirmDialog, Field, FilterBar, InfoRow, ListView, Modal, PageHeader } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { badgeClass, type Tone } from '@/lib/status';
 import { formatPhone, phoneDigits } from '@/lib/format';
@@ -16,6 +16,8 @@ const ROLE_TH: Record<string, string> = {
   super_admin: 'ผู้ดูแลสูงสุด', company_admin: 'ผู้บริหาร', branch_manager: 'ผจก.สาขา',
   team_lead: 'หัวหน้าทีม', sales_agent: 'พนักงานขาย', back_office: 'หลังบ้าน', auditor: 'ผู้ตรวจสอบ',
 };
+// ข้อ 7: dropdown บทบาทเหลือ 4 (ตามที่ใช้จริง) — กรองที่ FE เท่านั้น · role อื่นยังอยู่ใน DB/RBAC ครบ (guard/seed พึ่งอยู่)
+const CREATE_ROLES = ['team_lead', 'sales_agent', 'back_office', 'super_admin'];
 const STATUS_TH: Record<string, { label: string; tone: Tone }> = {
   active: { label: 'ใช้งาน', tone: 'active' }, invited: { label: 'รอเปิดใช้', tone: 'gold' }, suspended: { label: 'ระงับ', tone: 'neutral' },
 };
@@ -98,7 +100,9 @@ export default function UsersPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) v.email = 'อีเมลไม่ถูกต้อง';
     const d = phoneDigits(form.phone);
     if (d && d.length !== 10) v.phone = 'เบอร์โทรต้องมี 10 หลัก';
-    if (form.password.length < 8) v.password = 'รหัสผ่านอย่างน้อย 8 ตัว';
+    // ข้อ 7 (root cause): เดิมเช็คแค่ยาว ≥8 → รหัสไม่มีตัวเลข/ตัวอักษรผ่าน FE แต่ backend ตีกลับ (สร้างไม่สำเร็จเงียบ ๆ)
+    // ตอนนี้เช็คให้ตรง PASSWORD_RULE ฝั่ง server → โชว์ error ใต้ช่องทันที
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(form.password)) v.password = 'รหัสผ่านอย่างน้อย 8 ตัว และต้องมีทั้งตัวอักษรและตัวเลข';
     if (Object.keys(v).length) { setFe(v); return; }
     setSaving(true); setErr('');
     try {
@@ -117,6 +121,11 @@ export default function UsersPage() {
     return <span className={badgeClass(st.tone)}>{st.label}</span>;
   };
 
+  // บทบาทที่ให้เลือก = 4 บทบาทหลัก (กรองจากที่ backend อนุญาต) · ถ้ากรองแล้วว่าง fallback เป็นชุดเต็ม (กันเลือกไม่ได้)
+  const rolesBase = roles.length ? roles : [{ name: 'sales_agent' } as Role];
+  const filteredRoles = rolesBase.filter((r) => CREATE_ROLES.includes(r.name));
+  const roleOptions = (filteredRoles.length ? filteredRoles : rolesBase).map((r) => ({ value: r.name, label: ROLE_TH[r.name] ?? r.name }));
+
   const cols: Col<User>[] = [
     { header: 'ชื่อ', primary: true, cell: (u) => u.fullName },
     { header: 'อีเมล · บทบาท', sub: true, cell: (u) => `${u.email} · ${u.roles.map((r) => ROLE_TH[r] ?? r).join(', ')}` },
@@ -134,14 +143,15 @@ export default function UsersPage() {
         <ListView items={rows} cols={cols} keyOf={(u) => u.id} loading={loading} empty="ยังไม่มีผู้ใช้" emptyIcon="users" onRow={openUser} />
       </div>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="สร้างบัญชีผู้ใช้">
+      <Modal open={open} onClose={() => setOpen(false)} title="สร้างบัญชีผู้ใช้"
+        confirmOnClose={!!(form.fullName || form.email || form.phone || form.password)}>
         <form onSubmit={create} className="space-y-4">
           <Field label="ชื่อ-นามสกุล *" error={fe.fullName} placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setField('fullName', e.target.value)} />
           <Field label="อีเมล *" type="email" error={fe.email} placeholder="name@ros.local" value={form.email} onChange={(e) => setField('email', e.target.value)} />
           <Field label="เบอร์โทร" error={fe.phone} inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone} onChange={(e) => setField('phone', formatPhone(e.target.value))} />
-          <Field label="รหัสผ่าน *" type="text" error={fe.password} hint="อย่างน้อย 8 ตัวอักษร" value={form.password} onChange={(e) => setField('password', e.target.value)} />
+          <Field label="รหัสผ่าน *" type="text" error={fe.password} hint="อย่างน้อย 8 ตัว มีทั้งตัวอักษรและตัวเลข" value={form.password} onChange={(e) => setField('password', e.target.value)} />
           <Combobox label="บทบาท *" searchable={false} value={form.role} onChange={(v) => setForm({ ...form, role: v })}
-            options={(roles.length ? roles : [{ name: 'sales_agent' }]).map((r) => ({ value: r.name, label: ROLE_TH[r.name] ?? r.name }))} />
+            options={roleOptions} />
           {err && <p className="text-sm text-danger">{err}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>ยกเลิก</button>
@@ -154,12 +164,12 @@ export default function UsersPage() {
       <Modal open={!!active} onClose={() => setActive(null)} title={active?.fullName ?? ''}>
         {active && (
           <div className="space-y-4">
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-              <div><dt className="text-xs text-muted">อีเมล</dt><dd className="text-sm">{active.email}</dd></div>
-              <div><dt className="text-xs text-muted">เบอร์โทร</dt><dd className="text-sm">{active.phone || '—'}</dd></div>
-              <div><dt className="text-xs text-muted">บทบาท</dt><dd className="text-sm">{active.roles.map((r) => ROLE_TH[r] ?? r).join(', ')}</dd></div>
-              <div><dt className="text-xs text-muted">สถานะ</dt><dd className="text-sm">{statusBadge(active.status)}</dd></div>
-            </dl>
+            <div className="divide-y divide-border/60">
+              <InfoRow label="อีเมล" value={active.email} />
+              <InfoRow label="เบอร์โทร" value={active.phone || undefined} hideEmpty />
+              <InfoRow label="บทบาท" value={active.roles.map((r) => ROLE_TH[r] ?? r).join(', ')} />
+              <InfoRow label="สถานะ" value={statusBadge(active.status)} />
+            </div>
 
             {/* แก้ไขบัญชี — เปลี่ยนบทบาท/สถานะ (ไม่ใช่บัญชีตัวเอง) + รีเซ็ตรหัสผ่าน */}
             {can('user', 'update') && !active.roles.includes('super_admin') && (
@@ -169,11 +179,11 @@ export default function UsersPage() {
                   <>
                     <Combobox label="บทบาท" searchable={false} value={edit?.role ?? ''}
                       onChange={(v) => setEdit((e) => e && { ...e, role: v })}
-                      options={(roles.length ? roles : [{ name: 'sales_agent' }]).map((r) => ({ value: r.name, label: ROLE_TH[r.name] ?? r.name }))} />
+                      options={roleOptions} />
                     <Combobox label="สถานะ" searchable={false} value={edit?.status ?? ''}
                       onChange={(v) => setEdit((e) => e && { ...e, status: v })}
                       options={[{ value: 'active', label: 'ใช้งาน' }, { value: 'suspended', label: 'ระงับการใช้งาน' }]} />
-                    <button className="btn-primary w-full" disabled={savingEdit} onClick={saveEdit}>บันทึกการแก้ไข</button>
+                    <button className="btn-gold w-full" disabled={savingEdit} onClick={saveEdit}>บันทึกการแก้ไข</button>
                   </>
                 )}
                 <div className="pt-1">

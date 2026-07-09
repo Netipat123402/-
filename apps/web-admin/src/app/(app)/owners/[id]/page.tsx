@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { Avatar, Field, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { Avatar, Field, InfoRow, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
+import DocumentSection from '@/components/DocumentSection';
 import { PROPERTY_STATUS, CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import { formatPhone } from '@/lib/format';
 
@@ -27,7 +28,11 @@ export default function OwnerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [edit, setEdit] = useState(false);
   const [form, setForm] = useState<Owner>({ id: '', fullName: '' });
+  const [idCardInput, setIdCardInput] = useState(''); // เลขบัตรใหม่ (ว่าง = ไม่เปลี่ยน) — ไม่ prefill ค่า mask
   const [saving, setSaving] = useState(false);
+
+  function startEdit() { if (o) setForm(o); setIdCardInput(''); setEdit(true); }
+  function cancelEdit() { setEdit(false); if (o) setForm(o); setIdCardInput(''); }
 
   useEffect(() => {
     (async () => {
@@ -42,6 +47,7 @@ export default function OwnerDetailPage() {
       const r = await api<Owner>(`/owners/${id}`, { method: 'PATCH', body: JSON.stringify({
         fullName: form.fullName, phone: form.phone || undefined, email: form.email || undefined,
         address: form.address || undefined, note: form.note || undefined,
+        idCardNo: idCardInput.trim() || undefined, // ส่งเฉพาะเมื่อกรอกใหม่ (undefined = ไม่แตะค่าเดิม)
       }) });
       setO((prev) => ({ ...r.data, properties: prev?.properties, contracts: prev?.contracts }));
       setEdit(false); toast.success('บันทึกแล้ว');
@@ -68,17 +74,20 @@ export default function OwnerDetailPage() {
         </div>
       </div>
 
-      {/* PRIMARY — ข้อมูลติดต่อ */}
+      {/* ① ข้อมูลเจ้าของ (ติดต่อ + ส่วนตัว รวมติดกัน · Phase 43) — แก้ได้ครบทุกฟิลด์ (Phase 44) */}
       <div className="mt-6 card p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <SectionLabel>ข้อมูลติดต่อ</SectionLabel>
-          {can('owner', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={() => setEdit(true)}>แก้ไข</button>}
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <SectionLabel>ข้อมูลเจ้าของ</SectionLabel>
+          {can('owner', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={startEdit}>แก้ไข</button>}
         </div>
         {edit ? (
           <div className="space-y-4">
             <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
             <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
             <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Field label="เลขบัตรประชาชน" inputMode="numeric"
+              hint={o.idCardNo ? `ปัจจุบัน: ${o.idCardNo} — เว้นว่าง = ไม่เปลี่ยน` : 'เว้นว่าง = ไม่ระบุ'}
+              placeholder="กรอกเพื่อเปลี่ยน/เพิ่ม" value={idCardInput} onChange={(e) => setIdCardInput(e.target.value)} />
             <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
               <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </label>
@@ -86,24 +95,29 @@ export default function OwnerDetailPage() {
               <textarea className="field h-auto py-2.5" rows={2} placeholder="บันทึกภายใน เช่น ช่องทางติดต่อที่สะดวก" value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
             </label>
             <div className="flex justify-end gap-2">
-              <button className="btn-ghost" onClick={() => { setEdit(false); setForm(o); }}>ยกเลิก</button>
+              <button className="btn-ghost" onClick={cancelEdit}>ยกเลิก</button>
               <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
             </div>
           </div>
         ) : (
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3.5">
-            <div><dt className="text-xs text-muted">เบอร์โทร</dt><dd className="mt-0.5 text-sm"><PhoneLink phone={o.phone} /></dd></div>
-            <div><dt className="text-xs text-muted">อีเมล</dt><dd className="mt-0.5 truncate text-sm text-ink">{o.email || '—'}</dd></div>
-          </dl>
+          <div className="divide-y divide-border/60">
+            <InfoRow label="เบอร์โทร" value={o.phone ? <PhoneLink phone={o.phone} /> : undefined} hideEmpty />
+            <InfoRow label="อีเมล" value={o.email || undefined} hideEmpty />
+            <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono hideEmpty />
+            <InfoRow label="ที่อยู่" value={o.address || undefined} stack hideEmpty />
+            <InfoRow label="โน้ต" value={o.note || undefined} stack hideEmpty />
+            {!o.phone && !o.email && !o.idCardNo && !o.address && !o.note && <p className="py-2.5 text-center text-sm text-muted">ยังไม่มีข้อมูลติดต่อ — กด “แก้ไข” เพื่อเพิ่ม</p>}
+          </div>
         )}
       </div>
 
-      {/* SECONDARY — ทรัพย์ที่เป็นเจ้าของ */}
+      {/* ② ทรัพย์ที่เป็นเจ้าของ */}
       <div className="mt-6 card p-5">
         <SectionLabel className="mb-4">ทรัพย์ที่เป็นเจ้าของ · {props.length}</SectionLabel>
         {props.length === 0 ? (
           <p className="text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
         ) : (
+          <>
           <ul className="divide-y divide-border">
             {props.map((p) => (
               <li key={p.id}>
@@ -119,6 +133,12 @@ export default function OwnerDetailPage() {
               </li>
             ))}
           </ul>
+          {/* ท้าย: มูลค่าเช่ารวมของพอร์ต (ข้อมูลใหม่ ไม่ซ้ำหัว) */}
+          <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
+            <span className="text-muted">มูลค่าเช่ารวม</span>
+            <span className="font-medium tabular-nums text-ink">฿{bahtFormat(props.reduce((s, p) => s + Number(p.monthlyRent ?? 0), 0))}/เดือน</span>
+          </div>
+          </>
         )}
       </div>
 
@@ -140,14 +160,10 @@ export default function OwnerDetailPage() {
         </div>
       )}
 
-      {/* ADVANCED — ข้อมูลเพิ่มเติม (จาง อยู่ท้ายสุด) */}
+      {/* ④ เอกสาร */}
       <div className="mt-6 card p-5">
-        <SectionLabel className="mb-4">ข้อมูลเพิ่มเติม</SectionLabel>
-        <dl className="space-y-3.5">
-          <div><dt className="text-xs text-muted">เลขบัตรประชาชน</dt><dd className="mt-0.5 text-sm text-ink">{o.idCardNo || '—'}</dd></div>
-          <div><dt className="text-xs text-muted">ที่อยู่</dt><dd className="mt-0.5 text-sm text-ink">{o.address || '—'}</dd></div>
-          <div><dt className="text-xs text-muted">โน้ต</dt><dd className="mt-0.5 whitespace-pre-wrap text-sm text-ink">{o.note || '—'}</dd></div>
-        </dl>
+        <SectionLabel className="mb-4">เอกสาร</SectionLabel>
+        <DocumentSection entityType="owner" entityId={o.id} />
       </div>
     </div>
   );

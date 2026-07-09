@@ -51,6 +51,7 @@ export default function PropertiesPage() {
   const dRentMax = useDebouncedValue(rentMax, 300);
   const [sort, setSort] = useState('code');
   const [q, setQ] = useState('');
+  const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์ (เดิม q ตรง ๆ = ทุกตัวอักษร)
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [provinceOpts, setProvinceOpts] = useState<{ value: string; label: string }[]>([]);
@@ -72,12 +73,12 @@ export default function PropertiesPage() {
     if (province) params.set('province', province);
     if (dRentMin) params.set('rentMin', dRentMin);
     if (dRentMax) params.set('rentMax', dRentMax);
-    if (q) params.set('q', q);
+    if (dq) params.set('q', dq);
     try {
       const r = await api<PropertyRow[]>(`/properties?${params}`);
       setRows(r.data); setMeta(r.meta ?? {});
     } finally { setLoading(false); }
-  }, [api, page, status, type, province, dRentMin, dRentMax, q, sort]);
+  }, [api, page, status, type, province, dRentMin, dRentMax, dq, sort]);
 
   useEffect(() => { load(); }, [load]);
 

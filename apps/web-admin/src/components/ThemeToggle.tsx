@@ -22,7 +22,7 @@ export default function ThemeToggle({ onToggle }: { onToggle?: () => void }) {
 
   return (
     <button type="button" onClick={toggle}
-      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-ink-soft transition hover:bg-canvas">
+      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-ink-soft transition hover:bg-raised">
       <Icon name={dark ? 'sun' : 'moon'} size={18} className="opacity-70" />
       {dark ? 'โหมดสว่าง' : 'โหมดมืด'}
     </button>

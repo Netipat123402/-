@@ -60,7 +60,7 @@ export class CustomerService {
   async get(user: AuthenticatedUser, id: string) {
     const c = await this.prisma.customer.findFirst({
       where: { AND: [this.scopeWhere(user), { id }] },
-      include: { contracts: { where: { deletedAt: null }, select: { id: true, code: true, status: true }, orderBy: { createdAt: 'desc' } } },
+      include: { contracts: { where: { deletedAt: null }, select: { id: true, code: true, status: true, monthlyRent: true }, orderBy: { createdAt: 'desc' } } },
     });
     return this.mask(c);
   }

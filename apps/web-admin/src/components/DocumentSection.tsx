@@ -26,8 +26,12 @@ const STATUS_TH: Record<string, { label: string; cls: string }> = {
 };
 
 export default function DocumentSection({
-  entityType, entityId, canEdit = true,
-}: { entityType: string; entityId: string; canEdit?: boolean }) {
+  entityType, entityId, canEdit = true, onDocsLoaded,
+}: {
+  entityType: string; entityId: string; canEdit?: boolean;
+  // แจ้งชุดเอกสารล่าสุดให้ parent (เช่น checklist ก่อนลงนามสัญญา) — เรียกทุกครั้งที่ load
+  onDocsLoaded?: (docs: { documentType: string; status: string }[]) => void;
+}) {
   const { api, upload, apiBlob, can } = useAuth();
   const toast = useToast();
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -43,8 +47,11 @@ export default function DocumentSection({
   const fileRef = useRef<HTMLInputElement>(null);
   const LIMIT = 5;
 
+  // เก็บ callback ใน ref → ไม่ต้องใส่ใน deps ของ load (กัน parent ส่ง inline fn แล้ว refetch วนไม่จบ)
+  const onDocsLoadedRef = useRef(onDocsLoaded);
+  onDocsLoadedRef.current = onDocsLoaded;
   const load = useCallback(async () => {
-    try { const r = await api<Doc[]>(`/entities/${entityType}/${entityId}/documents`); setDocs(r.data ?? []); }
+    try { const r = await api<Doc[]>(`/entities/${entityType}/${entityId}/documents`); setDocs(r.data ?? []); onDocsLoadedRef.current?.(r.data ?? []); }
     catch { /* */ } finally { setLoading(false); }
   }, [api, entityType, entityId]);
   useEffect(() => { load(); }, [load]);
@@ -168,7 +175,7 @@ export default function DocumentSection({
                           </button>
                           {hasMenu && (
                             <button aria-label="จัดการเอกสาร" aria-expanded={expanded}
-                              className="-mr-1 shrink-0 rounded-lg p-1 text-muted transition hover:bg-canvas hover:text-ink"
+                              className="-mr-1 shrink-0 rounded-lg p-1 text-muted transition hover:bg-raised hover:text-ink"
                               onClick={() => setExpandedId(expanded ? null : d.id)}>
                               <Icon name="chevron-down" size={16} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
                             </button>

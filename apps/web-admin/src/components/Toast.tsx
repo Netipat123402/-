@@ -20,7 +20,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const show = useCallback((type: ToastType, msg: string) => {
     const id = Date.now() + Math.random();
-    setItems((cur) => [...cur, { id, type, msg }]);
+    // dedupe: ข้อความ+ชนิดเดียวกันยัง active อยู่ → ไม่ซ้อนใบใหม่ (แก้ toast แดง ×3 ตอน error ยิงซ้ำ)
+    setItems((cur) => (cur.some((x) => x.type === type && x.msg === msg) ? cur : [...cur, { id, type, msg }]));
+    // ตั้ง timer เสมอ — ถ้าถูก dedupe (id ไม่อยู่ในลิสต์) filter จะเป็น no-op ปลอดภัย
     setTimeout(() => setItems((cur) => cur.filter((x) => x.id !== id)), 3200);
   }, []);
 
@@ -35,14 +37,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       {/* a11y: ประกาศ toast ให้ screen reader (WCAG 4.1.3) — polite = ไม่ตัดคำพูดที่กำลังอ่าน */}
       <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-5 z-[70] flex flex-col items-center gap-2 px-4">
+        {/* v2 (สไตล์แอพ Claude): การ์ดดาร์ก + กรอบสีตามชนิด + ไอคอนสี — สงบ อ่านง่าย ไม่แสบตา */}
         {items.map((t) => (
           <div key={t.id}
-            className={`pointer-events-auto flex max-w-sm items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-medium shadow-lift ${
-              t.type === 'error' ? 'bg-danger text-white'
-              : t.type === 'success' ? 'bg-ink text-canvas'
-              : 'border border-border bg-surface text-ink'
+            className={`pointer-events-auto flex max-w-sm items-center gap-2.5 rounded-xl2 border bg-surface px-4 py-3 text-sm font-medium text-ink shadow-lift ${
+              t.type === 'error' ? 'border-danger/50'
+              : t.type === 'success' ? 'border-success/50'
+              : 'border-border'
             }`}>
-            <Icon name={t.type === 'error' ? 'alert-triangle' : t.type === 'success' ? 'check' : 'info'} size={16} className="shrink-0" />
+            <Icon name={t.type === 'error' ? 'alert-triangle' : t.type === 'success' ? 'check' : 'info'} size={16}
+              className={`shrink-0 ${t.type === 'error' ? 'text-danger' : t.type === 'success' ? 'text-success' : 'text-muted'}`} />
             <span>{t.msg}</span>
           </div>
         ))}

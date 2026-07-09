@@ -136,7 +136,7 @@ export default function AuditPage() {
                   <div
                     role={expandable ? 'button' : undefined}
                     onClick={expandable ? () => toggle(l.id) : undefined}
-                    className={`flex items-start gap-3 px-4 py-3 ${expandable ? 'cursor-pointer transition hover:bg-canvas' : ''}`}>
+                    className={`flex items-start gap-3 px-4 py-3 ${expandable ? 'cursor-pointer transition hover:bg-raised' : ''}`}>
                     <Avatar name={l.actorName} size={34} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm leading-snug">

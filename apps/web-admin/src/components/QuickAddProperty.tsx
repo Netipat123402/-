@@ -102,7 +102,7 @@ export default function QuickAddProperty({ open, onClose }: { open: boolean; onC
             {typeList.map((t) => (
               <button key={t.code} type="button" onClick={() => set('propertyType', t.code)}
                 className={`rounded-lg border px-3 py-1.5 text-sm transition ${
-                  f.propertyType === t.code ? 'border-ink bg-ink text-canvas' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
+                  f.propertyType === t.code ? 'border-gold bg-gold/15 text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
                 }`}>
                 {t.labelTh}
               </button>

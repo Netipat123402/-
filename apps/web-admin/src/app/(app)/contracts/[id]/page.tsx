@@ -6,9 +6,21 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
-import { ConfirmDialog, Field, Modal, StatusBadge } from '@/components/ui';
+import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
+
+/** ขั้นตอน checklist ก่อนลงนามสัญญา (ข้อ 12) — module scope กัน remount */
+function SignStep({ done, text }: { done: boolean; text: string }) {
+  return (
+    <li className="flex items-center gap-2.5 text-sm">
+      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${done ? 'bg-success text-white' : 'border border-border'}`}>
+        {done ? <Icon name="check" size={13} /> : <span className="h-1.5 w-1.5 rounded-full bg-faint" />}
+      </span>
+      <span className={done ? 'text-ink' : 'text-muted'}>{text}</span>
+    </li>
+  );
+}
 
 interface Contract {
   id: string; code: string; status: string; monthlyRent: string;
@@ -44,6 +56,12 @@ export default function ContractDetailPage() {
   const [rnRent, setRnRent] = useState('');
   const [closeOpen, setCloseOpen] = useState(false);
   const [delOpen, setDelOpen] = useState(false);
+  // ข้อ 12: สถานะ lease สำหรับ checklist ก่อนลงนาม — คำนวณจากเอกสารที่ DocumentSection โหลด (แหล่งเดียว)
+  const [lease, setLease] = useState<{ attached: boolean; verified: boolean }>({ attached: false, verified: false });
+  const onDocs = useCallback((docs: { documentType: string; status: string }[]) => {
+    const leaseDocs = docs.filter((x) => x.documentType === 'lease' && x.status !== 'archived');
+    setLease({ attached: leaseDocs.length > 0, verified: leaseDocs.some((x) => x.status === 'verified' || x.status === 'active') });
+  }, []);
 
   const loadTerms = useCallback(async () => {
     try { const r = await api<Term[]>(`/contracts/${id}/terms`); setTerms(r.data ?? []); } catch { /* */ }
@@ -106,110 +124,94 @@ export default function ContractDetailPage() {
   if (loading) return <div className="mx-auto max-w-3xl"><div className="h-48 animate-pulse rounded-card bg-canvas" /></div>;
   if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบสัญญา <Link href="/contracts" className="text-gold-dark underline">กลับ</Link></div>;
 
-  // จัดเป็นหมวดเหมือนหน้ารายละเอียดทรัพย์ (การเงิน แยกจาก ระยะเวลา)
-  const groups: { title: string; items: [string, string][] }[] = [
-    { title: 'การเงิน', items: [
-      ['ค่าเช่า / เดือน', `฿${bahtFormat(Number(c.monthlyRent))}`],
-      ['เงินมัดจำ', c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : '—'],
-      ['ค่านายหน้า', c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : '—'],
-    ] },
-    { title: 'ระยะเวลา', items: [
-      ['วันเริ่ม', d(c.startDate)],
-      ['วันสิ้นสุด', d(c.endDate)],
-      ['ลงนามเมื่อ', d(c.signedAt)],
-    ] },
-  ];
-
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/contracts" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><Icon name="arrow-left" size={16} /> กลับ</Link>
-      <div className="mt-3 flex items-center gap-2">
-        <span className="font-mono text-xs text-muted">{c.code}</span>
-        <StatusBadge map={CONTRACT_STATUS} value={c.status} />
-      </div>
-      {/* identity = ลูกค้า (สัญญาของใคร) · รอง = ชนิดสัญญา + ทรัพย์ — รู้ทันทีว่าสัญญาไหน ไม่ใช่หัวข้อกลาง ๆ */}
-      <h1 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{c.customer?.fullName || 'สัญญาเช่า'}</h1>
-      <p className="mt-0.5 truncate text-sm text-muted">สัญญาเช่า{c.property ? ` · ${c.property.titleTh}` : ''}</p>
+      <DetailHeader
+        backHref="/contracts"
+        code={c.code}
+        badge={<StatusBadge map={CONTRACT_STATUS} value={c.status} />}
+        title={c.customer?.fullName || 'สัญญาเช่า'}
+        subtitle={`สัญญาเช่า${c.property ? ` · ${c.property.titleTh}` : ''}`}
+        price={bahtFormat(Number(c.monthlyRent))}
+        priceSuffix="/เดือน"
+      />
 
-      {/* actions — 3 สถานะ */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {c.status === 'draft' && can('contract', 'sign') && (
-          <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/contracts/${c.id}/sign`, { method: 'POST', body: '{}' }), 'ลงนามสัญญาแล้ว — มีผลบังคับ')}>ลงนามสัญญา (มีผล)</button>
-        )}
-        {c.status === 'draft' && can('contract', 'delete') && (
-          <button className="btn-ghost btn-sm text-danger" disabled={busy} onClick={() => setDelOpen(true)}>ลบสัญญาร่าง</button>
-        )}
-        {c.status === 'active' && (
-          <>
-            {can('contract', 'create') && <button className="btn-ghost btn-sm text-gold-dark" disabled={busy} onClick={openRenew}>ต่อสัญญา</button>}
-            {can('contract', 'update') && <button className="btn-ghost btn-sm" disabled={busy} onClick={openReceipt}>ออกใบเสร็จ</button>}
-            {can('contract', 'change_status') && (
-              <button className="btn-ghost btn-sm text-danger" disabled={busy} onClick={() => setCloseOpen(true)}>ปิดสัญญา</button>
-            )}
-          </>
-        )}
-      </div>
-
+      {/* ข้อ 12 — Sign flow: checklist ก่อนลงนาม (แทน toast แดง×3) + ปุ่ม disabled พร้อมเหตุผลจนกว่าจะครบ */}
       {c.status === 'draft' && (
-        <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-canvas p-3 text-sm text-ink-soft">
-          <Icon name="file-text" size={16} className="mt-0.5 shrink-0 text-muted" />
-          <span>แนบ <b>เอกสารสัญญาเช่า (lease)</b> แล้วกด “ตรวจสอบ” ในส่วนเอกสารด้านล่าง ก่อนลงนาม</span>
-        </div>
-      )}
-      {c.status === 'active' && isExpiringSoon(c.endDate) && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-gold-dark">
-          <Icon name="clock" size={14} className="shrink-0" />
-          <span>สัญญาใกล้ครบกำหนด (สิ้นสุด {d(c.endDate)}) — พิจารณาต่อสัญญา/ปิดสัญญา</span>
+        <div className="mt-4 space-y-3">
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <SectionLabel>ขั้นตอนก่อนลงนาม</SectionLabel>
+            <ul className="mt-3 space-y-2.5">
+              <SignStep done={lease.attached} text="แนบเอกสารสัญญาเช่า (lease)" />
+              <SignStep done={lease.verified} text="เอกสารผ่านการตรวจสอบ (verify)" />
+            </ul>
+            {!lease.verified && (
+              <p className="mt-3 text-xs text-muted">
+                {lease.attached
+                  ? <>กด <b>“ตรวจสอบแล้ว”</b> ที่เอกสาร lease ในส่วน <b>เอกสารสัญญา</b> ด้านล่าง</>
+                  : <>แนบเอกสาร <b>สัญญาเช่า (lease)</b> ในส่วน <b>เอกสารสัญญา</b> ด้านล่าง แล้วกดตรวจสอบ</>}
+              </p>
+            )}
+          </div>
+          <ActionBar>
+            {can('contract', 'sign') && (
+              <button className="btn-gold btn-sm" disabled={busy || !lease.verified}
+                onClick={() => run(() => api(`/contracts/${c.id}/sign`, { method: 'POST', body: '{}' }), 'ลงนามสัญญาแล้ว — มีผลบังคับ · ทรัพย์เปลี่ยนเป็นไม่ว่าง')}>
+                ลงนามสัญญา (มีผล)
+              </button>
+            )}
+            <MoreMenu items={can('contract', 'delete') ? [{ label: 'ลบสัญญาร่าง', icon: 'trash' as const, danger: true, onClick: () => setDelOpen(true) }] : []} />
+          </ActionBar>
+          {can('contract', 'sign') && !lease.verified && (
+            <p className="text-xs text-muted">ยังลงนามไม่ได้ — ต้องแนบและตรวจสอบเอกสาร lease ให้ครบก่อน</p>
+          )}
         </div>
       )}
 
-      {/* คู่สัญญา — กระโดดไปหน้าลูกค้า/ทรัพย์/เจ้าของได้ (เดิมหน้านี้ไม่โยงไปไหนเลย) */}
-      <div className="mt-6 card p-5">
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">คู่สัญญา</h3>
-        <div className="divide-y divide-border">
-          {c.customer && (
-            <button onClick={() => router.push(`/customers/${c.customer!.id}`)} className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-70">
-              <span className="w-16 shrink-0 text-xs text-muted">ลูกค้า</span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{c.customer.fullName}</span>
-              <Icon name="chevron-right" size={16} className="shrink-0 text-faint" />
-            </button>
-          )}
-          {c.property && (
-            <button onClick={() => router.push(`/properties/${c.property!.id}`)} className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-70">
-              <span className="w-16 shrink-0 text-xs text-muted">ทรัพย์</span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{c.property.titleTh}</span>
-              <span className="shrink-0 font-mono text-xs text-gold-dark">{c.property.code}</span>
-              <Icon name="chevron-right" size={16} className="shrink-0 text-faint" />
-            </button>
-          )}
-          {c.owner && (
-            <button onClick={() => router.push(`/owners/${c.owner!.id}`)} className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-70">
-              <span className="w-16 shrink-0 text-xs text-muted">เจ้าของ</span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium">{c.owner.fullName}</span>
-              <Icon name="chevron-right" size={16} className="shrink-0 text-faint" />
-            </button>
-          )}
-          {c.agent && (
-            <div className="flex items-center gap-3 py-2.5">
-              <span className="w-16 shrink-0 text-xs text-muted">พนักงาน</span>
-              <span className="min-w-0 flex-1 truncate text-sm text-ink">{c.agent.fullName}</span>
+      {c.status === 'active' && (
+        <>
+          <ActionBar className="mt-4">
+            {can('contract', 'update') && <button className="btn-gold btn-sm" disabled={busy} onClick={openReceipt}>ออกใบเสร็จ</button>}
+            {can('contract', 'create') && <button className="btn-ghost btn-sm" disabled={busy} onClick={openRenew}>ต่อสัญญา</button>}
+            <MoreMenu items={can('contract', 'change_status') ? [{ label: 'ปิดสัญญา', icon: 'x' as const, danger: true, onClick: () => setCloseOpen(true) }] : []} />
+          </ActionBar>
+          {isExpiringSoon(c.endDate) && (
+            <div className="mt-4 flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-gold-dark">
+              <Icon name="clock" size={14} className="shrink-0" />
+              <span>สัญญาใกล้ครบกำหนด (สิ้นสุด {d(c.endDate)}) — พิจารณาต่อสัญญา/ปิดสัญญา</span>
             </div>
           )}
-        </div>
-      </div>
+        </>
+      )}
 
-      <div className="mt-6 card divide-y divide-border">
-        {groups.map((g) => (
-          <section key={g.title} className="p-5">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">{g.title}</h3>
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
-              {g.items.map(([k, v]) => (
-                <div key={k} className="min-w-0"><dt className="text-xs text-muted">{k}</dt><dd className="truncate text-sm text-ink">{v}</dd></div>
-              ))}
-            </dl>
-          </section>
-        ))}
-      </div>
+      {/* คู่สัญญา (ข้อ 6) — meeting-center: role ขวา / ชื่อ+เบอร์ ซ้าย · ทุกแถวกดเข้าได้ */}
+      <InfoGroup label="คู่สัญญา" className="mt-6">
+        {c.customer && (
+          <InfoRow label="ลูกค้า" href={`/customers/${c.customer.id}`} strong
+            value={<span>{c.customer.fullName}{c.customer.phone && <span className="font-normal text-muted"> · {c.customer.phone}</span>}</span>} />
+        )}
+        {c.property && (
+          <InfoRow label="ทรัพย์" href={`/properties/${c.property.id}`} strong
+            value={<span>{c.property.titleTh} <span className="font-mono text-xs font-normal text-gold-dark">· {c.property.code}</span></span>} />
+        )}
+        {c.owner && (
+          <InfoRow label="เจ้าของ" href={`/owners/${c.owner.id}`} strong
+            value={<span>{c.owner.fullName}{c.owner.phone && <span className="font-normal text-muted"> · {c.owner.phone}</span>}</span>} />
+        )}
+        {c.agent && <InfoRow label="พนักงาน" value={c.agent.fullName} />}
+      </InfoGroup>
+
+      {/* การเงิน + ระยะเวลา (ข้อ 6 · Phase 32) */}
+      <InfoGroup label="การเงิน" className="mt-4">
+        <InfoRow label="ค่าเช่า / เดือน" value={`฿${bahtFormat(Number(c.monthlyRent))}`} strong mono />
+        <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
+        <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
+      </InfoGroup>
+      <InfoGroup label="ระยะเวลา" className="mt-4">
+        <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
+        <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">ใกล้ครบกำหนด</span>}</span>} />
+        <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
+      </InfoGroup>
 
       <div className="mt-6 card p-5">
         <h2 className="mb-4 font-semibold">เงื่อนไขเพิ่มเติม</h2>
@@ -234,7 +236,7 @@ export default function ContractDetailPage() {
 
       <div className="mt-6 card p-5">
         <h2 className="mb-4 font-semibold">เอกสารสัญญา</h2>
-        <DocumentSection key={docKey} entityType="contract" entityId={c.id} />
+        <DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} />
       </div>
 
       {/* ออกใบเสร็จ */}
@@ -252,7 +254,7 @@ export default function ContractDetailPage() {
       </Modal>
 
       {/* ต่อสัญญา */}
-      <Modal open={renewOpen} onClose={() => setRenewOpen(false)} title="ต่อสัญญา"
+      <Modal open={renewOpen} onClose={() => setRenewOpen(false)} title="ต่อสัญญา" confirmOnClose={!!rnEnd}
         footer={
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-ghost" onClick={() => setRenewOpen(false)} disabled={busy}>ยกเลิก</button>
