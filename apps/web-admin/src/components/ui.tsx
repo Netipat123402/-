@@ -18,6 +18,26 @@ export function SectionLabel({ children, className = '' }: { children: React.Rea
   return <h2 className={`text-xs font-semibold uppercase tracking-wide text-muted ${className}`}>{children}</h2>;
 }
 
+/**
+ * SectionNav — แถบกระโดดไปแต่ละส่วน (หน้ารายละเอียดยาว · pattern Stripe/Linear)
+ * sticky ใต้ top-bar (top-16) · เลื่อนแนวนอนบนมือถือ · < 2 ส่วน = ไม่แสดง (ไม่รกโดยไม่จำเป็น)
+ * ผูกกับ InfoGroup ที่ส่ง id เดียวกัน (InfoGroup มี scroll-mt กันหัวข้อโดน sticky บัง)
+ */
+export function SectionNav({ items }: { items: { id: string; label: string }[] }) {
+  if (items.length < 2) return null;
+  return (
+    <nav aria-label="ไปยังส่วน"
+      className="sticky top-16 z-20 mt-6 mb-4 flex gap-1 overflow-x-auto rounded-xl border border-border bg-surface/85 px-1.5 py-1.5 backdrop-blur">
+      {items.map((it) => (
+        <a key={it.id} href={`#${it.id}`}
+          className="shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1 text-[13px] font-medium text-muted transition hover:bg-raised hover:text-ink">
+          {it.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 export function PageHeader({
   title, subtitle, count, action,
 }: { title: string; subtitle?: string; count?: React.ReactNode; action?: React.ReactNode }) {
@@ -160,13 +180,14 @@ export function InfoRow({
  *  - bare   → ไม่ห่อ card (ใช้เมื่อฝังในกล่องที่มีอยู่แล้ว)
  */
 export function InfoGroup({
-  label, action, footer, children, bare, className = '',
+  label, action, footer, children, bare, id, className = '',
 }: {
   label?: React.ReactNode;
   action?: React.ReactNode;
   footer?: React.ReactNode;
   children: React.ReactNode;
   bare?: boolean;
+  id?: string;         // ผูกกับ SectionNav (กระโดดมาส่วนนี้) — section มี scroll-mt กัน sticky บัง
   className?: string;
 }) {
   const body = (
@@ -186,8 +207,8 @@ export function InfoGroup({
       )}
     </>
   );
-  if (bare) return <div className={className}>{body}</div>;
-  return <section className={`overflow-hidden rounded-card border border-border bg-surface ${footer ? '' : 'pb-1'} ${className}`}>{body}</section>;
+  if (bare) return <div id={id} className={id ? `scroll-mt-28 ${className}` : className}>{body}</div>;
+  return <section id={id} className={`scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface ${footer ? '' : 'pb-1'} ${className}`}>{body}</section>;
 }
 
 /**

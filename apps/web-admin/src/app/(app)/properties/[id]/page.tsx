@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { mediaUrl } from '@/lib/api';
 import { PROPERTY_STATUS, bahtFormat } from '@/lib/status';
-import { ActionBar, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, ProgressBar, SectionLabel, StatusBadge } from '@/components/ui';
+import { ActionBar, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, ProgressBar, SectionLabel, SectionNav, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import PropertyForm, { type PropertyInitial } from '@/components/PropertyForm';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -252,15 +252,24 @@ export default function PropertyDetailPage() {
         })()}
       </div>
 
+      {/* section nav — กระโดดไปแต่ละส่วน (หน้ายาว · Stripe/Linear) · dynamic ตามส่วนที่มีจริง */}
+      <SectionNav items={[
+        { id: 'sec-price', label: 'ราคา' },
+        hasRoomInfo && { id: 'sec-room', label: 'ห้อง & พื้นที่' },
+        hasLocation && { id: 'sec-location', label: 'ทำเล' },
+        p.descriptionTh && { id: 'sec-desc', label: 'รายละเอียด' },
+        amenities.length > 0 && { id: 'sec-amenities', label: 'สิ่งอำนวยฯ' },
+        p.owner && { id: 'sec-owner', label: 'เจ้าของ' },
+      ].filter(Boolean) as { id: string; label: string }[]} />
       {/* ข้อมูลทรัพย์ (Phase 10) — 1 บรรทัด 1 ข้อมูล ไล่ลง เรียงตามความสำคัญ: ราคา→ห้อง→ทำเล→รายละเอียด→สิ่งอำนวยฯ */}
-      <div className="mt-6 space-y-4">
-        <InfoGroup label="ราคา & เงื่อนไข">
+      <div className="space-y-4">
+        <InfoGroup label="ราคา & เงื่อนไข" id="sec-price">
           <InfoRow label="ค่าเช่า / เดือน" value={`฿${bahtFormat(Number(p.monthlyRent))}`} strong mono />
           <InfoRow label="เงินมัดจำ" value={p.depositMonths ? `${p.depositMonths} เดือน` : undefined} hideEmpty />
         </InfoGroup>
 
         {hasRoomInfo && (
-          <InfoGroup label="ห้อง & พื้นที่">
+          <InfoGroup label="ห้อง & พื้นที่" id="sec-room">
             <InfoRow label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
             <InfoRow label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
             <InfoRow label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
@@ -270,7 +279,7 @@ export default function PropertyDetailPage() {
         )}
 
         {hasLocation && (
-          <InfoGroup label="ทำเล">
+          <InfoGroup label="ทำเล" id="sec-location">
             <InfoRow label="โครงการ" value={p.projectName || undefined} hideEmpty />
             <InfoRow label="จังหวัด" value={p.province || undefined} hideEmpty />
             <InfoRow label="เขต / อำเภอ" value={p.district || undefined} hideEmpty />
@@ -278,13 +287,13 @@ export default function PropertyDetailPage() {
         )}
 
         {p.descriptionTh && (
-          <InfoGroup label="รายละเอียด">
+          <InfoGroup label="รายละเอียด" id="sec-desc">
             <p className="whitespace-pre-line py-3 text-sm leading-relaxed text-ink-soft">{p.descriptionTh}</p>
           </InfoGroup>
         )}
 
         {amenities.length > 0 && (
-          <InfoGroup label="สิ่งอำนวยความสะดวก">
+          <InfoGroup label="สิ่งอำนวยความสะดวก" id="sec-amenities">
             <div className="flex flex-wrap gap-1.5 py-3">
               {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
             </div>
@@ -294,7 +303,7 @@ export default function PropertyDetailPage() {
 
       {/* เจ้าของทรัพย์ (Phase 11) — InfoGroup: ชื่อ(กดเข้า owner)/เบอร์(แตะโทร)/อีเมล/จำนวนทรัพย์ที่ถือ */}
       {p.owner && (
-        <InfoGroup label="เจ้าของทรัพย์" className="mt-6">
+        <InfoGroup label="เจ้าของทรัพย์" className="mt-6" id="sec-owner">
           <InfoRow label="ชื่อ" value={p.owner.fullName} href={p.owner.id ? `/owners/${p.owner.id}` : undefined} strong />
           <InfoRow label="เบอร์โทร" value={p.owner.phone ? <PhoneLink phone={p.owner.phone} /> : undefined} hideEmpty />
           <InfoRow label="อีเมล" value={p.owner.email || undefined} hideEmpty />
