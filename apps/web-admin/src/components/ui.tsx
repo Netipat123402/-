@@ -118,7 +118,7 @@ export function ErrorState({ onRetry, text = 'โหลดข้อมูลไ�
  * touch: แถวสูงขึ้น (py-3) ให้ hit-area ≥44px
  */
 export function InfoRow({
-  label, value, href, onClick, action, hideEmpty, stack, strong, mono, className = '',
+  label, value, href, onClick, action, hideEmpty, stack, strong, mono, icon, className = '',
 }: {
   label: React.ReactNode;
   value?: React.ReactNode;
@@ -129,6 +129,7 @@ export function InfoRow({
   stack?: boolean;
   strong?: boolean;
   mono?: boolean;
+  icon?: IconName; // ไอคอนนำหน้า label (ช่วยกวาดสายตา — ใช้เสริมเฉพาะกลุ่มสเปก ไม่ใส่รก)
   className?: string;
 }) {
   const isEmpty = value == null || value === '' || value === '—';
@@ -150,17 +151,21 @@ export function InfoRow({
   const chevron = interactive
     ? <Icon name="chevron-right" size={16} className="shrink-0 text-faint transition group-hover:text-muted" />
     : null;
+  // ไอคอนนำหน้า label (ถ้ามี) — ช่วยกวาดสายตากลุ่มสเปก
+  const labelNode = icon
+    ? <span className="inline-flex items-center gap-1.5"><Icon name={icon} size={14} className="shrink-0 text-faint" />{label}</span>
+    : label;
 
   // สไตล์ Claude: label ซ้าย (จาง) / value ขวา (เข้ม) แนวตรงทั้งคอลัมน์ → ตากวาดขอบซ้าย=label ขอบขวา=value
   // stack = ค่ายาว (ที่อยู่/โน้ต) → label บน / value ล่าง เต็มกว้าง (ห่อหลายบรรทัดสวย ไม่บีบ) · มือถือก็อ่านสบาย
   const inner = stack ? (
     <div className="py-2.5 touch:py-3">
-      <span className="mb-1 block text-xs text-muted">{label}</span>
+      <span className="mb-1 block text-xs text-muted">{labelNode}</span>
       <span className="flex min-w-0 items-start gap-2">{valueNode}{action}{chevron}</span>
     </div>
   ) : (
     <div className="flex items-center justify-between gap-4 py-2.5 touch:py-3">
-      <span className="shrink-0 text-sm text-muted">{label}</span>
+      <span className="shrink-0 text-sm text-muted">{labelNode}</span>
       <span className="flex min-w-0 items-center justify-end gap-2 text-right">{valueNode}{action}{chevron}</span>
     </div>
   );

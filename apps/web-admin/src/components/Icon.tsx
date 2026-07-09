@@ -36,6 +36,12 @@ const ICONS = {
   'more-horizontal': (<><circle cx="5" cy="12" r="1.4" /><circle cx="12" cy="12" r="1.4" /><circle cx="19" cy="12" r="1.4" /></>),
   pencil: (<><path d="M4 20h4l10.5-10.5a2 2 0 0 0-2.83-2.83L5 17v3Z" /><path d="M13.5 6.5 17.5 10.5" /></>),
   trash: (<><path d="M4 7h16" /><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /><path d="M6 7l1 12.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5L18.5 7" /><path d="M10 11v6" /><path d="M14 11v6" /></>),
+  // spec icons (ห้อง/พื้นที่) — ชุดเดียวกับ web-public (bed/bath/area/floor) + sofa (เฟอร์นิเจอร์)
+  bed: (<><path d="M3 8v11" /><path d="M3 13h16a2 2 0 0 1 2 2v4" /><path d="M3 17h18" /><path d="M6.5 13v-2a1.5 1.5 0 0 1 1.5-1.5h6a1.5 1.5 0 0 1 1.5 1.5v2" /></>),
+  bath: (<><path d="M4 12V6.5A1.5 1.5 0 0 1 5.5 5h.5" /><path d="M6 5v3" /><path d="M2.5 12h19v3a4 4 0 0 1-4 4H6.5a4 4 0 0 1-4-4z" /><path d="M7 19l-1.5 2" /><path d="M17 19l1.5 2" /></>),
+  area: (<><path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" /></>),
+  floor: (<><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" /><path d="M3 12l9 4.5L21 12" /><path d="M3 16.5 12 21l9-4.5" /></>),
+  sofa: (<><rect x="3" y="10" width="18" height="7" rx="2" /><path d="M6 10V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /><path d="M6 17v2" /><path d="M18 17v2" /></>),
 } as const;
 
 export type IconName = keyof typeof ICONS;

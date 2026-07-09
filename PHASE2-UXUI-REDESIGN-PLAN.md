@@ -166,9 +166,13 @@
 - **ทำจริง:** `BottomNav` (client, `lg:hidden` fixed) 4 ไอคอน หน้าแรก/ค้นหา/โปรด(+badge นับ)/ติดต่อ(LINE) · active ตาม pathname · safe-area-inset · ไอคอน `message` ใหม่ · Header ซ่อน 3 อย่างบนมือถือ (`lg:` เท่านั้น) · Footer เว้นล่าง `pb-24 lg:pb-10` พ้นแถบ
 - **เทสแล้ว:** home/listings/saved → nav โผล่ (4 items ถูก) · detail → nav หาย + StickyCTA อยู่ (ไม่ชน) · header มือถือ = logo+ภาษา · overflow-x=0 · tsc เขียว
 
-### 🔵 P8 — admin ขัดเงา (specs-icon · consistency audit · empty/loading illustration)
+### 🟡 P8 — admin ขัดเงา (specs-icon) — **PARTIAL DONE 2026-07-09** (safe slice; deep polish รอ screenshot)
 - Scope: admin คง Style B · เสริม icon + ตรวจ consistency ทุก component · Reason: consistency (Nielsen) · Expected: ระบบสม่ำเสมอขึ้น
 - Safety: **R2 — logic/RBAC ห้ามแตะ** · Regression: CRUD ทุก module + RBAC 7 บทบาท
+- **วิเคราะห์ keep/remove/add:** KEEP `ui.tsx` ทั้งชุด (Style B สม่ำเสมอ ไม่รื้อ) · ADD spec icons กลุ่ม "ห้อง & พื้นที่" · REMOVE = ไม่ลบตาบอด (CRM จริง + แคปภาพไม่ได้ session นี้)
+- **ทำจริง:** เพิ่มไอคอน `bed/bath/area/floor/sofa` ใน admin Icon.tsx (ชุดเดียวกับ public → consistency ข้ามแอป) · เพิ่ม prop `icon?` ให้ `InfoRow` (optional, backward-compatible, reuse ทั้งระบบ) · ใส่ไอคอนแถว ห้องนอน/ห้องน้ำ/พื้นที่/ชั้น/เฟอร์นิเจอร์ ในหน้า property detail
+- **เทสแล้ว:** tsc web-admin เขียว · InfoRow ที่ไม่ส่ง icon = เหมือนเดิม (ไม่ regress) · **ยังไม่ verify visual** (admin ต้อง login + Chrome screenshot เสีย session นี้)
+- **เหลือ (รอ screenshot ใช้ได้):** empty/loading illustration · consistency audit ทุก component · ปุ่ม pill เฉพาะ admin? (admin คง rounded-lg ตามเดิม — ไม่แตะ)
 
 ### 🔵 P9 — Responsive re-layout ทุก breakpoint (ตรวจ+แก้ทั้ง 2 แอป)
 - Breakpoints: mobile-s/mobile-l/foldable/tablet-portrait/tablet-landscape/small-laptop/laptop/desktop/large/ultrawide
