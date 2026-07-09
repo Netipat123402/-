@@ -36,9 +36,15 @@ export default async function HomePage() {
 
   return (
     <main>
-      {/* Hero — หัวข้ออยู่กึ่งกลาง เหนือช่องค้นหา (ตามที่ขอ) · luxury minimal */}
-      <section className="bg-gradient-to-b from-ink to-ink-soft px-4 pb-24 pt-16 text-center text-white lg:px-8 lg:pb-28 lg:pt-24">
-        <div className="mx-auto max-w-content">
+      {/* Hero — ดาร์กพรีเมียม: gold spotlight glow + กริดสถาปัตย์จาง (fade ขอบ) · depth ระดับ Linear/Vercel · luxury minimal */}
+      <section className="relative overflow-hidden bg-ink px-4 pb-24 pt-16 text-center text-white lg:px-8 lg:pb-28 lg:pt-24">
+        {/* spotlight ทองนุ่มด้านบน — โฟกัสหัวข้อ อบอุ่น พรีเมียม */}
+        <div aria-hidden className="pointer-events-none absolute inset-0"
+          style={{ background: 'radial-gradient(70% 90% at 50% -10%, rgba(200,169,106,0.28), transparent 60%)' }} />
+        {/* กริดสถาปัตย์จาง — depth ไม่รก (mask ให้เข้มบน-จางล่าง) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)', backgroundSize: '56px 56px', WebkitMaskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)', maskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)' }} />
+        <div className="relative mx-auto max-w-content">
           <p className="text-sm font-medium tracking-wide text-gold-light"><T k="heroLabel" /></p>
           <h1 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold leading-tight tracking-tight lg:text-5xl">
             <T k="heroTitle1" /><br /><T k="heroTitle2" />
