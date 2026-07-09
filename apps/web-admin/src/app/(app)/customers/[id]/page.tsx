@@ -106,6 +106,13 @@ export default function CustomerDetailPage() {
               </li>
             ))}
           </ul>
+          {/* ท้าย: สรุปค่าเช่าปัจจุบัน (เฉพาะสัญญา active) — ข้อมูลใหม่ ไม่ซ้ำหัว */}
+          {c.contracts.some((ct) => ct.status === 'active') && (
+            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
+              <span className="text-muted">ค่าเช่าปัจจุบัน</span>
+              <span className="font-medium tabular-nums text-ink">฿{bahtFormat(c.contracts.filter((ct) => ct.status === 'active').reduce((s, ct) => s + Number(ct.monthlyRent ?? 0), 0))}/เดือน</span>
+            </div>
+          )}
         </div>
       )}
 

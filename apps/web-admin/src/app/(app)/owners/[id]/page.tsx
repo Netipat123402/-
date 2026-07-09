@@ -117,6 +117,7 @@ export default function OwnerDetailPage() {
         {props.length === 0 ? (
           <p className="text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
         ) : (
+          <>
           <ul className="divide-y divide-border">
             {props.map((p) => (
               <li key={p.id}>
@@ -132,6 +133,12 @@ export default function OwnerDetailPage() {
               </li>
             ))}
           </ul>
+          {/* ท้าย: มูลค่าเช่ารวมของพอร์ต (ข้อมูลใหม่ ไม่ซ้ำหัว) */}
+          <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
+            <span className="text-muted">มูลค่าเช่ารวม</span>
+            <span className="font-medium tabular-nums text-ink">฿{bahtFormat(props.reduce((s, p) => s + Number(p.monthlyRent ?? 0), 0))}/เดือน</span>
+          </div>
+          </>
         )}
       </div>
 

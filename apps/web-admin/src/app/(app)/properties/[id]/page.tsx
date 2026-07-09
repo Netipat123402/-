@@ -82,8 +82,8 @@ export default function PropertyDetailPage() {
     }
   }
 
-  if (loading) return <div className="mx-auto max-w-4xl"><div className="h-64 animate-pulse rounded-card bg-canvas" /></div>;
-  if (!p) return <div className="mx-auto max-w-4xl text-center text-muted">ไม่พบทรัพย์ <Link href="/properties" className="text-gold-dark underline">กลับ</Link></div>;
+  if (loading) return <div className="mx-auto max-w-3xl"><div className="h-64 animate-pulse rounded-card bg-canvas" /></div>;
+  if (!p) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบทรัพย์ <Link href="/properties" className="text-gold-dark underline">กลับ</Link></div>;
 
   // ข้อมูลทรัพย์ = InfoGroup เรียงตามความสำคัญ (Phase 10) — ราคา→ห้อง→ทำเล→รายละเอียด→สิ่งอำนวยฯ
   const FURNISHED_TH: Record<string, string> = { fully: 'เฟอร์นิเจอร์ครบ', partial: 'เฟอร์นิเจอร์บางส่วน', unfurnished: 'ไม่มีเฟอร์นิเจอร์' };
@@ -98,7 +98,7 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-3xl">
       <DetailHeader
         backHref="/properties"
         code={p.code}
