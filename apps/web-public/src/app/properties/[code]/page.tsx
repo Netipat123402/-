@@ -61,26 +61,27 @@ export default async function PropertyDetailPage({ params }: { params: { code: s
 
           <SpecStrip bedrooms={p.bedrooms} bathrooms={p.bathrooms} areaSqm={p.areaSqm} floor={p.floor} />
 
+          {/* เนื้อหา = การ์ดเอกสารพรีเมียม (เข้าชุด admin) · หัวข้ออ่านง่าย · เว้นช่องหายใจ */}
           {(p.description.th || p.description.en) && (
-            <section className="mt-8">
-              <h2 className="text-lg font-semibold"><T k="details" /></h2>
-              <div className="mt-2 text-ink-soft">
+            <section className="mt-6 rounded-card border border-border bg-surface p-5 lg:p-6">
+              <h2 className="text-base font-semibold"><T k="details" /></h2>
+              <div className="mt-3 leading-relaxed text-ink-soft">
                 <ReadMore th={p.description.th} en={p.description.en} />
               </div>
             </section>
           )}
 
           {hasAmenity && (
-            <section className="mt-8">
-              <h2 className="text-lg font-semibold"><T k="amenities" /></h2>
+            <section className="mt-4 rounded-card border border-border bg-surface p-5 lg:p-6">
+              <h2 className="text-base font-semibold"><T k="amenities" /></h2>
               <AmenityBadges amenities={p.amenities} />
             </section>
           )}
 
           {(p.location.subdistrict || p.location.district || p.location.province) && (
-            <section className="mt-8">
-              <h2 className="text-lg font-semibold"><T k="location" /></h2>
-              <p className="mt-2 text-ink-soft">
+            <section className="mt-4 rounded-card border border-border bg-surface p-5 lg:p-6">
+              <h2 className="text-base font-semibold"><T k="location" /></h2>
+              <p className="mt-3 text-ink-soft">
                 {[p.location.subdistrict, p.location.district, p.location.province].filter(Boolean).join(' · ')}
               </p>
             </section>
