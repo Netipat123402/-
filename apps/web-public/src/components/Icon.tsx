@@ -29,6 +29,15 @@ const ICONS = {
   search: (<><circle cx="10.5" cy="10.5" r="6.5" /><path d="M20 20 15.5 15.5" /></>),
   'alert-triangle': (<><path d="M12 3.5 21.5 20H2.5L12 3.5Z" /><path d="M12 10v4" /><path d="M12 17.5h.01" /></>),
   info: (<><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5" /><path d="M12 8h.01" /></>),
+  // spec icons (bed/bath/area/floor) — outline, stroke 1.75 เท่าตัวอื่น ใช้ช่วย scan สเปกทรัพย์
+  bed: (<><path d="M3 8v11" /><path d="M3 13h16a2 2 0 0 1 2 2v4" /><path d="M3 17h18" /><path d="M6.5 13v-2a1.5 1.5 0 0 1 1.5-1.5h6a1.5 1.5 0 0 1 1.5 1.5v2" /></>),
+  bath: (<><path d="M4 12V6.5A1.5 1.5 0 0 1 5.5 5h.5" /><path d="M6 5v3" /><path d="M2.5 12h19v3a4 4 0 0 1-4 4H6.5a4 4 0 0 1-4-4z" /><path d="M7 19l-1.5 2" /><path d="M17 19l1.5 2" /></>),
+  area: (<><path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" /></>),
+  floor: (<><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" /><path d="M3 12l9 4.5L21 12" /><path d="M3 16.5 12 21l9-4.5" /></>),
+  // favorite / badge icons — heart รับ fill ผ่าน prop (state active) · train/paw ประกอบ badge
+  heart: (<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />),
+  train: (<><rect x="5" y="3" width="14" height="13" rx="2.5" /><path d="M5 11h14" /><path d="M8.5 7h7" /><circle cx="8.5" cy="13.5" r="0.6" /><circle cx="15.5" cy="13.5" r="0.6" /><path d="M8 16l-2.5 4" /><path d="M16 16l2.5 4" /></>),
+  paw: (<><ellipse cx="7" cy="8.5" rx="1.6" ry="2.1" /><ellipse cx="12" cy="6.5" rx="1.7" ry="2.2" /><ellipse cx="17" cy="8.5" rx="1.6" ry="2.1" /><path d="M12 12c-2.4 0-4.3 2-4.3 3.9 0 1.5 1.2 2.4 2.7 2.4.8 0 1.1-.4 1.6-.4s.8.4 1.6.4c1.5 0 2.7-.9 2.7-2.4C16.3 14 14.4 12 12 12Z" /></>),
 } as const;
 
 export type IconName = keyof typeof ICONS;
