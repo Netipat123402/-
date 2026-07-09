@@ -3,7 +3,26 @@
 import Link from 'next/link';
 import { useLang } from '@/lib/lang';
 import { LINE_URL } from '@/lib/api';
+import { useFavorites } from '@/lib/favorites';
+import { Icon } from './Icon';
 import LangToggle from './LangToggle';
+
+/** ลิงก์รายการโปรด + ตัวนับ — หัวใจเติมทองเมื่อมีรายการ · sync สดกับปุ่มบนการ์ด */
+function SavedLink() {
+  const { t } = useLang();
+  const { count } = useFavorites();
+  return (
+    <Link href="/saved" aria-label={`${t('saved')}${count ? ` (${count})` : ''}`}
+      className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised hover:text-ink">
+      <Icon name="heart" size={20} fill={count ? 'currentColor' : 'none'} className={count ? 'text-gold-dark' : ''} />
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-dark px-1 text-[10px] font-semibold leading-none text-white">
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 export function Header() {
   const { t } = useLang();
@@ -20,6 +39,7 @@ export function Header() {
           <Link href="/properties" className="hidden text-ink-soft transition hover:text-ink sm:inline">
             {t('searchProperties')}
           </Link>
+          <SavedLink />
           <LangToggle />
           <a href={LINE_URL} target="_blank" rel="noreferrer"
             className="inline-flex items-center rounded-full border border-gold/45 px-4 py-2 text-sm font-medium text-gold-dark transition hover:bg-gold hover:text-white">

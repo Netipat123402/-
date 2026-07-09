@@ -87,6 +87,15 @@ const DICT = {
   errPhone10: { th: 'เบอร์โทรต้องมี 10 หลัก', en: 'Phone number must be 10 digits' },
   errConsent: { th: 'กรุณายอมรับนโยบายความเป็นส่วนตัวก่อน', en: 'Please accept the privacy policy first' },
   errSend: { th: 'ส่งไม่สำเร็จ', en: 'Failed to send' },
+  // favorites / saved
+  saved: { th: 'รายการโปรด', en: 'Saved' },
+  savedSub: { th: 'ทรัพย์ที่คุณบันทึกไว้ดูภายหลัง', en: 'Properties you saved for later' },
+  savedEmpty: { th: 'ยังไม่มีรายการโปรด', en: 'No saved properties yet' },
+  savedEmptyHint: { th: 'กดรูปหัวใจบนการ์ดทรัพย์ เพื่อบันทึกไว้ดูภายหลัง', en: 'Tap the heart on any property to save it for later' },
+  browseAll: { th: 'ดูทรัพย์ทั้งหมด', en: 'Browse all properties' },
+  saveAria: { th: 'บันทึกเข้ารายการโปรด', en: 'Save to favorites' },
+  unsaveAria: { th: 'นำออกจากรายการโปรด', en: 'Remove from favorites' },
+  photosUnit: { th: 'รูป', en: 'photos' },
 } satisfies Record<string, { th: string; en: string }>;
 
 export type DictKey = keyof typeof DICT;

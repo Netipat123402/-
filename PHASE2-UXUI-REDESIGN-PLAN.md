@@ -111,13 +111,22 @@
 > **เรียงตาม คุ้ม→เสี่ยงต่ำ** · ทำ **public ก่อน** (ตรง reference สุด) แล้วค่อย admin · **1 เฟส = 1 PR เล็ก + regression test + browser verify**
 > โครง 10 ข้อต่อเฟส: Scope · Current Problem · Root Cause · UX Problem · UI Problem · Business Impact · User Impact · Solution · Reason(UX law) · Expected Result
 
-### 🟢 P1 — Specs icon-row (public SpecStrip + admin InfoRow เสริม icon) `[คุ้มสุด เสี่ยงต่ำ]`
+### ✅ P1 — Specs icon-row (public SpecStrip) `[คุ้มสุด เสี่ยงต่ำ]` — **DONE 2026-07-09**
 - Scope: เพิ่ม icon (bed/bath/area/parking) ให้ specs · Current: text ล้วน สแกนช้า · Solution: SpecStrip เติม `<Icon>` ต่อช่อง · Reason: Gestalt/icon-scan, ref ทุกไฟล์ใช้ · Expected: อ่าน spec ไว
 - Safety: SpecStrip เป็น presentational · reuse Icon · ไม่แตะ data · Regression: property card/detail ทั้ง 2 แอป · Test: browser ทุก breakpoint
+- **ทำจริง:** เพิ่ม icon `bed/bath/area/floor` ใน `apps/web-public/src/components/Icon.tsx` · `SpecStrip` (T.tsx) วาง icon นำ label (gold-dark/70, 13px) · mobile-safe: cell `px-1` + label `text-[11px]` (<640) กัน label EN คลิป
+- **เทสแล้ว:** tsc web-public เขียว · detail desktop icons คมชัด · วัด clip ทุกช่องที่ 343/360/375px = 0 (TH+EN), 320px = "Bathrooms" เกิน 1px (sub-pixel ยอมรับได้)
+- **ยังไม่ทำ:** admin InfoRow icon → ย้ายไป P8 (admin ขัดเงา) เพื่อคง scope P1 เล็ก+เสี่ยงต่ำ
 
-### 🟢 P2 — PropertyCard เสริม (heart favorite · type-badge icon · specs-icon · rating) 
+### ✅ P2 — PropertyCard เสริม + Favorites ระดับโลก — **DONE 2026-07-09**
 - Scope: ยก PropertyCard (public) ให้ครบตาม Hommie/Houseland · Solution: เพิ่ม heart(client state/localStorage — **ไม่แตะ backend**) · type-badge(House/Condo+icon) · specs-icon-row · rating(ถ้า API มี, ไม่มี=ซ่อน) · Reason: Miller/Fitts · Expected: ตัดสินใจต่อ card เร็ว
 - Safety: heart = client-only (ห้ามสร้าง API) · Regression: listings + featured carousel + similar
+- **ทำจริง (core):** type-badge(icon+label ซ้ายบน) · heart(ขวาบน, pop animation) · specs-icon-row(bed/bath/area) · icon-pill badges(train/paw) · photo-count(ซ้ายล่าง) · image hover-zoom · rating **ซ่อน**(API ไม่มี)
+- **ทำจริง (favorites world-class):** `lib/favorites.ts` = single store + `useSyncExternalStore` (hydration-safe, cross-tab sync ผ่าน storage event, a11y aria-pressed) · Header heart + count badge · **หน้าใหม่ `/saved`** (ดึงสดจาก detail API, states: loading/empty/populated, remove live)
+- **ปรับ scope:** C (hover quick-view modal) → ลดเหลือ **image hover-zoom** (การ์ดเป็นลิงก์ไป detail อยู่แล้ว, modal = ต้อง fetch+scope ใหญ่ → เก็บเป็น option ทีหลัง)
+- **ไอคอนใหม่:** `heart`(รับ fill prop) · `train` · `paw` ใน Icon.tsx · keyframe `heart-pop` ใน globals.css (เคารพ reduced-motion)
+- **เทสแล้ว:** tsc web-public เขียว · listings/home carousel/similar การ์ดใหม่ครบ · toggle → header count + /saved sync สด · remove/empty state ทำงาน · card ไม่ overflow ที่ 320/360/375px
+- **หมายเหตุ:** badge train/pet ไม่ขึ้นบน /saved (detail API ไม่คืน field) — cosmetic, ยอมรับได้ (R2 ห้ามแตะ backend)
 
 ### 🟢 P3 — public detail gallery "1 big + 2×2 thumbnail" (desktop) + carousel(mobile)
 - Scope: PropertyGallery desktop grid · Solution: grid 1+4 + "ดูรูปทั้งหมด" → Lightbox(มีแล้ว) · mobile คง carousel · Reason: ลด click · Expected: เห็นรูปมากขึ้น
