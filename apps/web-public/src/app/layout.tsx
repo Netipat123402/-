@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Header, Footer } from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 import { LanguageProvider } from '@/lib/lang';
 import PullToRefresh from '@/components/PullToRefresh';
 
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* A2: เนื้อหา fade เข้าตอนโหลด — เคารพ prefers-reduced-motion */}
           <PullToRefresh><div id="main-content" tabIndex={-1} className="animate-fade-rise outline-none">{children}</div></PullToRefresh>
           <Footer />
+          <BottomNav />
         </LanguageProvider>
       </body>
     </html>

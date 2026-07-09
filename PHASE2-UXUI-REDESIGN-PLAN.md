@@ -159,9 +159,12 @@
 - **ไม่กระทบ admin:** serif เพิ่มใน preset ร่วมแต่ admin ไม่ใช้ `font-serif` + ไม่โหลดฟอนต์ · `.btn` pill อยู่ใน globals ของ web-public เท่านั้น
 - **เทสแล้ว (computed styles):** hero/featured/detail h1 = Noto Serif Thai (loaded ✓) · .btn-gold/submit = radius 9999px · trust lines ขึ้น 2 บรรทัด · overflow-x=0 · tsc เขียว · (หมายเหตุ: Chrome screenshot ใช้ไม่ได้ session นี้ — verify ผ่าน computed style ซึ่งแม่นกว่า)
 
-### 🟠 P7 — public mobile app-like (search เด่น · card+heart · พิจารณา bottom-nav)
+### ✅ P7 — public mobile app-like (bottom-nav) — **DONE 2026-07-09** (เจ้าของ approve แล้ว)
 - Scope: มือถือ public ให้เหมือน RE app (Hommie) · Reason: Jakob/thumb-reach · Expected: ใช้บนมือถือลื่น
 - Safety: ตรวจ overflow/touch · Regression: ทุกหน้า public บนมือถือจริง
+- **วิเคราะห์ keep/remove/add:** เพิ่ม bottom-nav → **ย้ายออกจาก header มือถือ:** หัวใจ(→โปรด) · ลิงก์ค้นหา(→ค้นหา) · ปุ่มติดต่อ(→ติดต่อ) = header มือถือเหลือ logo+ภาษา · **StickyCTA ชนกับ nav** → แก้: **ซ่อน bottom-nav บนหน้า detail** (StickyCTA เป็น CTA เฉพาะทรัพย์แทน แบบ Airbnb)
+- **ทำจริง:** `BottomNav` (client, `lg:hidden` fixed) 4 ไอคอน หน้าแรก/ค้นหา/โปรด(+badge นับ)/ติดต่อ(LINE) · active ตาม pathname · safe-area-inset · ไอคอน `message` ใหม่ · Header ซ่อน 3 อย่างบนมือถือ (`lg:` เท่านั้น) · Footer เว้นล่าง `pb-24 lg:pb-10` พ้นแถบ
+- **เทสแล้ว:** home/listings/saved → nav โผล่ (4 items ถูก) · detail → nav หาย + StickyCTA อยู่ (ไม่ชน) · header มือถือ = logo+ภาษา · overflow-x=0 · tsc เขียว
 
 ### 🔵 P8 — admin ขัดเงา (specs-icon · consistency audit · empty/loading illustration)
 - Scope: admin คง Style B · เสริม icon + ตรวจ consistency ทุก component · Reason: consistency (Nielsen) · Expected: ระบบสม่ำเสมอขึ้น

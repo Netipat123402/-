@@ -100,6 +100,10 @@ const DICT = {
   unsaveAria: { th: 'นำออกจากรายการโปรด', en: 'Remove from favorites' },
   photosUnit: { th: 'รูป', en: 'photos' },
   viewAllPhotos: { th: 'ดูรูปทั้งหมด', en: 'View all photos' },
+  // bottom-nav (mobile)
+  navHome: { th: 'หน้าแรก', en: 'Home' },
+  navSaved: { th: 'โปรด', en: 'Saved' },
+  navContact: { th: 'ติดต่อ', en: 'Contact' },
   // home: popular quick-search chips
   popularLabel: { th: 'ยอดนิยม', en: 'Popular' },
   chipNearBts: { th: 'ใกล้ BTS', en: 'Near BTS' },
