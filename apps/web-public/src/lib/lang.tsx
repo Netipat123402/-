@@ -20,6 +20,7 @@ const DICT = {
   applyFilters: { th: 'ใช้ตัวกรอง', en: 'Apply' },
   clearFilters: { th: 'ล้าง', en: 'Clear' },
   propertyType: { th: 'ประเภททรัพย์', en: 'Property type' },
+  allTypes: { th: 'ทั้งหมด', en: 'All' },
   typeCondo: { th: 'คอนโด', en: 'Condo' },
   typeHouse: { th: 'บ้านเดี่ยว', en: 'House' },
   typeTownhome: { th: 'ทาวน์โฮม', en: 'Townhome' },

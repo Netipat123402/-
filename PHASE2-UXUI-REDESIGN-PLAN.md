@@ -144,9 +144,13 @@
 - **เทสแล้ว:** tsc เขียว · desktop เห็นทุก section · TH/EN สลับถูก · chips มี query filter ถูก · overflow-x = 0
 - **หมายเหตุ scope:** เอาชิป type (คอนโด/บ้าน) ออก เพราะซ้ำ type-cards → เหลือชิปที่ value-add ล้วน
 
-### 🟡 P5 — public Listings (desktop filter sidebar + category tabs + results-count)
+### ✅ P5 — public Listings (desktop filter sidebar + category tabs) — **DONE 2026-07-09** · เลือกโครง **A** (sidebar+tabs)
 - Scope: `/properties` desktop = sidebar filter (reuse Combobox/PriceRange/Segmented) · mobile = sheet(เดิม) · Reason: Progressive Disclosure · Expected: กรองเร็ว เห็น filter ตลอด
 - Safety: **filter logic เดิมห้ามแตะ** (แค่ย้าย layout) · Regression: filter/sort/pagination/URL params
+- **ทำจริง (แยก state กันชน):** `CategoryTabs` (server Links, ทุกขนาด, เลื่อนแนวนอน) · `FilterSidebar` (client, desktop sticky — จังหวัด/ราคา(debounce)/รถไฟ/นอน, auto-apply เขียน URL) · `ListingSearch` (client, desktop q) · มือถือคง `SearchBar`+sheet เดิม
+- **หลักสำคัญ:** ทุกตัวเขียน **URL param ชุดเดิม** → SSR page เดิม query เดิม (ไม่แตะ backend/logic) · FilterSidebar/ListingSearch อ่าน `sp` สดทุก render (ไม่ค้าง) · **มือถือใส่ `key={query}` ให้ SearchBar remount sync จาก URL** เมื่อแท็บเปลี่ยน (กัน internal state ค้างทับ type)
+- **เทสจริง (browser):** แท็บ→?type ✓ · BTS chip→?train ✓ · รวมกัน (type+train) ✓ · ล้าง→เหลือ type ✓ · ค้นหา "Noble"→type+q ✓ · results-count อัปเดตทุกครั้ง ✓ · overflow-x=0 · desktop/mobile search แยกถูก · aside hidden<lg · tsc เขียว
+- **เลือกโครง:** ทำ mockup hi-fi เทียบ A/B/C ให้เจ้าของ → เลือก A
 
 ### 🟡 P6 — public detail sidebar trust/urgency + serif-heading(ทดลอง) + pill-button(ทดลอง)
 - Scope: AppointmentForm เสริม trust · ทดลอง serif heading + pill primary (behind flag/scoped) · Reason: trust→conversion, editorial luxury · Expected: ติดต่อมากขึ้น + พรีเมียม
