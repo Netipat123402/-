@@ -76,9 +76,9 @@ export default function OwnerDetailPage() {
 
       {/* ① ข้อมูลเจ้าของ (ติดต่อ + ส่วนตัว รวมติดกัน · Phase 43) — แก้ได้ครบทุกฟิลด์ (Phase 44) */}
       <div className="mt-6 card p-5">
-        <div className="relative mb-3 flex items-center justify-center">
+        <div className="mb-3 flex items-center justify-between gap-3">
           <SectionLabel>ข้อมูลเจ้าของ</SectionLabel>
-          {can('owner', 'update') && !edit && <button className="absolute right-0 text-sm text-gold-dark hover:underline" onClick={startEdit}>แก้ไข</button>}
+          {can('owner', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={startEdit}>แก้ไข</button>}
         </div>
         {edit ? (
           <div className="space-y-4">

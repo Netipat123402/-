@@ -62,9 +62,9 @@ export default function CustomerDetailPage() {
       </div>
 
       <div className="mt-6 card p-5">
-        <div className="relative mb-4 flex items-center justify-center">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <SectionLabel>ข้อมูลติดต่อ</SectionLabel>
-          {can('customer', 'update') && !edit && <button className="absolute right-0 text-sm text-gold-dark hover:underline" onClick={() => setEdit(true)}>แก้ไข</button>}
+          {can('customer', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={() => setEdit(true)}>แก้ไข</button>}
         </div>
         {edit ? (
           <div className="space-y-4">

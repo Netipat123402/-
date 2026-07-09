@@ -131,12 +131,17 @@ export function InfoRow({
     ? <Icon name="chevron-right" size={16} className="shrink-0 text-faint transition group-hover:text-muted" />
     : null;
 
-  // meeting-center: label ชิดขวา (จบที่เส้นกลาง) / value ชิดซ้าย (เริ่มที่เส้นกลาง) → เนื้อหามาเจอกันตรงกลาง
-  // stack = ค่ายาว → align บนสุด (ค่าห่อหลายบรรทัดในครึ่งขวาได้)
-  const inner = (
-    <div className={`grid grid-cols-2 gap-x-6 py-2.5 touch:py-3 ${stack ? 'items-start' : 'items-center'}`}>
-      <span className="text-right text-sm text-muted">{label}</span>
-      <span className="flex min-w-0 items-center gap-2 text-left">{valueNode}{action}{chevron}</span>
+  // สไตล์ Claude: label ซ้าย (จาง) / value ขวา (เข้ม) แนวตรงทั้งคอลัมน์ → ตากวาดขอบซ้าย=label ขอบขวา=value
+  // stack = ค่ายาว (ที่อยู่/โน้ต) → label บน / value ล่าง เต็มกว้าง (ห่อหลายบรรทัดสวย ไม่บีบ) · มือถือก็อ่านสบาย
+  const inner = stack ? (
+    <div className="py-2.5 touch:py-3">
+      <span className="mb-1 block text-xs text-muted">{label}</span>
+      <span className="flex min-w-0 items-start gap-2">{valueNode}{action}{chevron}</span>
+    </div>
+  ) : (
+    <div className="flex items-center justify-between gap-4 py-2.5 touch:py-3">
+      <span className="shrink-0 text-sm text-muted">{label}</span>
+      <span className="flex min-w-0 items-center justify-end gap-2 text-right">{valueNode}{action}{chevron}</span>
     </div>
   );
 
@@ -147,16 +152,19 @@ export function InfoRow({
 }
 
 /**
- * InfoGroup — กล่อง (card) ครอบชุด InfoRow: หัวข้อ SectionLabel + rows คั่น divide-y
- * รวมหลายข้อมูลในกล่องเดียวได้ แต่ภายในไล่ลงทีละบรรทัดตามกฎ R1
- *  - action → element มุมขวาของหัวข้อ (เช่น ปุ่ม "แก้ไข")
+ * InfoGroup — กล่องเอกสารสไตล์ Claude: หัว (header) → เนื้อ (rows R1) → ท้าย (footer)
+ * รวมหลายข้อมูลในกล่องเดียว ภายในไล่ลงทีละบรรทัดตามกฎ R1 (1 บรรทัด 1 ข้อมูล)
+ *  - label  → หัวข้อกลุ่ม (ชิดซ้าย uppercase จาง) = "หัว"
+ *  - action → element ชิดขวาของหัว (เช่น ปุ่ม "แก้ไข")
+ *  - footer → "ท้าย" meta/สรุป ปิดกลุ่ม คั่นเส้นบน จาง (เช่น "อัปเดตล่าสุด…", จำนวน)
  *  - bare   → ไม่ห่อ card (ใช้เมื่อฝังในกล่องที่มีอยู่แล้ว)
  */
 export function InfoGroup({
-  label, action, children, bare, className = '',
+  label, action, footer, children, bare, className = '',
 }: {
   label?: React.ReactNode;
   action?: React.ReactNode;
+  footer?: React.ReactNode;
   children: React.ReactNode;
   bare?: boolean;
   className?: string;
@@ -164,18 +172,22 @@ export function InfoGroup({
   const body = (
     <>
       {(label || action) && (
-        // หัวข้อกึ่งกลาง (ตามที่ผู้ใช้ขอ) · action (ถ้ามี) ชิดขวาแบบ absolute ไม่ดันหัวข้อ
-        <div className="relative flex items-center justify-center gap-3 px-4 pb-2 pt-3.5 sm:px-5">
-          {label && <SectionLabel>{label}</SectionLabel>}
-          {action && <span className="absolute right-4 sm:right-5">{action}</span>}
+        // หัว: หัวข้อชิดซ้าย + action ชิดขวา (justify-between) — ขอบเขตกลุ่มชัด สแกนง่าย (สไตล์ Claude/Linear)
+        <div className="flex items-center justify-between gap-3 px-4 pb-2.5 pt-3.5 sm:px-5">
+          {label ? <SectionLabel>{label}</SectionLabel> : <span />}
+          {action}
         </div>
       )}
-      {/* เต็มความกว้าง — label/value ในแต่ละแถวมาเจอกันที่ "เส้นกลาง" (จัดใน InfoRow แล้ว) */}
+      {/* เนื้อ: แต่ละแถว label ซ้าย/value ขวา (จัดใน InfoRow) */}
       <div className="divide-y divide-border/60 px-4 sm:px-5">{children}</div>
+      {footer && (
+        // ท้าย: meta ปิดกลุ่ม — คั่นเส้นบน จาง อ่านเป็น "ส่วนสรุป"
+        <div className="mt-0.5 border-t border-border/60 px-4 py-2.5 text-xs text-muted sm:px-5">{footer}</div>
+      )}
     </>
   );
   if (bare) return <div className={className}>{body}</div>;
-  return <section className={`overflow-hidden rounded-card border border-border bg-surface pb-1 ${className}`}>{body}</section>;
+  return <section className={`overflow-hidden rounded-card border border-border bg-surface ${footer ? '' : 'pb-1'} ${className}`}>{body}</section>;
 }
 
 /**
