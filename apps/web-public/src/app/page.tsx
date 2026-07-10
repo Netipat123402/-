@@ -53,8 +53,10 @@ export default async function HomePage() {
   ]);
   // ทรัพย์แนะนำ = ที่แอดมินกดดาว · ถ้ายังไม่กดเลย → ใช้ใหม่ล่าสุด (กันหน้าโล่ง)
   const items = (feat.data && feat.data.length > 0) ? feat.data : (newest.data ?? []);
-  const btsItems = bts.data ?? [];
-  const mrtItems = mrt.data ?? [];
+  // รวม BTS+MRT เป็น "ใกล้รถไฟฟ้า" แถวเดียว (ลดแถวซ้ำ 4→3) — dedupe ตาม id, คงลำดับ BTS ก่อน
+  const transitItems = [...(bts.data ?? []), ...(mrt.data ?? [])]
+    .filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i)
+    .slice(0, 12);
   const petItems = pet.data ?? [];
 
   return (
@@ -116,11 +118,8 @@ export default async function HomePage() {
         ) : (
           <FeaturedCarousel items={items} />
         )}
-        {btsItems.length > 0 && (
-          <FeaturedCarousel items={btsItems} titleKey="nearBts" subKey="nearBtsSub" viewAllHref="/properties?train=near_bts" size="sm" />
-        )}
-        {mrtItems.length > 0 && (
-          <FeaturedCarousel items={mrtItems} titleKey="nearMrt" subKey="nearMrtSub" viewAllHref="/properties?train=near_mrt" size="sm" />
+        {transitItems.length > 0 && (
+          <FeaturedCarousel items={transitItems} titleKey="nearTransit" subKey="nearTransitSub" viewAllHref="/properties?train=near_bts" size="sm" />
         )}
         {petItems.length > 0 && (
           <FeaturedCarousel items={petItems} titleKey="petFriendlyTitle" subKey="petFriendlySub" viewAllHref="/properties?amenity=pet_friendly" size="sm" />

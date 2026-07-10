@@ -35,10 +35,7 @@ const DICT = {
   featuredSub: { th: 'คัดมาใหม่ล่าสุด', en: 'Newly listed' },
   viewAll: { th: 'ดูทั้งหมด', en: 'View all' },
   // หมวดทรัพย์เพิ่มเติม (หน้าแรก) — ใช้ระบบเดียวกับทรัพย์แนะนำ
-  nearBts: { th: 'ทรัพย์ติด BTS', en: 'Near BTS' },
-  nearBtsSub: { th: 'เดินทางสะดวกด้วยรถไฟฟ้า BTS', en: 'Easy access by BTS skytrain' },
-  nearMrt: { th: 'ทรัพย์ติด MRT', en: 'Near MRT' },
-  nearMrtSub: { th: 'ใกล้สถานีรถไฟฟ้าใต้ดิน MRT', en: 'Close to MRT subway' },
+  nearTransitSub: { th: 'เดินทางสะดวกด้วยรถไฟฟ้า BTS/MRT', en: 'Easy access by BTS & MRT' },
   petFriendlyTitle: { th: 'ทรัพย์เลี้ยงสัตว์ได้', en: 'Pet friendly' },
   petFriendlySub: { th: 'ที่พักที่อนุญาตให้เลี้ยงสัตว์', en: 'Homes that welcome pets' },
   noPublished: { th: 'ยังไม่มีทรัพย์ที่เผยแพร่ในขณะนี้', en: 'No published properties yet' },
