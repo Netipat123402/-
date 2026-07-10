@@ -16,7 +16,7 @@ function SavedLink() {
       className="relative hidden h-9 w-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised hover:text-ink lg:flex">
       <Icon name="heart" size={20} fill={count ? 'currentColor' : 'none'} className={count ? 'text-gold-dark' : ''} />
       {count > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-dark px-1 text-[10px] font-semibold leading-none text-white">
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-dark px-1 text-2xs font-semibold leading-none text-white">
           {count > 99 ? '99+' : count}
         </span>
       )}

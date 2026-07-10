@@ -102,7 +102,7 @@ export default function FilterSidebar() {
         </Field>
         <Field label={`${t('priceRange')} — ${priceLabel}`}>
           <PriceRange min={0} max={PRICE_MAX} step={PRICE_STEP} lo={lo} hi={hi} onChange={onPrice} />
-          <div className="mt-1 flex justify-between text-[11px] text-muted"><span>฿0</span><span>฿100,000+</span></div>
+          <div className="mt-1 flex justify-between text-2xs text-muted"><span>฿0</span><span>฿100,000+</span></div>
         </Field>
         <Field label={t('transitStation')}>
           <Chips options={TRAINS} value={train} onToggle={(v) => push({ train: train === v ? undefined : v })} />

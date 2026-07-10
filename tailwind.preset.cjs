@@ -36,6 +36,8 @@ module.exports = {
       fontFamily: {
         sans: ['"IBM Plex Sans Thai"', 'Inter', 'system-ui', 'sans-serif'],
       },
+      // micro token (badge/unit/count/nav) — แทนที่ arbitrary text-[11px] ที่กระจายอยู่ (ค่าเท่าเดิม 11px)
+      fontSize: { '2xs': '0.6875rem' },
       // Redesign v2: มุมโค้งใหญ่ขึ้น (สไตล์แอพ Claude) — card 16, xl2 20
       borderRadius: { card: '16px', xl2: '20px' },
       boxShadow: {

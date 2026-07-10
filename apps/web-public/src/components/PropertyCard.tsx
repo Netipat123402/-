@@ -81,7 +81,7 @@ function CardImages({ code, type, images, cover, alt, lang }: { code: string; ty
 
       {/* จำนวนรูป (ซ้ายล่าง) — บอกว่ามีรูปให้ดูอีก */}
       {has && (
-        <span className="absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 rounded-full bg-ink/55 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
+        <span className="absolute bottom-2 left-2 z-10 inline-flex items-center gap-1 rounded-full bg-ink/55 px-2 py-0.5 text-2xs font-medium text-white backdrop-blur">
           <Icon name="image" size={12} />
           {list.length} {t('photosUnit')}
         </span>

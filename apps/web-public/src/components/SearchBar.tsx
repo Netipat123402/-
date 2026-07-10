@@ -218,7 +218,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
               </Row>
               <Row label={`${t('priceRange')} — ${priceLabel}`}>
                 <PriceRange min={0} max={PRICE_MAX} step={PRICE_STEP} lo={lo} hi={hi} onChange={setPrice} />
-                <div className="mt-1 flex justify-between text-[11px] text-muted">
+                <div className="mt-1 flex justify-between text-2xs text-muted">
                   <span>฿0</span><span>฿100,000+</span>
                 </div>
               </Row>

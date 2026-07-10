@@ -28,7 +28,7 @@ export default function BottomNav() {
   ];
 
   const itemCls = (active: boolean) =>
-    `relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] transition ${active ? 'text-gold-dark' : 'text-muted'}`;
+    `relative flex flex-1 flex-col items-center gap-0.5 py-2 text-2xs transition ${active ? 'text-gold-dark' : 'text-muted'}`;
 
   return (
     <nav aria-label="เมนูหลัก"
@@ -40,7 +40,7 @@ export default function BottomNav() {
             <span className="relative">
               <Icon name={it.icon} size={22} fill={it.icon === 'heart' && it.active ? 'currentColor' : 'none'} />
               {it.badge ? (
-                <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-dark px-1 text-[9px] font-semibold leading-none text-white">
+                <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-dark px-1 text-2xs font-semibold leading-none text-white">
                   {it.badge > 99 ? '99+' : it.badge}
                 </span>
               ) : null}

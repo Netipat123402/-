@@ -40,9 +40,9 @@ export function SpecStrip({
       {specs.map((s) => (
         <div key={s.label} className="flex-1 bg-surface px-1 py-3 text-center sm:px-3 sm:py-3.5">
           <p className="text-lg font-semibold leading-none">
-            {s.value}{s.unit ? <span className="ml-0.5 text-[11px] font-normal text-muted">{s.unit}</span> : null}
+            {s.value}{s.unit ? <span className="ml-0.5 text-2xs font-normal text-muted">{s.unit}</span> : null}
           </p>
-          <p className="mt-1.5 flex items-center justify-center gap-1 whitespace-nowrap text-[11px] text-muted sm:text-xs">
+          <p className="mt-1.5 flex items-center justify-center gap-1 whitespace-nowrap text-2xs text-muted sm:text-xs">
             <Icon name={s.icon} size={13} className="shrink-0 text-gold-dark/70" />
             {s.label}
           </p>
@@ -70,7 +70,7 @@ export function AmenityBadges({ amenities }: { amenities: Record<string, unknown
 export function PriceMonthly({ amount }: { amount: number }) {
   const { t } = useLang();
   return (
-    <p className="mt-3 text-2xl font-semibold text-gold-dark lg:text-[1.75rem]">
+    <p className="mt-3 text-2xl font-semibold text-gold-dark lg:text-3xl">
       ฿{baht(amount)} <span className="text-base font-normal text-muted">{t('perMonth')}</span>
     </p>
   );
