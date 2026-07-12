@@ -184,8 +184,8 @@ export default function NotificationBell() {
                 return (
                   <div key={b} className="py-1">
                     <div className="flex items-center justify-between px-4 pb-1 pt-1.5">
-                      <span className={`text-[11px] font-semibold uppercase tracking-wide ${b === 'today' ? 'text-gold-dark' : 'text-muted'}`}>{BUCKET_LABEL[b]}</span>
-                      <span className="text-[11px] text-muted">{list.length}</span>
+                      <span className={`text-2xs font-semibold uppercase tracking-wide ${b === 'today' ? 'text-gold-dark' : 'text-muted'}`}>{BUCKET_LABEL[b]}</span>
+                      <span className="text-2xs text-muted">{list.length}</span>
                     </div>
                     {shown.map((it) => (
                       <button key={it.id} onClick={() => go(it.href)}
@@ -212,7 +212,7 @@ export default function NotificationBell() {
               {rows.length > 0 && (
                 <div className="py-1">
                   <div className="px-4 pb-1 pt-1.5">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted">อัปเดตงาน</span>
+                    <span className="text-2xs font-semibold uppercase tracking-wide text-muted">อัปเดตงาน</span>
                   </div>
                   {rows.slice(0, 5).map((n) => {
                     const unread = n.status !== 'read';
@@ -223,7 +223,7 @@ export default function NotificationBell() {
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
                             <span className={`truncate text-sm ${unread ? 'font-semibold text-ink' : 'font-normal text-ink-soft'}`}>{n.title}</span>
-                            <span className="shrink-0 text-[11px] text-muted">{timeAgo(n.createdAt)}</span>
+                            <span className="shrink-0 text-2xs text-muted">{timeAgo(n.createdAt)}</span>
                           </span>
                           <span className="block truncate text-xs text-muted">{n.body}</span>
                         </span>

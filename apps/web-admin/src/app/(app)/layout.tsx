@@ -178,7 +178,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {items.map((it) => (
               <Link key={it.href} href={it.href}
                 aria-current={isActive(it.href) ? 'page' : undefined}
-                className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-[11px] leading-tight transition ${
+                className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-2xs leading-tight transition ${
                   isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
                 }`}>
                 <Icon name={it.icon} size={20} className={isActive(it.href) ? '' : 'opacity-80'} />
@@ -233,7 +233,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1 overflow-y-auto px-3 py-3">
               {extraNav.length > 0 && (
                 <div className="mb-4">
-                  <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted">เมนู</p>
+                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">เมนู</p>
                   {extraNav.map((it) => (
                     <Link key={it.href} href={it.href} onClick={() => setDrawer(false)}
                       aria-current={isActive(it.href) ? 'page' : undefined}
@@ -248,7 +248,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               )}
               {systemLinks.length > 0 && (
                 <div>
-                  <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted">ระบบ</p>
+                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">ระบบ</p>
                   {systemLinks.map((it) => (
                     <Link key={it.href} href={it.href} onClick={() => setDrawer(false)}
                       aria-current={isActive(it.href) ? 'page' : undefined}

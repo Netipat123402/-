@@ -178,7 +178,7 @@ export default function CalendarPage() {
                     <p className="mt-2 font-medium">{a.lead?.fullName || a.title || `นัด ${a.code}`}</p>
                     {a.property && <p className="truncate text-sm text-muted">{a.property.titleTh}</p>}
                     {a.location && <p className="mt-0.5 text-xs text-muted">{a.location}</p>}
-                    <p className="mt-1.5 font-mono text-[11px] text-muted">{a.code}</p>
+                    <p className="mt-1.5 font-mono text-2xs text-muted">{a.code}</p>
                   </button>
                 </li>
               ))}

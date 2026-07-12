@@ -115,7 +115,7 @@ export default function GlobalSearch({ variant }: {
     let idx = -1;
     return sections.map((sec) => (
       <div key={sec.title}>
-        <p className="px-3 pt-2 text-[11px] font-medium uppercase text-muted">{sec.title}</p>
+        <p className="px-3 pt-2 text-2xs font-medium uppercase text-muted">{sec.title}</p>
         {sec.items.map((it) => {
           idx++; const i = idx;
           return (
@@ -166,7 +166,7 @@ export default function GlobalSearch({ variant }: {
           value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setOpen(true)} onKeyDown={onNavKey} />
         {/* E2: บอกใบ้คีย์ลัด "/" (กดเปิดค้นหา) — ซ่อนเมื่อเริ่มพิมพ์ */}
         {!q && (
-          <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-surface px-1.5 text-[11px] font-medium leading-5 text-muted md:block">/</kbd>
+          <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border bg-surface px-1.5 text-2xs font-medium leading-5 text-muted md:block">/</kbd>
         )}
         {open && (
           <div className="absolute left-0 top-11 z-50 max-h-96 w-80 overflow-y-auto rounded-xl2 border border-border bg-surface py-1 shadow-lift">

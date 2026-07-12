@@ -173,7 +173,7 @@ export default function AuditPage() {
                           ))}
                         </dl>
                       )}
-                      <p className={`text-[11px] text-muted ${changes.length > 0 ? 'mt-2.5' : ''}`}>
+                      <p className={`text-2xs text-muted ${changes.length > 0 ? 'mt-2.5' : ''}`}>
                         {fullTime(l.createdAt)}{l.ipAddress ? ` · IP ${l.ipAddress}` : ''}
                       </p>
                     </div>

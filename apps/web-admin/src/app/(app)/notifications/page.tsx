@@ -207,7 +207,7 @@ function CatChip({ label, icon, unread, on, onClick }: {
       <Icon name={icon} size={16} className={on ? '' : 'text-faint'} />
       {label}
       {unread > 0 && (
-        <span className={`rounded-full px-1.5 text-[11px] font-semibold ${on ? 'bg-gold/30 text-gold-dark' : 'bg-gold/15 text-gold-dark'}`}>{unread}</span>
+        <span className={`rounded-full px-1.5 text-2xs font-semibold ${on ? 'bg-gold/30 text-gold-dark' : 'bg-gold/15 text-gold-dark'}`}>{unread}</span>
       )}
     </button>
   );

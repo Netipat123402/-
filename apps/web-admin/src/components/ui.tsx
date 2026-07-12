@@ -705,7 +705,7 @@ export function FilterBar({ search, sort, filters = [], range }: {
             className={`btn-ghost btn-sm ${activeCount ? 'border-gold text-gold-dark' : ''}`}>
             <Icon name="menu" size={16} /> ตัวกรอง
             {activeCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-[11px] font-medium text-[#1c1b18]">{activeCount}</span>
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-medium text-[#1c1b18]">{activeCount}</span>
             )}
           </button>
           {/* แผ่นตัวกรองลอยกลางจอ (Modal มาตรฐานเดียวกับฟอร์ม) — ไม่เด้งล่าง ไม่ล้น เหมือนกันทุกหมวด */}

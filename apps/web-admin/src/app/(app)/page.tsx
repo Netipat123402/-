@@ -29,7 +29,7 @@ function AgendaSection({ title, icon, href, hrefLabel, count, children }: {
   return (
     <div className="py-1.5">
       <div className="flex items-center justify-between gap-2 px-4 pb-1 pt-2 sm:px-5">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+        <span className="inline-flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wide text-muted">
           <Icon name={icon} size={13} /> {title} <span className="text-faint/70">{count}</span>
         </span>
         <Link href={href} className="text-xs text-gold-dark hover:underline">{hrefLabel}</Link>
