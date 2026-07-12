@@ -89,7 +89,8 @@ export function ListSkeleton({ rows = 5 }: { rows?: number }) {
 export function EmptyState({ text, action, icon = 'search' }: { text: string; action?: React.ReactNode; icon?: IconName }) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-canvas text-faint"><Icon name={icon} size={22} /></span>
+      {/* icon ทองจาง — โทนแบรนด์เดียวกับ empty state หน้า public (คงกระชับ เหมาะ dense tool) */}
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gold/10 text-gold-dark"><Icon name={icon} size={22} /></span>
       <p className="text-sm text-muted">{text}</p>
       {action}
     </div>
