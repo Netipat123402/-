@@ -101,7 +101,7 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl xl:max-w-6xl">
       <DetailHeader
         backHref="/properties"
         code={p.code}
@@ -184,7 +184,10 @@ export default function PropertyDetailPage() {
         );
       })()}
 
-      {/* รูปทรัพย์ — แบบเดียวกับหน้าเว็บ (รูปใหญ่ + ลูกศร + thumbnail + lightbox) + ปุ่มจัดการ */}
+      {/* Desktop 2 คอลัมน์ (xl+ เท่านั้น): ซ้าย=รูป+ข้อมูลหลัก · ขวา=เอกสาร+ประวัติ → ใช้พื้นที่จอกว้าง + scroll สั้นลง · มือถือ/iPad(รวมแนวนอน 1024) คงคอลัมน์เดียว (stack) */}
+      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
+      <div className="min-w-0">
+      {/* รูปทรัพย์ — แบบเดียวกับหน้าเว็บ (รูปใหญ่ + thumbnail + lightbox) + ปุ่มจัดการ · มือถือปัด / desktop ลูกศร hover */}
       <div className="mt-6">
         <input ref={fileRef} type="file" accept="image/*" hidden
           onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadImage(file); e.target.value = ''; }} />
@@ -322,17 +325,23 @@ export default function PropertyDetailPage() {
         </InfoGroup>
       )}
 
-      {/* documents */}
-      <div className="mt-6 card p-5">
-        <SectionLabel className="mb-4">เอกสาร</SectionLabel>
-        <DocumentSection entityType="property" entityId={p.id} />
-      </div>
+      </div>{/* /คอลัมน์ซ้าย (รูป + ข้อมูลหลัก) */}
 
-      {/* activity timeline (Activity Center ระดับ entity) */}
-      <div className="mt-6 card p-5">
-        <SectionLabel className="mb-4">ประวัติการเปลี่ยนแปลง</SectionLabel>
-        <ActivityTimeline path={`/properties/${p.id}/activities`} />
-      </div>
+      {/* ── คอลัมน์ขวา (desktop lg+) — เอกสาร + ประวัติ · มือถือ/iPad ต่อท้ายปกติ (stack) ── */}
+      <aside className="mt-6 space-y-6">
+        {/* documents */}
+        <div className="card p-5">
+          <SectionLabel className="mb-4">เอกสาร</SectionLabel>
+          <DocumentSection entityType="property" entityId={p.id} />
+        </div>
+
+        {/* activity timeline (Activity Center ระดับ entity) */}
+        <div className="card p-5">
+          <SectionLabel className="mb-4">ประวัติการเปลี่ยนแปลง</SectionLabel>
+          <ActivityTimeline path={`/properties/${p.id}/activities`} />
+        </div>
+      </aside>
+      </div>{/* /grid 2 คอลัมน์ */}
 
       <Modal open={!!editInitial} onClose={() => setEditInitial(null)} title="แก้ไขทรัพย์" size="xl">
         {editInitial && (
