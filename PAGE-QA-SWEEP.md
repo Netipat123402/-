@@ -51,6 +51,7 @@
 2. **admin ต่อ** (21 หน้า) เริ่มหน้าใช้บ่อย: dashboard → properties → leads → appointments
 
 ## 🐞 ปัญหาที่เจอ (log)
+- **✅ [แก้แล้ว d47f65c] admin gallery มีลูกศรบนมือถือ** (เจ้าของจับได้) — ลูกศร `‹ ›` render ทุกจอ + ไม่มี swipe ต่างจาก public · **หลักการ:** ลูกศร=desktop(mouse/hover), มือถือ=ปัดนิ้ว · **แก้:** มือถือ/แท็บเล็ต=ปัด(port useSwipe)+ไม่มีลูกศร, desktop=ลูกศร hover · verified: มือถือปัด 1/11→2/11, desktop display:flex · **มีรูปเทียบก่อน-หลัง**
 - **[tooling ไม่ใช่บั๊กแอป]** preview_screenshot ที่ admin **1440×900** เรนเดอร์เพี้ยน (เนื้อหากระจุกมุมซ้ายบน) — DOM วัดได้ layout ถูกเต็มจอ · แก้: ใช้ **1280×800** สำหรับ admin desktop
 - **ยังไม่เจอบั๊กแอป** จาก home + listings (สะอาดทุกจอ ไม่ล้น ไม่รก)
 - **จุดสังเกต (ไม่ใช่บั๊ก รอเจ้าของตัดสิน):** PropertyCard mini-carousel ใช้ **dots** (เช่น 9–11 รูป) — ถ้ารูปเยอะ dots จะถี่ · อาจพิจารณาเปลี่ยนเป็น progress-bar แบบ detail เพื่อความสม่ำเสมอ (แต่เพิ่ม = อาจรก ต้องชั่ง)
