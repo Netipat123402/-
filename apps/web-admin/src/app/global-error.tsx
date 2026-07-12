@@ -13,7 +13,7 @@ export default function GlobalError({
 }) {
   return (
     <html lang="th">
-      <body style={{ fontFamily: 'IBM Plex Sans Thai, Inter, sans-serif', background: '#FAFAF9', color: '#1A1A1A' }}>
+      <body style={{ fontFamily: 'Inter, "IBM Plex Sans Thai", sans-serif', background: '#FAFAF9', color: '#1A1A1A' }}>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '24px' }}>
           <div style={{ marginBottom: 12, color: '#B4413C' }}>
             <svg width={44} height={44} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden>

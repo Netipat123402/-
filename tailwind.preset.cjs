@@ -34,7 +34,8 @@ module.exports = {
         info: 'rgb(var(--c-info) / <alpha-value>)',
       },
       fontFamily: {
-        sans: ['"IBM Plex Sans Thai"', 'Inter', 'system-ui', 'sans-serif'],
+        // อังกฤษ/ตัวเลข = Inter (คลีน UI) · ไทย = IBM Plex Sans Thai (fallback ต่อ glyph) — เลือกโดยเจ้าของ
+        sans: ['Inter', '"IBM Plex Sans Thai"', 'system-ui', 'sans-serif'],
       },
       // micro token (badge/unit/count/nav) — แทนที่ arbitrary text-[11px] ที่กระจายอยู่ (ค่าเท่าเดิม 11px)
       fontSize: { '2xs': '0.6875rem' },

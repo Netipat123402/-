@@ -20,7 +20,7 @@
 | **price (card)** | `text-xl` | 20 | 600 | ราคาในการ์ด (gold) |
 | **price (detail)** | `text-2xl lg:text-3xl` | 24→30 | 600 | ราคาหน้า detail (gold) |
 
-- **Font family:** `font-sans` = IBM Plex Sans Thai → Inter → system-ui (**ไม่มี serif** — ถอดออกแล้ว, ขัดกฎ minimal)
+- **Font family:** `font-sans` = **Inter → IBM Plex Sans Thai** → system-ui (เจ้าของเลือก 2026-07-09) · อังกฤษ/ตัวเลข = Inter (คลีน) · ไทย = IBM Plex Sans Thai (fallback ต่อ glyph) · ใช้ชุดเดียวทั้ง **public + admin** (preset กลาง) · **ไม่มี serif** (ขัดกฎ minimal)
 - **Weight:** ใช้แค่ 400 (regular) · 500 (medium) · 600 (semibold) — โหลดครบใน font link
 - ❌ **ห้าม** `text-[1.6rem]`, `text-[1.75rem]`, `text-[9px]`, `text-[10px]`, `text-[11px]` → ใช้ role ข้างบนแทน
 
@@ -58,6 +58,9 @@
 - **Accent เดียว = gold** · ❌ ห้าม hardcode hex ในคอมโพเนนต์ (ยกเว้น brand LINE #06C755, overlay ภาพ ink/xx)
 
 ---
+
+## 🎯 หลักการหลัก (Core Principle — ทุกการตัดสินใจยึดอันนี้)
+**minimal · เรียบง่าย · ไม่รก · clean · หรูดูแพง** — ตัดของไม่จำเป็นออกก่อนเสมอ · น้อยแต่ดี · 1 บรรทัด 1 ข้อมูล · gold accent เดียว · whitespace หายใจ · จบมือเดียวบนมือถือ · เพิ่ม/ลด/ไม่แตะ ได้หมด — ไม่จำเป็นต้องเพิ่ม การลบก็คือการปรับปรุง
 
 ## ✅ Definition of Done (Visual QA — ทุกการแก้)
 Build → Run → เปิดหน้าจริง → **Screenshot เทียบก่อน/หลัง** (100% + 200%) → ไม่มี font/spacing/layout/align/icon/button/card/color เพี้ยน → responsive 320/375/768/1024/1280 ผ่าน → tsc เขียว → ค่อย commit
