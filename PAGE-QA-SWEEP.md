@@ -23,7 +23,7 @@
 | 1 | `/login` | ✅ | ⬜ | ⬜ | ⬜ | **functional ผ่าน:** fill+submit→authed (requestSubmit) · session persist · ไม่ล้น |
 | 2 | `/` dashboard | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** stat cards✓ todo tabs✓ NotificationBell✓ "+"เปิด wizard✓ · เหลือ: GlobalSearch, user menu, bottom-nav + iPad/desktop |
 | 3 | `/properties` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 + ListView (landed หลัง delete — ยังไม่เทสเต็ม) |
-| 4 | `/properties/[id]` | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** create→detail→delete(→404)✓ · **image upload POST/media 201✓ · ลบรูป DELETE 200✓** (seed คืนสภาพ) · Lightbox✓ · เหลือ: แก้ไขข้อมูล, เผยแพร่ toggle, tabs + iPad/desktop |
+| 4 | `/properties/[id]` | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** create→delete(404)✓ · image upload 201✓ ลบรูป 200✓ · **edit: pre-fill→PATCH 200→restore✓** · Lightbox(ปัด/ลูกศร desktop)✓ · เหลือ: เผยแพร่ toggle, tabs + iPad/desktop |
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
 | 6 | `/properties/new` | ✅ | ✅ | ✅ | ✅ | **wizard 4 ขั้น ครบทุก device:** มือถือ=CRUD เต็ม(POST 201+DELETE) · iPad ตั้ง/นอน+desktop=modal centered ฟิลด์ครบ ไม่ล้น |
 | 7 | `/leads` | ⬜ | ⬜ | ⬜ | ⬜ | 11\|13\|0 (หนัก) |
