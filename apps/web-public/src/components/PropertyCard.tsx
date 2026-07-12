@@ -66,6 +66,7 @@ function CardImages({ code, type, images, cover, alt, lang }: { code: string; ty
         list.map((src, idx) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img key={idx} src={mediaUrl(src)} alt={alt} loading={idx === 0 ? 'eager' : 'lazy'}
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
             className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-500 ${idx === i ? 'opacity-100' : 'opacity-0'} group-hover:scale-[1.05]`} />
         ))
       )}
@@ -90,9 +91,9 @@ function CardImages({ code, type, images, cover, alt, lang }: { code: string; ty
       {has && (
         <>
           <button aria-label="รูปก่อนหน้า" onClick={(e) => step(e, -1)}
-            className="absolute left-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white opacity-100 transition hover:bg-ink/70 sm:opacity-0 sm:group-hover:opacity-100"><Icon name="chevron-left" size={16} /></button>
+            className="absolute left-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white opacity-0 transition hover:bg-ink/70 sm:flex sm:group-hover:opacity-100"><Icon name="chevron-left" size={16} /></button>
           <button aria-label="รูปถัดไป" onClick={(e) => step(e, 1)}
-            className="absolute right-2 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white opacity-100 transition hover:bg-ink/70 sm:opacity-0 sm:group-hover:opacity-100"><Icon name="chevron-right" size={16} /></button>
+            className="absolute right-2 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white opacity-0 transition hover:bg-ink/70 sm:flex sm:group-hover:opacity-100"><Icon name="chevron-right" size={16} /></button>
           <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
             {list.map((_, idx) => (
               <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? 'w-4 bg-white' : 'w-1.5 bg-white/60'}`} />

@@ -47,6 +47,7 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
       className={`group/cell relative overflow-hidden bg-gradient-to-br from-ink/80 to-gold-dark/60 ${className ?? ''}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={mediaUrl(images[idx])} alt={idx === 0 ? alt : ''} loading={idx === 0 ? 'eager' : 'lazy'}
+        onError={(e) => { e.currentTarget.style.display = 'none'; }}
         className="h-full w-full object-cover transition-transform duration-500 group-hover/cell:scale-[1.04]" />
       {moreCount ? (
         <span className="absolute inset-0 flex items-center justify-center bg-ink/55 text-lg font-semibold text-white backdrop-blur-[1px]">
@@ -69,6 +70,7 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
           {images.map((src, idx) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img key={idx} src={mediaUrl(src)} alt={alt} loading={idx === 0 ? 'eager' : 'lazy'}
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
               className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-200 ${idx === i ? 'opacity-100' : 'opacity-0'}`} />
           ))}
           <span className="pointer-events-none absolute left-3 top-3 flex items-center gap-1 rounded-full bg-ink/45 px-2.5 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100"><Icon name="search" size={13} /> ดูรูปเต็ม</span>
@@ -78,14 +80,9 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
               {overlay}
             </div>
           )}
+          {/* มือถือ = ปัดนิ้วเปลี่ยนรูป (ไม่มีลูกศรบัง) + ตัวนับตำแหน่ง — Instagram/Airbnb mobile */}
           {has && (
-            <>
-              <button aria-label="รูปก่อนหน้า" onClick={(e) => { e.stopPropagation(); go(-1); }}
-                className="absolute left-2.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white backdrop-blur-sm transition duration-150 hover:bg-ink/70 active:scale-90 active:bg-ink/80"><Icon name="chevron-left" size={20} /></button>
-              <button aria-label="รูปถัดไป" onClick={(e) => { e.stopPropagation(); go(1); }}
-                className="absolute right-2.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/45 text-white backdrop-blur-sm transition duration-150 hover:bg-ink/70 active:scale-90 active:bg-ink/80"><Icon name="chevron-right" size={20} /></button>
-              <span className="absolute bottom-3 right-3 rounded-full bg-ink/55 px-2.5 py-1 text-xs font-medium text-white">{i + 1} / {images.length}</span>
-            </>
+            <span className="absolute bottom-3 right-3 rounded-full bg-ink/55 px-2.5 py-1 text-xs font-medium text-white">{i + 1} / {images.length}</span>
           )}
         </div>
 
@@ -97,7 +94,7 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
                 <button key={idx} onClick={() => setI(idx)} aria-label={`รูปที่ ${idx + 1}`}
                   className={`relative aspect-[4/3] overflow-hidden rounded-lg transition ${idx === i ? 'ring-2 ring-gold' : 'opacity-80 hover:opacity-100'}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={mediaUrl(src)} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <img src={mediaUrl(src)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="h-full w-full object-cover" />
                 </button>
               );
             })}
