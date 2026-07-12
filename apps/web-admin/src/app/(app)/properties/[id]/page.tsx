@@ -13,6 +13,7 @@ import PropertyForm, { type PropertyInitial } from '@/components/PropertyForm';
 import ActivityTimeline from '@/components/ActivityTimeline';
 import DocumentSection from '@/components/DocumentSection';
 import Lightbox from '@/components/Lightbox';
+import { useSwipe } from '@/lib/useSwipe';
 
 interface Media { id: string; storageKey: string; isCover: boolean }
 interface Property {
@@ -37,6 +38,8 @@ export default function PropertyDetailPage() {
   const [uploadPct, setUploadPct] = useState<number | null>(null);
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [imgIdx, setImgIdx] = useState(0); // รูปที่กำลังดู (gallery แบบหน้าเว็บ)
+  // มือถือ/แท็บเล็ต = ปัดนิ้วเปลี่ยนรูป (แทนลูกศรที่บังจอ; ลูกศรเหลือเฉพาะเดสก์ท็อป) — ให้ interaction ตรงกับหน้า public
+  const gallerySwipe = useSwipe((dir) => { const len = p?.media.length ?? 0; if (len > 1) setImgIdx((v) => (v + dir + len) % len); });
   const [confirm, setConfirm] = useState<null | 'reject' | 'delete' | 'markRented'>(null);
   const [editInitial, setEditInitial] = useState<PropertyInitial | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -209,7 +212,8 @@ export default function PropertyDetailPage() {
               {/* role=button + คีย์บอร์ด → เปิด Lightbox ด้วยคีย์บอร์ดได้ + เป็นที่คืนโฟกัสตอนปิด (เป็น <button> ตรงๆ ไม่ได้เพราะมีปุ่ม ‹› ซ้อนใน) */}
               <div role="button" tabIndex={0} aria-label="ดูรูปเต็มจอ"
                 onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setLightbox(idx); } }}
-                className="group relative aspect-[16/9] w-full overflow-hidden rounded-card bg-canvas outline-none focus-visible:ring-2 focus-visible:ring-gold max-h-[40vh] sm:max-h-[34vh]">
+                {...(has ? gallerySwipe : {})}
+                className="group relative aspect-[16/9] w-full touch-pan-y overflow-hidden rounded-card bg-canvas outline-none focus-visible:ring-2 focus-visible:ring-gold max-h-[40vh] sm:max-h-[34vh]">
                 {p.media.map((m, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img key={m.id} src={mediaUrl(m.storageKey)} alt="" onClick={() => setLightbox(idx)}
@@ -217,10 +221,11 @@ export default function PropertyDetailPage() {
                 ))}
                 {has && (
                   <>
+                    {/* ลูกศร = เดสก์ท็อปเท่านั้น (มี mouse/hover) · มือถือ/แท็บเล็ตใช้ปัดนิ้วแทน (ไม่บังจอ) */}
                     <button aria-label="รูปก่อนหน้า" onClick={() => setImgIdx((idx - 1 + p.media.length) % p.media.length)}
-                      className="absolute left-2.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75"><Icon name="chevron-left" size={20} /></button>
+                      className="absolute left-2.5 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75 group-hover:opacity-100 lg:flex"><Icon name="chevron-left" size={20} /></button>
                     <button aria-label="รูปถัดไป" onClick={() => setImgIdx((idx + 1) % p.media.length)}
-                      className="absolute right-2.5 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75"><Icon name="chevron-right" size={20} /></button>
+                      className="absolute right-2.5 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75 group-hover:opacity-100 lg:flex"><Icon name="chevron-right" size={20} /></button>
                     <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white">{idx + 1} / {p.media.length}</span>
                   </>
                 )}
