@@ -226,7 +226,13 @@ export default function PropertyDetailPage() {
                       className="absolute left-2.5 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75 group-hover:opacity-100 lg:flex"><Icon name="chevron-left" size={20} /></button>
                     <button aria-label="รูปถัดไป" onClick={() => setImgIdx((idx + 1) % p.media.length)}
                       className="absolute right-2.5 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/45 text-white opacity-0 backdrop-blur-sm transition duration-150 hover:bg-black/65 active:scale-90 active:bg-black/75 group-hover:opacity-100 lg:flex"><Icon name="chevron-right" size={20} /></button>
-                    <span className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-2.5 py-1 text-xs font-medium text-white">{idx + 1} / {p.media.length}</span>
+                    {/* หลอดทองบอกตำแหน่งรูป — ชุดเดียวกับหน้า public (แทน chip ตัวเลข) เพื่อความสม่ำเสมอข้ามแอป */}
+                    <div role="progressbar" aria-valuemin={1} aria-valuemax={p.media.length} aria-valuenow={idx + 1}
+                      aria-label={`รูปที่ ${idx + 1} จาก ${p.media.length}`}
+                      className="pointer-events-none absolute inset-x-3 bottom-3 z-10 h-1 overflow-hidden rounded-full bg-white/25">
+                      <div className="h-full rounded-full bg-gold transition-[width] duration-300 ease-out"
+                        style={{ width: `${((idx + 1) / p.media.length) * 100}%` }} />
+                    </div>
                   </>
                 )}
                 {active.isCover && <span className="absolute left-3 top-3 z-10 badge bg-gold text-[#1c1b18]">ปก</span>}
