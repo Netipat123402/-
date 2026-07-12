@@ -3,7 +3,7 @@ import { publicGet, PUBLIC_PROPERTIES_TAG, type PropertyCard } from '@/lib/api';
 import SearchBar from '@/components/SearchBar';
 import ListingSearch from '@/components/ListingSearch';
 import CategoryTabs from '@/components/CategoryTabs';
-import FilterSidebar from '@/components/FilterSidebar';
+import FilterBar from '@/components/FilterBar';
 import PropertyCardView from '@/components/PropertyCard';
 import { Icon } from '@/components/Icon';
 import { T, ResultCount } from '@/components/T';
@@ -55,22 +55,24 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
       {/* แท็บประเภท (ทุกขนาด) */}
       <div className="mt-4"><CategoryTabs sp={searchParams} /></div>
 
-      {/* เดสก์ท็อป: sidebar (sticky) + ผลลัพธ์ · มือถือ: ผลลัพธ์อย่างเดียว (ตัวกรองใน sheet ของ SearchBar) */}
-      <div className="mt-6 lg:grid lg:grid-cols-[220px_1fr] lg:items-start lg:gap-8">
-        <aside className="hidden lg:sticky lg:top-20 lg:block"><FilterSidebar /></aside>
+      {/* เดสก์ท็อป: filter-bar แนวนอน (dropdown pills) + จำนวนผลลัพธ์ชิดขวา · มือถือ: ตัวกรองอยู่ใน sheet ของ SearchBar */}
+      <div className="mt-4 hidden items-center justify-between gap-4 lg:flex">
+        <FilterBar />
+        <p className="shrink-0 text-sm text-muted"><ResultCount total={total} /></p>
+      </div>
+      <p className="mt-4 text-sm text-muted lg:hidden"><ResultCount total={total} /></p>
 
-        <div>
-          <p className="text-sm text-muted"><ResultCount total={total} /></p>
-
-          {items.length === 0 ? (
-            <div className="card mt-4 px-6 py-20 text-center">
-              <p className="font-medium"><T k="noResults" /></p>
-              <p className="mt-1 text-sm text-muted"><T k="noResultsHint" /></p>
-            </div>
-          ) : (
-            <>
-              <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {items.map((p) => <PropertyCardView key={p.id} p={p} />)}
+      {/* ผลลัพธ์เต็มความกว้าง (ไม่มี sidebar) — การ์ด 4 คอลัมน์บนจอใหญ่ */}
+      <div className="mt-4">
+        {items.length === 0 ? (
+          <div className="card px-6 py-20 text-center">
+            <p className="font-medium"><T k="noResults" /></p>
+            <p className="mt-1 text-sm text-muted"><T k="noResultsHint" /></p>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {items.map((p) => <PropertyCardView key={p.id} p={p} />)}
               </div>
 
               {/* B1: เปลี่ยนหน้า — SSR ผ่าน URL (รักษาตัวกรอง, SEO-friendly, ไม่ต้องพึ่ง JS) */}
@@ -105,7 +107,6 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
               )}
             </>
           )}
-        </div>
       </div>
     </main>
   );

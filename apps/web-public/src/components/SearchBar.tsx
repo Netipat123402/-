@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLang, pick, typeLabel, type Lang } from '@/lib/lang';
 import { type PropertyCard, clientApiBase as publicApiBase } from '@/lib/api';
 import { Spinner } from '@/components/loaders';
+import { Icon } from '@/components/Icon';
 import PriceRange from '@/components/PriceRange';
 import ProvinceCombobox from '@/components/ProvinceCombobox';
 import { useScrollLock } from '@/lib/useScrollLock';
@@ -156,6 +157,22 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
     setMaxRent(nhi >= PRICE_MAX ? '' : String(nhi));
   }
 
+  // รายการฟิลเตอร์ (ใช้ร่วม sheet มือถือ + dropdown เดสก์ท็อป) — R1: 1 บรรทัด 1 กลุ่ม
+  const filterFields = (
+    <>
+      <Row label={t('propertyType')}><Chips options={typeOpts(lang)} value={type} onChange={setType} /></Row>
+      <Row label={t('provinceLabel')}>
+        <ProvinceCombobox value={province} onChange={setProvince} placeholder={t('provinceLabel')} allLabel={t('allProvinces')} />
+      </Row>
+      <Row label={`${t('priceRange')} — ${priceLabel}`}>
+        <PriceRange min={0} max={PRICE_MAX} step={PRICE_STEP} lo={lo} hi={hi} onChange={setPrice} />
+        <div className="mt-1 flex justify-between text-2xs text-muted"><span>฿0</span><span>฿100,000+</span></div>
+      </Row>
+      <Row label={t('transitStation')}><Chips options={TRAINS} value={train} onChange={setTrain} /></Row>
+      <Row label={t('bedrooms')}><Chips options={bedOpts(lang)} value={beds} onChange={setBeds} /></Row>
+    </>
+  );
+
   return (
     <div className={`relative ${compact ? '' : 'rounded-xl2 bg-surface p-2.5 shadow-lift'}`}>
       <form onSubmit={go} className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -201,32 +218,35 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
         </div>
       </form>
 
-      {open && (
+      {open && (isSheet ? (
+        /* มือถือ = bottom-sheet: สูงคงที่ ~82vh · หัว(ที่จับ+ชื่อ+ปิด)ตรึง · ท้าย(ปุ่ม)ตรึง · เฉพาะรายการเลื่อน */
+        <>
+          <div className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col rounded-t-xl2 border-t border-border bg-surface shadow-lift"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} role="dialog" aria-modal="true" aria-label={t('filters')}>
+            <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-border" />
+            <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+              <h3 className="font-semibold">{t('filters')}</h3>
+              <button type="button" onClick={() => setOpen(false)} aria-label="ปิด"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-canvas hover:text-ink"><Icon name="x" size={18} /></button>
+            </div>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">{filterFields}</div>
+            <div className="flex shrink-0 items-center gap-2 border-t border-border px-4 py-3">
+              <button type="button" onClick={clearAll}
+                className="rounded-full border border-gold/45 px-4 py-2.5 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
+                {t('clearFilters')}
+              </button>
+              <button type="button" className="btn-gold flex-1" onClick={() => go()}>{t('applyFilters')}</button>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* เดสก์ท็อป = dropdown เล็กชิดขวาปุ่ม */
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          {/* มือถือ: แผ่นเด้งล่าง (ไม่ล้นจอ) · เดสก์ท็อป: dropdown เล็กชิดขวา */}
-          <div className="fixed inset-x-3 bottom-3 z-50 max-h-[75vh] overflow-y-auto rounded-xl2 border border-border bg-surface p-4 shadow-lift sm:absolute sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px]">
-            <div className="space-y-4">
-              <Row label={t('propertyType')}><Chips options={typeOpts(lang)} value={type} onChange={setType} /></Row>
-              <Row label={t('provinceLabel')}>
-                <ProvinceCombobox
-                  value={province}
-                  onChange={setProvince}
-                  placeholder={t('provinceLabel')}
-                  allLabel={t('allProvinces')}
-                />
-              </Row>
-              <Row label={`${t('priceRange')} — ${priceLabel}`}>
-                <PriceRange min={0} max={PRICE_MAX} step={PRICE_STEP} lo={lo} hi={hi} onChange={setPrice} />
-                <div className="mt-1 flex justify-between text-2xs text-muted">
-                  <span>฿0</span><span>฿100,000+</span>
-                </div>
-              </Row>
-              <Row label={t('transitStation')}><Chips options={TRAINS} value={train} onChange={setTrain} /></Row>
-              <Row label={t('bedrooms')}><Chips options={bedOpts(lang)} value={beds} onChange={setBeds} /></Row>
-            </div>
+          <div className="absolute right-0 top-full z-50 mt-2 w-[340px] rounded-xl2 border border-border bg-surface p-4 shadow-lift">
+            <div className="space-y-4">{filterFields}</div>
             <div className="mt-5 flex items-center justify-between">
-              {/* ล้าง = ปุ่ม outline ทองอ่อน (รอง) ไม่แย่งความสนใจปุ่มทองทึบ (หลัก) */}
               <button type="button" onClick={clearAll}
                 className="rounded-lg border border-gold/45 px-3.5 py-2 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
                 {t('clearFilters')}
@@ -235,7 +255,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
             </div>
           </div>
         </>
-      )}
+      ))}
     </div>
   );
 }
