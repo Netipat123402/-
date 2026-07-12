@@ -80,9 +80,15 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
               {overlay}
             </div>
           )}
-          {/* มือถือ = ปัดนิ้วเปลี่ยนรูป (ไม่มีลูกศรบัง) + ตัวนับตำแหน่ง — Instagram/Airbnb mobile */}
+          {/* มือถือ = ปัดนิ้วเปลี่ยนรูป (ไม่มีลูกศรบัง) + แถบ progress ไล่ตามตำแหน่ง — Airbnb/IG mobile
+              (แทน chip "1/8" เดิม: ลุคลื่น/พรีเมียมกว่า, จำนวนตัวชี้เท่าเดิม, thumbnail ทองด้านล่างบอกตำแหน่งเป๊ะอยู่แล้ว) */}
           {has && (
-            <span className="absolute bottom-3 right-3 rounded-full bg-ink/55 px-2.5 py-1 text-xs font-medium text-white">{i + 1} / {images.length}</span>
+            <div role="progressbar" aria-valuemin={1} aria-valuemax={images.length} aria-valuenow={i + 1}
+              aria-label={`รูปที่ ${i + 1} จาก ${images.length}`}
+              className="pointer-events-none absolute inset-x-3 bottom-3 h-1 overflow-hidden rounded-full bg-white/25">
+              <div className="h-full rounded-full bg-gold transition-[width] duration-300 ease-out"
+                style={{ width: `${((i + 1) / images.length) * 100}%` }} />
+            </div>
           )}
         </div>
 
