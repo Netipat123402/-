@@ -21,11 +21,11 @@
 | # | หน้า | มือถือ375 | iPad-ตั้ง768 | iPad-นอน1024 | Desktop1440 | interactive (button\|onClick\|Link) |
 |---|---|---|---|---|---|---|
 | 1 | `/login` | ✅ | ⬜ | ⬜ | ⬜ | **functional ผ่าน:** fill+submit→authed (requestSubmit) · session persist · ไม่ล้น |
-| 2 | `/` dashboard | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** stat cards✓ todo tabs(วันนี้/7/30 สลับได้)✓ NotificationBell(เปิด+ข้อมูลจริง+test lead โผล่)✓ · เหลือ: GlobalSearch, +, bottom-nav + iPad/desktop |
-| 3 | `/properties` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 + ListView |
-| 4 | `/properties/[id]` | ⬜ | ⬜ | ⬜ | ⬜ | 13\|16\|2 (หนัก) |
+| 2 | `/` dashboard | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** stat cards✓ todo tabs✓ NotificationBell✓ "+"เปิด wizard✓ · เหลือ: GlobalSearch, user menu, bottom-nav + iPad/desktop |
+| 3 | `/properties` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 + ListView (landed หลัง delete — ยังไม่เทสเต็ม) |
+| 4 | `/properties/[id]` | 🟡 | ⬜ | ⬜ | ⬜ | **CRUD มือถือ:** create→detail→delete(confirm guard→200→404)✓ · เหลือ: edit, +เพิ่มรูป(upload), เผยแพร่, tabs + iPad/desktop |
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
-| 6 | `/properties/new` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
+| 6 | `/properties/new` | ✅ | ⬜ | ⬜ | ⬜ | **wizard 4 ขั้น functional ผ่าน** (=modal "+"): type/owner/ชื่อ/ทำเล/ราคา*/amenities → POST 201 · ไม่ล้น |
 | 7 | `/leads` | ⬜ | ⬜ | ⬜ | ⬜ | 11\|13\|0 (หนัก) |
 | 8 | `/appointments` | ⬜ | ⬜ | ⬜ | ⬜ | 10\|16\|0 (หนัก) |
 | 9 | `/calendar` | ⬜ | ⬜ | ⬜ | ⬜ | 8\|7\|0 |
