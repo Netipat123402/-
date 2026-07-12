@@ -25,7 +25,7 @@
 | 3 | `/properties` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 + ListView (landed หลัง delete — ยังไม่เทสเต็ม) |
 | 4 | `/properties/[id]` | 🟡 | ⬜ | ⬜ | ⬜ | **CRUD มือถือ:** create→detail→delete(confirm guard→200→404)✓ · เหลือ: edit, +เพิ่มรูป(upload), เผยแพร่, tabs + iPad/desktop |
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
-| 6 | `/properties/new` | ✅ | ⬜ | ⬜ | ⬜ | **wizard 4 ขั้น functional ผ่าน** (=modal "+"): type/owner/ชื่อ/ทำเล/ราคา*/amenities → POST 201 · ไม่ล้น |
+| 6 | `/properties/new` | ✅ | ✅ | ✅ | ✅ | **wizard 4 ขั้น ครบทุก device:** มือถือ=CRUD เต็ม(POST 201+DELETE) · iPad ตั้ง/นอน+desktop=modal centered ฟิลด์ครบ ไม่ล้น |
 | 7 | `/leads` | ⬜ | ⬜ | ⬜ | ⬜ | 11\|13\|0 (หนัก) |
 | 8 | `/appointments` | ⬜ | ⬜ | ⬜ | ⬜ | 10\|16\|0 (หนัก) |
 | 9 | `/calendar` | ⬜ | ⬜ | ⬜ | ⬜ | 8\|7\|0 |
@@ -51,7 +51,8 @@
 2. **admin ต่อ** (21 หน้า) เริ่มหน้าใช้บ่อย: dashboard → properties → leads → appointments
 
 ## 🐞 ปัญหาที่เจอ (log)
-- **ยังไม่เจอบั๊ก** จาก home + listings (สะอาดทุกจอ ไม่ล้น ไม่รก)
+- **[tooling ไม่ใช่บั๊กแอป]** preview_screenshot ที่ admin **1440×900** เรนเดอร์เพี้ยน (เนื้อหากระจุกมุมซ้ายบน) — DOM วัดได้ layout ถูกเต็มจอ · แก้: ใช้ **1280×800** สำหรับ admin desktop
+- **ยังไม่เจอบั๊กแอป** จาก home + listings (สะอาดทุกจอ ไม่ล้น ไม่รก)
 - **จุดสังเกต (ไม่ใช่บั๊ก รอเจ้าของตัดสิน):** PropertyCard mini-carousel ใช้ **dots** (เช่น 9–11 รูป) — ถ้ารูปเยอะ dots จะถี่ · อาจพิจารณาเปลี่ยนเป็น progress-bar แบบ detail เพื่อความสม่ำเสมอ (แต่เพิ่ม = อาจรก ต้องชั่ง)
 - **seed mock images** (พระราม 8 = ภาพ TikTok analytics, ป้าย 1/10 ฯลฯ) = ข้อมูล seed ไม่ใช่บั๊ก (กันภาพพังด้วย onError แล้ว)
 - **[created test data]** ส่งฟอร์มนัด → สร้าง lead จริงใน DB: ชื่อ "QA ทดสอบระบบ" เบอร์ 081-234-5678 (property AP-2026-1001) — ลบทีหลังตอน sweep หน้า admin/leads ได้
