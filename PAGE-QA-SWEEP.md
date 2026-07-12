@@ -20,8 +20,8 @@
 
 | # | หน้า | มือถือ375 | iPad-ตั้ง768 | iPad-นอน1024 | Desktop1440 | interactive (button\|onClick\|Link) |
 |---|---|---|---|---|---|---|
-| 1 | `/login` | ⬜ | ⬜ | ⬜ | ⬜ | 2\|1\|0 |
-| 2 | `/` dashboard | ⬜ | ⬜ | ⬜ | ⬜ | 0\|0\|3 + NotificationBell/GlobalSearch |
+| 1 | `/login` | ✅ | ⬜ | ⬜ | ⬜ | **functional ผ่าน:** fill+submit→authed (requestSubmit) · session persist · ไม่ล้น |
+| 2 | `/` dashboard | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** stat cards✓ todo tabs(วันนี้/7/30 สลับได้)✓ NotificationBell(เปิด+ข้อมูลจริง+test lead โผล่)✓ · เหลือ: GlobalSearch, +, bottom-nav + iPad/desktop |
 | 3 | `/properties` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 + ListView |
 | 4 | `/properties/[id]` | ⬜ | ⬜ | ⬜ | ⬜ | 13\|16\|2 (หนัก) |
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
