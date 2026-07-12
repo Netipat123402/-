@@ -6,6 +6,7 @@ import { Icon } from '@/components/Icon';
 import { mediaUrl } from '@/lib/api';
 import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
+import { useSwipe } from '@/lib/useSwipe';
 
 /**
  * ดูรูปเต็มจอ + ซูมไม่แตก (โหลดไฟล์ต้นฉบับเต็มความละเอียด)
@@ -26,6 +27,8 @@ export default function Lightbox({ images, index, alt, onClose, onIndex }: {
   const reset = useCallback(() => { setScale(1); setPos({ x: 0, y: 0 }); }, []);
   const prev = useCallback(() => { reset(); onIndex((index - 1 + images.length) % images.length); }, [index, images.length, onIndex, reset]);
   const next = useCallback(() => { reset(); onIndex((index + 1) % images.length); }, [index, images.length, onIndex, reset]);
+  // มือถือ = ปัดเปลี่ยนรูป (ไม่มีลูกศรบังจอ; ลูกศรเหลือเฉพาะเดสก์ท็อป) — เปิดเฉพาะตอนไม่ได้ซูม กันชนกับการลากแพน
+  const swipe = useSwipe((dir) => { if (dir > 0) next(); else prev(); });
 
   useScrollLock(true); // ล็อกพื้นหลังแบบ iOS-proof (position:fixed) — กันพื้นหลัง pan ใต้ภาพเต็มจอ
   // ใช้ `mounted` (ไม่ใช่ true ตายตัว) → effect รันหลัง portal พร้อม (boxRef ถูกเซ็ตแล้ว) โฟกัส/trap จึงผูกกล่องจริง
@@ -63,15 +66,17 @@ export default function Lightbox({ images, index, alt, onClose, onIndex }: {
   if (!mounted) return null;
   return createPortal(
     <div ref={boxRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={alt || 'ดูรูปเต็มจอ'}
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/95 outline-none backdrop-blur-sm" onClick={onClose}>
+      className="group fixed inset-0 z-[80] flex items-center justify-center bg-ink/95 outline-none backdrop-blur-sm" onClick={onClose}
+      {...(scale === 1 && images.length > 1 ? swipe : {})}>
       <button aria-label="ปิด" onClick={onClose}
         className="absolute right-4 top-4 z-10 text-white/80 transition hover:text-white"><Icon name="x" size={28} /></button>
       {images.length > 1 && (
         <>
+          {/* ลูกศร = เดสก์ท็อปเท่านั้น (hover) · มือถือใช้ปัด */}
           <button aria-label="รูปก่อนหน้า" onClick={(e) => { e.stopPropagation(); prev(); }}
-            className="absolute left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"><Icon name="chevron-left" size={26} /></button>
+            className="absolute left-3 z-10 hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/80 opacity-0 transition hover:bg-white/20 hover:text-white group-hover:opacity-100 lg:flex"><Icon name="chevron-left" size={26} /></button>
           <button aria-label="รูปถัดไป" onClick={(e) => { e.stopPropagation(); next(); }}
-            className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/80 transition hover:bg-white/20 hover:text-white"><Icon name="chevron-right" size={26} /></button>
+            className="absolute right-3 z-10 hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/80 opacity-0 transition hover:bg-white/20 hover:text-white group-hover:opacity-100 lg:flex"><Icon name="chevron-right" size={26} /></button>
           <span className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/80">{index + 1} / {images.length}</span>
         </>
       )}
