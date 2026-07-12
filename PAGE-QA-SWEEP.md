@@ -51,6 +51,7 @@
 2. **admin ต่อ** (21 หน้า) เริ่มหน้าใช้บ่อย: dashboard → properties → leads → appointments
 
 ## 🐞 ปัญหาที่เจอ (log)
+- **✅ [ปรับแล้ว e80a307] empty state icon: admin เทา → ทองจาง** (คิด: โครง public หนัก/admin เบา = ถูกตาม context, ไม่ unify มั่ว · แก้แค่สี icon ผูกแบรนด์) — ถามเจ้าของ→เอา · verified bg gold/10 + สี gold-dark · ใช้ทุก empty list admin · **มีรูปเทียบ**
 - **✅ [แก้แล้ว 5e6e5d5] Lightbox 2 แอปไม่ตรงกัน + ลูกศรบนมือถือ** — ทั้งคู่โชว์ลูกศรทุกจอ ไม่มี swipe · admin ลูกศรเปล่า+counter ชิดซ้าย, public ปุ่มกลม+counter กลาง · **แก้ (ถามเจ้าของ→ปัดล้วน):** มือถือ=ปัด ไม่มีลูกศร, desktop=ลูกศรกลม hover, counter กลาง pill ทั้งคู่ · verified: public+admin ปัด 1/11→2/11, ลูกศร display:none มือถือ/flex desktop · **มีรูปเทียบ**
 - **✅ [แก้แล้ว e5e9e2e] admin gallery ใช้ chip 1/11 แทนหลอดทอง** (เจ้าของจับได้ — shared-part) — public มือถือใช้หลอดทองบอกตำแหน่ง แต่ admin ยัง chip · แก้: admin ใช้หลอดทอง (role=progressbar) แบบเดียวกับ public · verified มือถือ fill 9% · **มีรูปเทียบ**
 - **✅ [แก้แล้ว d47f65c] admin gallery มีลูกศรบนมือถือ** (เจ้าของจับได้) — ลูกศร `‹ ›` render ทุกจอ + ไม่มี swipe ต่างจาก public · **หลักการ:** ลูกศร=desktop(mouse/hover), มือถือ=ปัดนิ้ว · **แก้:** มือถือ/แท็บเล็ต=ปัด(port useSwipe)+ไม่มีลูกศร, desktop=ลูกศร hover · verified: มือถือปัด 1/11→2/11, desktop display:flex · **มีรูปเทียบก่อน-หลัง**
