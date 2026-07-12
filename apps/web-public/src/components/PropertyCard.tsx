@@ -130,7 +130,7 @@ export default function PropertyCardView({ p }: { p: PropertyCard }) {
   const location = [p.province, p.district].filter(Boolean).join(' · ');
 
   return (
-    <Link href={`/properties/${p.code}`} className="card group block overflow-hidden transition hover:border-gold/40 hover:shadow-lift">
+    <Link href={`/properties/${p.code}`} className="card group block overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lift">
       <CardImages code={p.code} type={p.type} images={p.images ?? []} cover={p.coverImage} alt={title} lang={lang} />
       <div className="p-4">
         {/* ชื่อทรัพย์ → ทำเล → สเปก(ไอคอน) → ราคาทองเด่น → ป้ายเด่น */}

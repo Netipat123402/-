@@ -27,7 +27,7 @@ export default function CategoryTabs({ sp }: { sp: Record<string, string | undef
     return s ? `/properties?${s}` : '/properties';
   };
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [mask-image:linear-gradient(to_right,#000_calc(100%-24px),transparent)] [scrollbar-width:none] [-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-24px),transparent)] [&::-webkit-scrollbar]:hidden">
       {TYPES.map((ty) => {
         const on = active === ty.v;
         return (
