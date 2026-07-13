@@ -26,7 +26,7 @@
 | 4 | `/properties/[id]` | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** create→delete(404)✓ · image upload 201✓ ลบรูป 200✓ · **edit: pre-fill→PATCH 200→restore✓** · Lightbox(ปัด/ลูกศร desktop)✓ · เหลือ: เผยแพร่ toggle, tabs + iPad/desktop |
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
 | 6 | `/properties/new` | ✅ | ✅ | ✅ | ✅ | **wizard 4 ขั้น ครบทุก device:** มือถือ=CRUD เต็ม(POST 201+DELETE) · iPad ตั้ง/นอน+desktop=modal centered ฟิลด์ครบ ไม่ล้น |
-| 7 | `/leads` | ⬜ | ⬜ | ⬜ | ⬜ | 11\|13\|0 (หนัก) |
+| 7 | `/leads` | ✅ | ✅ | ✅ | ✅ | **responsive ดีมาก:** มือถือ=cards · iPad/desktop=table (คอลัมน์ ลูกค้า/เบอร์/รหัส/สถานะ+pagination) · sidebar↔bottom-nav · add form clean · drawer detail (ทรัพย์ที่สนใจ linked) · **delete flow (confirm guard→19→18) เคลียร์ QA lead แล้ว** · ไม่ล้น ไม่ต้องแก้ |
 | 8 | `/appointments` | ⬜ | ⬜ | ⬜ | ⬜ | 10\|16\|0 (หนัก) |
 | 9 | `/calendar` | ⬜ | ⬜ | ⬜ | ⬜ | 8\|7\|0 |
 | 10 | `/contracts` | ⬜ | ⬜ | ⬜ | ⬜ | 5\|4\|0 |
