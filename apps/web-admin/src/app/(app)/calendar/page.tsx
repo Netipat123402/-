@@ -115,9 +115,9 @@ export default function CalendarPage() {
       {/* MR-26: โหลดนัดไม่สำเร็จ → แสดง error + ลองใหม่ (ไม่ใช่ปฏิทินว่างที่ดูเหมือนไม่มีนัด) */}
       {error && <div className="mt-5 card"><ErrorState onRetry={() => setReloadTick((t) => t + 1)} text="โหลดปฏิทินนัดหมายไม่สำเร็จ" /></div>}
 
-      {/* ปฏิทินเล็กลง (ซ้าย) + พื้นที่นัดใหญ่ขึ้น (ขวา) ตามที่ขอ */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-[330px_1fr]">
-        {/* calendar — กระชับ */}
+      {/* มือถือ/iPad-ตั้ง = ปฏิทินกระชับ(จุด) + รายละเอียดวันล่าง · lg+ (iPad-นอน/คอม) = ปฏิทินเต็มความกว้าง + chip ชื่อนัดในช่อง เห็นทั้งเดือน */}
+      <div className="mt-5 space-y-5">
+        {/* calendar */}
         <div className="card h-fit p-4">
           <div className="mb-4 flex items-center justify-between">
             <button aria-label="เดือนก่อนหน้า" className="btn-ghost h-9 w-9 p-0" onClick={() => shift(-1)}><Icon name="chevron-left" size={18} /></button>
@@ -136,16 +136,28 @@ export default function CalendarPage() {
               const isSel = k === selected;
               return (
                 <button key={i} onClick={() => setSelected(k)}
-                  className={`flex aspect-square min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition sm:rounded-xl ${
-                    isSel ? 'bg-gold font-medium text-[#1c1b18] shadow-sm' : isToday ? 'text-gold-dark ring-1 ring-gold' : 'hover:bg-raised'
+                  className={`flex aspect-square min-h-[44px] flex-col items-center justify-center gap-0.5 rounded-lg text-sm transition sm:rounded-xl lg:aspect-auto lg:min-h-[96px] lg:items-stretch lg:justify-start lg:gap-1 lg:p-1.5 lg:text-left ${
+                    isSel ? 'bg-gold font-medium text-[#1c1b18] shadow-sm lg:bg-gold/10 lg:font-normal lg:text-ink lg:shadow-none lg:ring-1 lg:ring-gold' : isToday ? 'text-gold-dark ring-1 ring-gold' : 'hover:bg-raised'
                   }`}>
-                  <span>{d.getDate()}</span>
+                  <span className="lg:text-xs lg:font-medium">{d.getDate()}</span>
                   {items.length > 0 && (
-                    <span className="flex h-1 items-center gap-0.5">
-                      {Array.from({ length: Math.min(items.length, 3) }).map((_, j) => (
-                        <span key={j} className={`h-1 w-1 rounded-full ${isSel ? 'bg-[#1c1b18]/70' : 'bg-gold'}`} />
-                      ))}
-                    </span>
+                    <>
+                      {/* จอเล็ก (มือถือ/iPad-ตั้ง) = จุด */}
+                      <span className="flex h-1 items-center gap-0.5 lg:hidden">
+                        {Array.from({ length: Math.min(items.length, 3) }).map((_, j) => (
+                          <span key={j} className={`h-1 w-1 rounded-full ${isSel ? 'bg-[#1c1b18]/70' : 'bg-gold'}`} />
+                        ))}
+                      </span>
+                      {/* lg+ (iPad-นอน/คอม) = chip เวลา+ชื่อในช่อง เห็นทั้งเดือนทีเดียว */}
+                      <span className="hidden w-full flex-col gap-0.5 lg:flex">
+                        {items.slice(0, 3).map((a) => (
+                          <span key={a.id} className="truncate rounded bg-gold/20 px-1 py-0.5 text-2xs leading-tight text-gold-dark">
+                            {new Date(a.scheduledAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} {a.lead?.fullName || a.title || a.code}
+                          </span>
+                        ))}
+                        {items.length > 3 && <span className="px-1 text-2xs font-medium text-muted">+{items.length - 3}</span>}
+                      </span>
+                    </>
                   )}
                 </button>
               );
