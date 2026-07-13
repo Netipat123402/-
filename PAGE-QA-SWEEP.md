@@ -27,7 +27,7 @@
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
 | 6 | `/properties/new` | ✅ | ✅ | ✅ | ✅ | **wizard 4 ขั้น ครบทุก device:** มือถือ=CRUD เต็ม(POST 201+DELETE) · iPad ตั้ง/นอน+desktop=modal centered ฟิลด์ครบ ไม่ล้น |
 | 7 | `/leads` | ✅ | ✅ | ✅ | ✅ | **responsive ดีมาก:** มือถือ=cards · iPad/desktop=table (คอลัมน์ ลูกค้า/เบอร์/รหัส/สถานะ+pagination) · sidebar↔bottom-nav · add form clean · drawer detail (ทรัพย์ที่สนใจ linked) · **delete flow (confirm guard→19→18) เคลียร์ QA lead แล้ว** · ไม่ล้น ไม่ต้องแก้ |
-| 8 | `/appointments` | ⬜ | ⬜ | ⬜ | ⬜ | 10\|16\|0 (หนัก) |
+| 8 | `/appointments` | ✅ | ✅ | ✅ | ✅ | list=cards(มือถือ)↔table(iPad/คอม) · add form modal 512 centered · **create นัดจริง→POST 201→chip โผล่ปฏิทิน(9→10)→cancel POST 201** (ทำจริง submit ครบ) · drawer(พบแล้ว/เลื่อน/ยกเลิก) · ไม่ล้น |
 | 9 | `/calendar` | ✅ | ✅ | ✅ | ✅ | **[แก้ f720d7e] iPad≠มือถือ:** จอกว้าง(iPad-นอน/คอม)เดิม 296px+ว่าง 600 → **full-width grid + chip ชื่อนัดในช่อง** (296→842/990px) · มือถือ/iPad-ตั้ง คง dots+day-detail (เหมาะจอแคบ) · tap วัน functional · **มีรูปเทียบ 4 device** |
 | 10 | `/contracts` | ⬜ | ⬜ | ⬜ | ⬜ | 5\|4\|0 |
 | 11 | `/contracts/[id]` | ⬜ | ⬜ | ⬜ | ⬜ | 9\|11\|1 (หนัก) |
