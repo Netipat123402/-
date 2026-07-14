@@ -125,7 +125,7 @@ export default function ContractDetailPage() {
   if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบสัญญา <Link href="/contracts" className="text-gold-dark underline">กลับ</Link></div>;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl xl:max-w-6xl">
       <DetailHeader
         backHref="/contracts"
         code={c.code}
@@ -192,6 +192,9 @@ export default function ContractDetailPage() {
         { id: 'c-terms', label: 'เงื่อนไข' },
         { id: 'c-docs', label: 'เอกสาร' },
       ]} />
+      {/* xl+ (คอม) = 2 คอลัมน์: ซ้าย ข้อมูลสัญญา · ขวา เอกสาร (ตรงกับ property) · มือถือ/iPad(รวมนอน 1024) คงคอลัมน์เดียว */}
+      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
+      <div className="min-w-0">
       {/* คู่สัญญา (ข้อ 6) — meeting-center: role ขวา / ชื่อ+เบอร์ ซ้าย · ทุกแถวกดเข้าได้ */}
       <InfoGroup label="คู่สัญญา" id="c-parties" className="mt-6">
         {c.customer && (
@@ -242,10 +245,16 @@ export default function ContractDetailPage() {
         )}
       </div>
 
+      </div>{/* /คอลัมน์ซ้าย (ข้อมูลสัญญา) */}
+
+      {/* ── คอลัมน์ขวา (xl+) — เอกสารสัญญา · มือถือ/iPad ต่อท้ายปกติ ── */}
+      <aside>
       <div id="c-docs" className="mt-6 scroll-mt-28 card p-5">
         <h2 className="mb-4 font-semibold">เอกสารสัญญา</h2>
         <DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} />
       </div>
+      </aside>
+      </div>{/* /grid 2 คอลัมน์ */}
 
       {/* ออกใบเสร็จ */}
       <Modal open={receiptOpen} onClose={() => setReceiptOpen(false)} title="ออกใบเสร็จ"
