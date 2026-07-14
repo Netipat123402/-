@@ -30,7 +30,7 @@
 | 8 | `/appointments` | ✅ | ✅ | ✅ | ✅ | list=cards(มือถือ)↔table(iPad/คอม) · add form modal 512 centered · **create นัดจริง→POST 201→chip โผล่ปฏิทิน(9→10)→cancel POST 201** (ทำจริง submit ครบ) · drawer(พบแล้ว/เลื่อน/ยกเลิก) · ไม่ล้น |
 | 9 | `/calendar` | ✅ | ✅ | ✅ | ✅ | **[แก้ f720d7e] iPad≠มือถือ:** จอกว้าง(iPad-นอน/คอม)เดิม 296px+ว่าง 600 → **full-width grid + chip ชื่อนัดในช่อง** (296→842/990px) · มือถือ/iPad-ตั้ง คง dots+day-detail (เหมาะจอแคบ) · tap วัน functional · **มีรูปเทียบ 4 device** |
 | 10 | `/contracts` | ⬜ | ⬜ | ⬜ | ⬜ | 5\|4\|0 |
-| 11 | `/contracts/[id]` | ⬜ | ⬜ | ⬜ | ⬜ | 9\|11\|1 (หนัก) |
+| 11 | `/contracts/[id]` | ✅ | ✅ | ✅ | 🟡 | **[แก้ 55983d5] 2-col desktop** (ทบทวน: เดิมว่าคง 1-col แต่ยึด precedent property→ทำให้ตรง) info ซ้าย+เอกสารขวา · header/checklist/nav เต็มบน · มือถือ/iPad คง 1-col · verified 4 จอ+รูป · **เหลือเทสปุ่ม** (sign/receipt/renew/close) |
 | 12 | `/customers` | ⬜ | ⬜ | ⬜ | ⬜ | ListView |
 | 13 | `/customers/[id]` | ⬜ | ⬜ | ⬜ | ⬜ | 5\|5\|2 |
 | 14 | `/owners` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|2\|0 |
