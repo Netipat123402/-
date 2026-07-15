@@ -177,7 +177,7 @@ export default function CalendarPage() {
               <p className="text-sm text-muted">ไม่มีนัดในวันนี้</p>
             </div>
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ul className="grid gap-3 sm:grid-cols-2">
               {selectedAppts.map((a) => (
                 <li key={a.id}>
                   {/* กดการ์ด → เปิดรายละเอียดนัดนั้นทันที (deep-link เดียวกับแจ้งเตือน) */}

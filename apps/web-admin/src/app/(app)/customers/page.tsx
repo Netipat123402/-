@@ -24,15 +24,11 @@ export default function CustomersPage() {
   const { rows, meta, loading } = useList<Customer>(`/customers?${params}`);
   // เรียงฝั่ง server แล้ว (sort ไป API → ถูกต้องข้ามหน้า) — MR-12
 
-  // หลัก = ชื่อ · รอง = เบอร์(แตะโทร) + อีเมล (Phase 45: ไม่ให้หน้าโล้น) · ขวา = จำนวนสัญญา (นับทุกสัญญาไม่ถูกลบ)
+  // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = เบอร์แตะโทร · อีเมล = คอลัมน์เฉพาะตาราง (การ์ด touch แคบ → อีเมลตัดเป็นขยะ "mocl"; ตรงกับ owners ที่โชว์เบอร์อย่างเดียว) · ขวา = จำนวนสัญญา
   const cols: Col<Customer>[] = [
     { header: 'ชื่อ', primary: true, cell: (c) => c.fullName },
-    { header: 'เบอร์โทร · อีเมล', sub: true, cell: (c) => (
-      <span className="inline-flex min-w-0 items-center gap-1">
-        <PhoneLink phone={c.phone} />
-        {c.email && <span className="truncate text-muted"> · {c.email}</span>}
-      </span>
-    ) },
+    { header: 'เบอร์โทร', sub: true, cell: (c) => <PhoneLink phone={c.phone} /> },
+    { header: 'อีเมล', cell: (c) => (c.email ? <span className="text-muted">{c.email}</span> : <span className="text-faint">—</span>) },
     { header: 'สัญญา', right: true, width: 'w-28', cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
   ];
 
