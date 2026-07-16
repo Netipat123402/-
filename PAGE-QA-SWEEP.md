@@ -36,7 +36,7 @@
 | 14 | `/owners` | ✅ | ✅ | ✅ | ✅ | **[แก้ 2026-07-16] เพิ่มคอลัมน์อีเมล table-only** ให้ตรง customers (consistency) · การ์ด touch เดิม phone-only ✓ · ตารางคอม=ชื่อ+เบอร์+อีเมล+ทรัพย์ · **functional:** เพิ่มเจ้าของจริง POST 201→ลบเคลียร์ · ค้นหา/pagination · card-tap · widget เทียบ |
 | 15 | `/owners/[id]` | ✅ | 🟡 | 🟡 | ✅ | 1-col max-w-3xl (ตรง customers · richer: พอร์ตทรัพย์+idCard+note) · **แก้ไขจริง note→PATCH 200→revert✓** · ไม่มีลบ (owns properties = ถูก) · props/สัญญา/เอกสาร sections · **เหลือ:** เทส iPad ตั้ง/นอน |
 | 16 | `/community` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 |
-| 17 | `/notifications` | ⬜ | ⬜ | ⬜ | ⬜ | 5\|11\|1 |
+| 17 | `/notifications` | ✅ | ✅ | ✅ | ✅ | **รีวิว: ออกแบบดีต่อ device แล้ว ไม่ต้องแก้** · CategoryBar swipe(touch)/ลูกศร(mouse:, ซ่อนเมื่อ chip พอดี) · feed 1-col max-w-3xl (ถูกสำหรับ notification) · card 768 · **functional:** กรองหมวด(ทรัพย์→9)✓ · mark-all-read PATCH✓ (เผลอกด→กู้คืน 18 unread ครบ) · เตือนตัวเอง: selector อย่าแมตช์กว้าง ("ทั้งหมด"↔"อ่านทั้งหมด") |
 | 18 | `/audit` | ⬜ | ⬜ | ⬜ | ⬜ | 0\|1\|0 |
 | 19 | `/users` | ✅ | ✅ | ✅ | ✅ | **[แก้ 2026-07-16] cols:** การ์ด sub=บทบาท (แทน email·บทบาท ที่ตัด) · อีเมล=table-only col · แก้ตารางโชว์บทบาทซ้ำ 2 คอลัมน์ · **CRUD จริง:** สร้าง POST 201→แก้ role PATCH→ลบ (soft-delete deletedAt+suspended) · modal สร้าง/จัดการ/reset pw · FilterBar=ค้นหาอย่างเดียว |
 | 20 | `/search` | ⬜ | ⬜ | ⬜ | ⬜ | GlobalSearch |
