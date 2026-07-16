@@ -139,7 +139,13 @@ export default function ContractsPage() {
     { header: 'ลูกค้า', primary: true, cell: (c) => c.customer?.fullName || `สัญญา ${c.code}` },
     { header: 'รหัส', cell: (c) => <span className="font-mono text-xs text-gold-dark">{c.code}</span> },
     { header: 'ทรัพย์', sub: true, cell: (c) => c.property?.titleTh || <span className="text-faint">—</span> },
-    { header: 'สิ้นสุด', cell: (c) => <span className="text-muted">{c.endDate ? new Date(c.endDate).toLocaleDateString('th-TH') : '—'}</span> },
+    { header: 'ช่วงสัญญา', cell: (c) => {
+      // ระยะเวลาสัญญาเป็นแก่นของสัญญาเช่า → โชว์ช่วงเต็ม (เริ่ม–สิ้นสุด) ในคอลัมน์เดียว · สิ้นสุดเน้นทอง (actionable) · ปีย่อ 2 หลักให้กระชับ
+      const fmt = (d?: string) => d ? new Date(d).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '—';
+      return (c.startDate || c.endDate)
+        ? <span className="whitespace-nowrap text-muted">{fmt(c.startDate)} – <span className="text-gold-dark">{fmt(c.endDate)}</span></span>
+        : <span className="text-faint">—</span>;
+    } },
     {
       header: 'สถานะ', right: true, cell: (c) => (
         <span className="inline-flex items-center gap-1.5">
