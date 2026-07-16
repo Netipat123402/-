@@ -134,13 +134,12 @@ export default function ContractsPage() {
     finally { setSaving(false); }
   }
 
+  // หลัก = ลูกค้า · การ์ด(touch) รอง = ทรัพย์ (สัญญาของใคร/ทรัพย์ไหน — 1 บรรทัดไม่ตัด) · รหัส+สิ้นสุด = คอลัมน์เฉพาะตาราง (คอมกว้าง scan ง่าย) · ตรง pattern customers/users
   const cols: Col<Contract>[] = [
-    // หลัก = ลูกค้า (สัญญาของใคร) · รอง = รหัส + ทรัพย์ + วันสิ้นสุด — สแกนได้ว่าใคร/ทรัพย์ไหน
     { header: 'ลูกค้า', primary: true, cell: (c) => c.customer?.fullName || `สัญญา ${c.code}` },
-    {
-      header: 'รหัส · ทรัพย์ · ระยะเวลา', sub: true, cell: (c) =>
-        `${c.code}${c.property ? ` · ${c.property.titleTh}` : ''}${c.endDate ? ` · สิ้นสุด ${new Date(c.endDate).toLocaleDateString('th-TH')}` : ''}`,
-    },
+    { header: 'รหัส', cell: (c) => <span className="font-mono text-xs text-gold-dark">{c.code}</span> },
+    { header: 'ทรัพย์', sub: true, cell: (c) => c.property?.titleTh || <span className="text-faint">—</span> },
+    { header: 'สิ้นสุด', cell: (c) => <span className="text-muted">{c.endDate ? new Date(c.endDate).toLocaleDateString('th-TH') : '—'}</span> },
     {
       header: 'สถานะ', right: true, cell: (c) => (
         <span className="inline-flex items-center gap-1.5">
