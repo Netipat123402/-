@@ -22,7 +22,7 @@
 |---|---|---|---|---|---|---|
 | 1 | `/login` | ✅ | ⬜ | ⬜ | ⬜ | **functional ผ่าน:** fill+submit→authed (requestSubmit) · session persist · ไม่ล้น |
 | 2 | `/` dashboard | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** stat cards✓ todo tabs✓ NotificationBell✓ "+"เปิด wizard✓ · เหลือ: GlobalSearch, user menu, bottom-nav + iPad/desktop |
-| 3 | `/properties` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 + ListView (landed หลัง delete — ยังไม่เทสเต็ม) |
+| 3 | `/properties` | ✅ | ✅ | ✅ | ✅ | ListView (ตาราง/การ์ด) · thumb+code+title+ประเภท·ทำเล+สถานะ·ราคา · **[แก้ 2026-07-16] FilterBar responsive:** <lg=ปุ่ม→sheet · ≥lg(iPad-นอน/คอม)=ตัวกรอง inline (dropdowns+ราคา popover) กรองสดไม่บังลิสต์ · **functional:** เลือกคอนโด→propertyType=condo สด · range popover · ล้าง · ค้นหา/segmented/pagination · **shared FilterBar → customers/owners/leads inline sort ด้วย (verify sort=new)** |
 | 4 | `/properties/[id]` | 🟡 | ⬜ | ⬜ | ⬜ | **มือถือ:** create→delete(404)✓ · image upload 201✓ ลบรูป 200✓ · **edit: pre-fill→PATCH 200→restore✓** · Lightbox(ปัด/ลูกศร desktop)✓ · เหลือ: เผยแพร่ toggle, tabs + iPad/desktop |
 | 5 | `/properties/[id]/edit` | ⬜ | ⬜ | ⬜ | ⬜ | PropertyForm |
 | 6 | `/properties/new` | ✅ | ✅ | ✅ | ✅ | **wizard 4 ขั้น ครบทุก device:** มือถือ=CRUD เต็ม(POST 201+DELETE) · iPad ตั้ง/นอน+desktop=modal centered ฟิลด์ครบ ไม่ล้น |
