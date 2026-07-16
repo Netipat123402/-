@@ -672,6 +672,37 @@ export interface RangeDef {
   onClear: () => void;
 }
 
+// ช่วงราคาแบบ popover สำหรับแถบ inline (จอกว้าง) — ปุ่มเล็กในแถบ กดแล้วเด้งสไลเดอร์ ไม่บังลิสต์
+function InlineRange({ range }: { range: RangeDef }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
+        className={`field flex h-9 items-center gap-2 text-sm ${range.active ? 'border-gold text-gold-dark' : ''}`}>
+        <span className="truncate">{range.active ? range.display : range.label}</span>
+        <Icon name="chevron-down" size={16} className={`shrink-0 text-faint transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-[60] mt-1 w-72 rounded-xl2 border border-border bg-surface p-4 shadow-lift">
+          <div className="mb-2 flex items-baseline justify-between">
+            <span className="text-sm font-medium text-ink-soft">{range.label}</span>
+            <span className="text-sm tabular-nums text-muted">{range.display}</span>
+          </div>
+          <PriceRange min={range.min} max={range.max} step={range.step} lo={range.lo} hi={range.hi} onChange={range.onChange} />
+          {range.active && <button type="button" onClick={() => range.onClear()} className="mt-3 text-xs text-muted hover:text-ink">ล้างช่วงราคา</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function FilterBar({ search, sort, filters = [], range }: {
   search?: { value: string; onChange: (v: string) => void; placeholder?: string };
   sort?: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] };
@@ -695,13 +726,39 @@ export function FilterBar({ search, sort, filters = [], range }: {
   const hasPanel = filters.length > 0 || !!sort || !!range;
 
   return (
-    <div className="mt-4 flex items-center gap-2">
+    <div className="mt-4 flex flex-wrap items-center gap-2">
       {search && (
         <input className="field min-w-0 flex-1 sm:max-w-[280px]" placeholder={search.placeholder ?? 'ค้นหา…'}
           value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} />
       )}
+
+      {/* จอกว้าง (iPad-นอน/คอม ≥lg): ตัวกรอง inline ในแถบ — เห็นลิสต์อัปเดตสด ไม่ต้องเปิด modal (ตามหลัก desktop≠mobile) */}
       {hasPanel && (
-        <div className="shrink-0 sm:ml-auto">
+        <div className="hidden items-center gap-2 lg:flex">
+          {filters.map((f) => (
+            f.type === 'date' ? (
+              <input key={f.key} type="date" className="field h-9 w-auto text-sm" value={f.value} onChange={(e) => f.onChange(e.target.value)} />
+            ) : (
+              <div key={f.key} className="w-40">
+                <Combobox label="" size="sm" searchable={f.searchable ?? false} value={f.value} onChange={f.onChange} options={f.options ?? []} placeholder={f.label} />
+              </div>
+            )
+          ))}
+          {range && <InlineRange range={range} />}
+          {sort && (
+            <div className="w-44">
+              <Combobox label="" size="sm" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} placeholder="เรียงลำดับ" />
+            </div>
+          )}
+          {activeCount > 0 && (
+            <button type="button" onClick={clearAll} className="btn-ghost btn-sm shrink-0 text-muted">ล้าง ({activeCount})</button>
+          )}
+        </div>
+      )}
+
+      {/* จอแคบ/สัมผัส (มือถือ/iPad-ตั้ง <lg): ปุ่ม → sheet โฟกัส (ไม่มีที่ inline) */}
+      {hasPanel && (
+        <div className="shrink-0 sm:ml-auto lg:hidden">
           <button type="button" onClick={() => setOpen(true)} aria-expanded={open}
             className={`btn-ghost btn-sm ${activeCount ? 'border-gold text-gold-dark' : ''}`}>
             <Icon name="menu" size={16} /> ตัวกรอง
