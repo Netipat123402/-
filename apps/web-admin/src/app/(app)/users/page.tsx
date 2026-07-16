@@ -126,10 +126,11 @@ export default function UsersPage() {
   const filteredRoles = rolesBase.filter((r) => CREATE_ROLES.includes(r.name));
   const roleOptions = (filteredRoles.length ? filteredRoles : rolesBase).map((r) => ({ value: r.name, label: ROLE_TH[r.name] ?? r.name }));
 
+  // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = บทบาท (key ของ user list — สแกน "ใครทำอะไรได้") · อีเมล = คอลัมน์เฉพาะตาราง (identity/login → การ์ด touch แคบไม่ยัด) · ขวา = สถานะ
   const cols: Col<User>[] = [
     { header: 'ชื่อ', primary: true, cell: (u) => u.fullName },
-    { header: 'อีเมล · บทบาท', sub: true, cell: (u) => `${u.email} · ${u.roles.map((r) => ROLE_TH[r] ?? r).join(', ')}` },
-    { header: 'บทบาท', cell: (u) => u.roles.map((r) => ROLE_TH[r] ?? r).join(', ') },
+    { header: 'บทบาท', sub: true, cell: (u) => u.roles.map((r) => ROLE_TH[r] ?? r).join(', ') },
+    { header: 'อีเมล', cell: (u) => <span className="text-muted">{u.email}</span> },
     { header: 'สถานะ', right: true, cell: (u) => statusBadge(u.status) },
   ];
 
