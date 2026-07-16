@@ -37,10 +37,10 @@
 | 15 | `/owners/[id]` | ✅ | 🟡 | 🟡 | ✅ | 1-col max-w-3xl (ตรง customers · richer: พอร์ตทรัพย์+idCard+note) · **แก้ไขจริง note→PATCH 200→revert✓** · ไม่มีลบ (owns properties = ถูก) · props/สัญญา/เอกสาร sections · **เหลือ:** เทส iPad ตั้ง/นอน |
 | 16 | `/community` | ✅ | ✅ | ✅ | ✅ | **รีวิว: ออกแบบดีต่อ device แล้ว ไม่ต้องแก้** · กระดานโมเดอเรชัน text-post = 1-col max-w-3xl ทุกจอ (ถูก — ไม่มี card/table divergence แบบ list) · tabs สถานะ · **functional (สร้าง test post ผ่าน DB):** pending→**อนุมัติ** PATCH→published→**เก็บถาวร** PATCH→archived ครบวงจร · ลบ test post เคลียร์ · ไม่มีโพสต์ใน seed (มาจาก web-public) |
 | 17 | `/notifications` | ✅ | ✅ | ✅ | ✅ | **รีวิว: ออกแบบดีต่อ device แล้ว ไม่ต้องแก้** · CategoryBar swipe(touch)/ลูกศร(mouse:, ซ่อนเมื่อ chip พอดี) · feed 1-col max-w-3xl (ถูกสำหรับ notification) · card 768 · **functional:** กรองหมวด(ทรัพย์→9)✓ · mark-all-read PATCH✓ (เผลอกด→กู้คืน 18 unread ครบ) · เตือนตัวเอง: selector อย่าแมตช์กว้าง ("ทั้งหมด"↔"อ่านทั้งหมด") |
-| 18 | `/audit` | ⬜ | ⬜ | ⬜ | ⬜ | 0\|1\|0 |
+| 18 | `/audit` | ✅ | ✅ | ✅ | ✅ | **รีวิว: ดีแล้ว ไม่ต้องแก้** · feed 1-col max-w-3xl (immutable log — ไม่มี action ให้ mutate ถูกต้อง) · **FilterBar inline (regression pass):** การกระทำ+ช่วงเวลา dropdown ≥lg · action=login กรองสด✓ · แถวกางดู diff/IP/เวลาเต็ม✓ |
 | 19 | `/users` | ✅ | ✅ | ✅ | ✅ | **[แก้ 2026-07-16] cols:** การ์ด sub=บทบาท (แทน email·บทบาท ที่ตัด) · อีเมล=table-only col · แก้ตารางโชว์บทบาทซ้ำ 2 คอลัมน์ · **CRUD จริง:** สร้าง POST 201→แก้ role PATCH→ลบ (soft-delete deletedAt+suspended) · modal สร้าง/จัดการ/reset pw · FilterBar=ค้นหาอย่างเดียว |
-| 20 | `/search` | ⬜ | ⬜ | ⬜ | ⬜ | GlobalSearch |
-| 21 | `/settings` | ⬜ | ⬜ | ⬜ | ⬜ | 1\|0\|0 |
+| 20 | `/search` | ✅ | ✅ | ✅ | ✅ | **รีวิว: ดีแล้ว ไม่ต้องแก้** · GlobalSearch (shared: top bar คอม + หน้านี้มือถือ) 1-col max-w-2xl · **functional:** พิมพ์ "ไอดีโอ"→ผลทรัพย์ CD-2026-1001 สด✓ |
+| 21 | `/settings` | ✅ | ✅ | ✅ | ✅ | **รีวิว: ดีแล้ว ไม่ต้องแก้** · ฟอร์ม 1-col max-w-2xl (โฟกัส ถูกสำหรับ settings ทุกจอ) · **functional:** แก้ชื่อบริษัท→บันทึก PATCH company.name/contact→revert✓ · ระบบ&นโยบาย read-only |
 
 + **shared chrome (ทุกหน้า admin):** sidebar/bottom-nav (layout), NotificationBell, GlobalSearch, Icon
 
