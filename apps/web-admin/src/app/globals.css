@@ -62,7 +62,8 @@
 
 @layer components {
   .badge {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+    /* badge/chip = ป้ายอะตอม 1 บรรทัดเสมอ (nowrap) — label ที่มีช่องว่าง เช่น "ว่าง · ลงประกาศ" จะได้ไม่ wrap ตกกรอบในคอลัมน์แคบ (iPad/มือถือ) */
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
   /* v2: การ์ดแบน อาศัย "กรอบ" นิยามขอบ (ไม่พึ่งเงา) — สไตล์แอพ Claude */
   .card {
