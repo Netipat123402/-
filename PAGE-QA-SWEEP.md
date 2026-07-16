@@ -38,7 +38,7 @@
 | 16 | `/community` | ⬜ | ⬜ | ⬜ | ⬜ | 3\|3\|0 |
 | 17 | `/notifications` | ⬜ | ⬜ | ⬜ | ⬜ | 5\|11\|1 |
 | 18 | `/audit` | ⬜ | ⬜ | ⬜ | ⬜ | 0\|1\|0 |
-| 19 | `/users` | ⬜ | ⬜ | ⬜ | ⬜ | 7\|6\|0 |
+| 19 | `/users` | ✅ | ✅ | ✅ | ✅ | **[แก้ 2026-07-16] cols:** การ์ด sub=บทบาท (แทน email·บทบาท ที่ตัด) · อีเมล=table-only col · แก้ตารางโชว์บทบาทซ้ำ 2 คอลัมน์ · **CRUD จริง:** สร้าง POST 201→แก้ role PATCH→ลบ (soft-delete deletedAt+suspended) · modal สร้าง/จัดการ/reset pw · FilterBar=ค้นหาอย่างเดียว |
 | 20 | `/search` | ⬜ | ⬜ | ⬜ | ⬜ | GlobalSearch |
 | 21 | `/settings` | ⬜ | ⬜ | ⬜ | ⬜ | 1\|0\|0 |
 
