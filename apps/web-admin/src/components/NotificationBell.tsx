@@ -54,17 +54,17 @@ function timeAgo(iso: string) {
   if (m < 60) return `${m} นาทีที่แล้ว`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 function apptMeta(ts: number) {
   const d = new Date(ts);
-  const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const isToday = ts < startOfToday() + DAY;
-  return isToday ? `วันนี้ ${time} น.` : `${d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time} น.`;
+  return isToday ? `วันนี้ ${time}` : `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
 function contractMeta(ts: number) {
   const days = Math.round((ts - startOfToday()) / DAY);
-  const date = new Date(ts).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  const date = new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   return days <= 0 ? `ครบกำหนดวันนี้ · ${date}` : `ครบกำหนด ${date} · อีก ${days} วัน`;
 }
 

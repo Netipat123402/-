@@ -43,7 +43,7 @@ function timeAgo(iso: string) {
   if (m < 60) return `${m} นาทีที่แล้ว`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleDateString('th-TH');
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function NotificationsPage() {

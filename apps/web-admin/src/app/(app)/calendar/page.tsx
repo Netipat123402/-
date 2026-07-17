@@ -152,7 +152,7 @@ export default function CalendarPage() {
                       <span className="hidden w-full flex-col gap-0.5 lg:flex">
                         {items.slice(0, 3).map((a) => (
                           <span key={a.id} className="truncate rounded bg-gold/20 px-1 py-0.5 text-2xs leading-tight text-gold-dark">
-                            {new Date(a.scheduledAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} {a.lead?.fullName || a.title || a.code}
+                            {new Date(a.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} {a.lead?.fullName || a.title || a.code}
                           </span>
                         ))}
                         {items.length > 3 && <span className="px-1 text-2xs font-medium text-muted">+{items.length - 3}</span>}
@@ -168,7 +168,7 @@ export default function CalendarPage() {
         {/* day detail */}
         <div className="card p-5">
           <h3 className="mb-3 font-semibold">
-            {new Date(selected).toLocaleDateString('th-TH', { dateStyle: 'long' })}
+            {new Date(selected).toLocaleDateString('en-GB', { dateStyle: 'long' })}
             {selectedAppts.length > 0 && <span className="ml-2 text-sm font-normal text-muted">· {selectedAppts.length} นัด</span>}
           </h3>
           {selectedAppts.length === 0 ? (
@@ -184,7 +184,7 @@ export default function CalendarPage() {
                   <button type="button" onClick={() => router.push(`/appointments?focus=${a.id}`)}
                     className="w-full rounded-xl border border-border p-4 text-left transition hover:border-gold/40 active:scale-[0.99]">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1.5 font-semibold"><Icon name="clock" size={15} className="text-faint" />{new Date(a.scheduledAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>
+                      <span className="inline-flex items-center gap-1.5 font-semibold"><Icon name="clock" size={15} className="text-faint" />{new Date(a.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
                       <StatusBadge map={APPOINTMENT_STATUS} value={a.status} short />
                     </div>
                     <p className="mt-2 font-medium">{a.lead?.fullName || a.title || `นัด ${a.code}`}</p>

@@ -21,7 +21,7 @@ interface PropLite { id: string; code: string; titleTh: string; status: string; 
 interface LeadDetail extends Lead { assignedTo?: { fullName: string }; interests?: { property: PropLite }[]; }
 
 function fmtDate(iso?: string) {
-  return iso ? new Date(iso).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+  return iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 }
 
 const STATUS_OPTIONS = [

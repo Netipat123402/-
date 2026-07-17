@@ -10,7 +10,7 @@ import { useToast } from '@/components/Toast';
 import { APPOINTMENT_STATUS } from '@/lib/status';
 import { Col, Combobox, FilterBar, Field, InfoGroup, InfoRow, ListView, Modal, MoreMenu, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
-import { thaiDateTime } from '@/lib/format';
+import { fmtDateTime } from '@/lib/format';
 
 interface Appt {
   id: string; code: string; scheduledAt: string; status: string;
@@ -39,7 +39,7 @@ const TIME_OPTIONS = [
   { value: 'week', label: 'สัปดาห์นี้' },
 ];
 
-const fmt = (s: string) => new Date(s).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+const fmt = fmtDateTime;
 
 // วันที่ local (ไม่ใช้ toISOString ซึ่งเลื่อนไปเป็น UTC ใกล้เที่ยงคืนได้)
 const toISODate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -351,7 +351,7 @@ export default function AppointmentsPage() {
           </div>
         }>
         <Field label="วันเวลานัดใหม่ *" type="datetime-local"
-          hint={reAt ? thaiDateTime(reAt) : undefined} value={reAt} onChange={(e) => setReAt(e.target.value)} />
+          hint={reAt ? fmtDateTime(reAt) : undefined} value={reAt} onChange={(e) => setReAt(e.target.value)} />
       </Modal>
 
       {/* create */}
@@ -372,7 +372,7 @@ export default function AppointmentsPage() {
           <Combobox label="พนักงานรับผิดชอบ" value={form.agentId} onChange={(v) => setField('agentId', v)} options={[{ value: '', label: '— ตัวฉันเอง —' }, ...agents.options]} loadError={agents.error} onRetry={agents.reload} />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="วันเวลานัด *" type="datetime-local" error={fe.scheduledAt}
-              hint={form.scheduledAt ? thaiDateTime(form.scheduledAt) : undefined}
+              hint={form.scheduledAt ? fmtDateTime(form.scheduledAt) : undefined}
               value={form.scheduledAt} onChange={(e) => setField('scheduledAt', e.target.value)} />
             <Field label="ระยะเวลา (นาที)" type="number" value={form.durationMin} onChange={(e) => setField('durationMin', Number(e.target.value))} />
           </div>

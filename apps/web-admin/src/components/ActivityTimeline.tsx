@@ -13,7 +13,7 @@ function timeAgo(iso: string) {
   if (m < 60) return `${m} นาทีที่แล้ว`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
+  return new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 /** ไทม์ไลน์กิจกรรม (Activity log) ของ entity — path เช่น /properties/:id/activities */

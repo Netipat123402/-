@@ -10,7 +10,7 @@ import { useDebouncedValue } from '@/lib/useDebounce';
 import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
 import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, SectionLabel, Segmented, StatusBadge , PAGE_SIZE} from '@/components/ui';
 import { Icon } from '@/components/Icon';
-import { thaiDate } from '@/lib/format';
+import { fmtDate } from '@/lib/format';
 
 interface Contract {
   id: string; code: string; status: string; monthlyRent: string;
@@ -141,7 +141,7 @@ export default function ContractsPage() {
     { header: 'ทรัพย์', sub: true, cell: (c) => c.property?.titleTh || <span className="text-faint">—</span> },
     { header: 'ช่วงสัญญา', cell: (c) => {
       // ระยะเวลาสัญญาเป็นแก่นของสัญญาเช่า → โชว์ช่วงเต็ม (เริ่ม–สิ้นสุด) ในคอลัมน์เดียว · สิ้นสุดเน้นทอง (actionable) · ปีย่อ 2 หลักให้กระชับ
-      const fmt = (d?: string) => d ? new Date(d).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '—';
+      const fmt = (d?: string) => fmtDate(d) || '—';
       return (c.startDate || c.endDate)
         ? <span className="whitespace-nowrap text-muted">{fmt(c.startDate)} – <span className="text-gold-dark">{fmt(c.endDate)}</span></span>
         : <span className="text-faint">—</span>;
@@ -207,10 +207,10 @@ export default function ContractsPage() {
             <SectionLabel>ระยะเวลา</SectionLabel>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field label="วันเริ่มสัญญา *" type="date" error={fe.startDate}
-                hint={form.startDate ? thaiDate(form.startDate) : undefined}
+                hint={form.startDate ? fmtDate(form.startDate) : undefined}
                 value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} />
               <Field label="วันสิ้นสุด *" type="date" error={fe.endDate}
-                hint={form.endDate ? thaiDate(form.endDate) : undefined}
+                hint={form.endDate ? fmtDate(form.endDate) : undefined}
                 value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} />
             </div>
           </div>

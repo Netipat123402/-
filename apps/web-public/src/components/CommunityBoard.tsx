@@ -22,7 +22,7 @@ function timeAgo(iso: string | null, lang: string) {
   if (m < 60) return lang === 'en' ? `${m}m ago` : `${m} นาทีที่แล้ว`;
   const h = Math.floor(m / 60);
   if (h < 24) return lang === 'en' ? `${h}h ago` : `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'th-TH');
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function CommunityBoard() {

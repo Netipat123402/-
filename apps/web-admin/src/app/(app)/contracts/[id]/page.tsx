@@ -33,7 +33,7 @@ interface Contract {
 }
 interface Term { id: string; termKey: string; termValue: string; }
 
-function d(s?: string) { return s ? new Date(s).toLocaleDateString('th-TH', { dateStyle: 'medium' }) : '—'; }
+function d(s?: string) { return s ? new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
 
 export default function ContractDetailPage() {
   const { api, can } = useAuth();

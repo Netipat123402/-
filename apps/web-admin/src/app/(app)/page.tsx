@@ -111,7 +111,7 @@ export default function DashboardPage() {
   ];
   const kpis = allKpis.filter((c) => c.show);
 
-  const todayLabel = new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' });
+  const todayLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -152,7 +152,7 @@ export default function DashboardPage() {
               <AgendaSection title="นัดหมาย" icon="clock" href="/calendar" hrefLabel="ปฏิทิน" count={winAppts.length}>
                 {winAppts.slice(0, 4).map((a) => (
                   <Row key={a.id} href="/calendar"
-                    left={<span className="font-medium">{new Date(a.scheduledAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} · {new Date(a.scheduledAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>}
+                    left={<span className="font-medium">{new Date(a.scheduledAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · {new Date(a.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>}
                     right={<span className="font-mono text-xs text-muted">{a.code}</span>} />
                 ))}
               </AgendaSection>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 {winContracts.slice(0, 4).map((c) => (
                   <Row key={c.id} href={`/contracts/${c.id}`}
                     left={<span className="font-mono text-sm">{c.code}</span>}
-                    right={<span className="whitespace-nowrap text-xs font-medium text-gold-dark">{c.endDate ? `ครบ ${new Date(c.endDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}` : ''}</span>} />
+                    right={<span className="whitespace-nowrap text-xs font-medium text-gold-dark">{c.endDate ? `ครบ ${new Date(c.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}</span>} />
                 ))}
               </AgendaSection>
             )}

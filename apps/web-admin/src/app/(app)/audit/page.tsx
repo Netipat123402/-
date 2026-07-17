@@ -84,11 +84,11 @@ function relTime(iso: string) {
   if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} ชม.ที่แล้ว`;
   if (diff < 172800) return 'เมื่อวาน';
-  return `${d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`;
+  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
 }
 function fullTime(iso: string) {
   const d = new Date(iso);
-  return `${d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.`;
+  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 export default function AuditPage() {
