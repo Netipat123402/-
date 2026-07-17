@@ -57,6 +57,25 @@
 `ink`/`ink-soft` (ตัวอักษร) · `gold`/`gold-dark`/`gold-light` (accent เดียว) · `surface`/`raised`/`canvas` (พื้น) · `border`/`border-strong` · `muted`/`faint` (จาง) · `success`/`warning`/`danger`/`info`
 - **Accent เดียว = gold** · ❌ ห้าม hardcode hex ในคอมโพเนนต์ (ยกเว้น brand LINE #06C755, overlay ภาพ ink/xx)
 
+## 7) วันที่ = สากล (inter look) · [ใหม่ 2026-07-18 เจ้าของสั่ง]
+UI ทุกที่ใช้รูปแบบสากล — **ห้าม พ.ศ. / เดือนไทย / "น."** (ดูรก/local) · แบบ Linear/Stripe/Vercel
+| ใช้ | ผล | ฟังก์ชัน (`lib/format.ts` = source เดียว) |
+|---|---|---|
+| วันที่ | `14 Jul 2026` | `fmtDate` |
+| วันที่สั้น | `14 Jul` | `fmtDateShort` |
+| เวลา | `09:00` (24 ชม.) | `fmtTime` |
+| วันที่+เวลา | `14 Jul 2026 · 09:00` | `fmtDateTime` |
+| feed/แจ้งเตือน/audit | `3 ชม.ที่แล้ว` → เกิน 7 วันเป็นวันที่ | `fmtRelative` |
+- locale = `en-GB` (วัน-เดือน-ปี) · `hour12:false` · ❌ ห้าม `th-TH` กับ **วันที่/เวลา** (แต่ **เลข/บาท** ใช้ `Intl.NumberFormat('th-TH')` ได้ = คอมมา)
+- ยกเว้น: **ใบเสร็จ PDF** คงไทย/พ.ศ. (เอกสารทางการ) · **relative words** (นาที/ชม.ที่แล้ว) ไทยได้
+- ⚠️ body แจ้งเตือน/เตือนกำหนด มาจาก **backend** (`apps/api common/util/thai-datetime.ts`) → ยังเป็นไทย ต้องแก้ที่ API แยก (นอกรอบ frontend)
+
+## 8) Label–Value = proximity (ราง) · [ใหม่ 2026-07-18 เจ้าของสั่ง]
+หน้า detail/modal (InfoRow) — label กับ value เป็น "คู่กัน" ต้องอยู่ใกล้ (Gestalt proximity · ลด eye-travel) · **ห้ามดันแยกสุดขอบเว้นกลางบานบนจอกว้าง**
+- มือถือ (<sm): `justify-between` (จอแคบ ช่องเล็ก · idiom iOS Settings)
+- iPad/เดสก์ท็อป (sm+): label คอลัมน์คงที่ `w-36` + value ชิดซ้าย = **รางเดียว** (แบบ Stripe/Linear/GitHub sidebar) · chevron interactive = `sm:ml-auto`
+- ค่ายาว (ที่อยู่/โน้ต) = `stack` (label บน/value ล่าง) เหมือนเดิม
+
 ---
 
 ## 🎯 หลักการหลัก (Core Principle — ทุกการตัดสินใจยึดอันนี้)

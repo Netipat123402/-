@@ -67,3 +67,8 @@
 - **จุดสังเกต (ไม่ใช่บั๊ก รอเจ้าของตัดสิน):** PropertyCard mini-carousel ใช้ **dots** (เช่น 9–11 รูป) — ถ้ารูปเยอะ dots จะถี่ · อาจพิจารณาเปลี่ยนเป็น progress-bar แบบ detail เพื่อความสม่ำเสมอ (แต่เพิ่ม = อาจรก ต้องชั่ง)
 - **seed mock images** (พระราม 8 = ภาพ TikTok analytics, ป้าย 1/10 ฯลฯ) = ข้อมูล seed ไม่ใช่บั๊ก (กันภาพพังด้วย onError แล้ว)
 - **[created test data]** ส่งฟอร์มนัด → สร้าง lead จริงใน DB: ชื่อ "QA ทดสอบระบบ" เบอร์ 081-234-5678 (property AP-2026-1001) — ลบทีหลังตอน sweep หน้า admin/leads ได้
+- **✅ [แก้แล้ว fae8201] appointments แยก วันที่/ทรัพย์ ต่อ device** — มือถือ=วันที่อย่างเดียว(minimal) · iPad=+ทรัพย์คนละบรรทัด · เดสก์ท็อป=คอลัมน์ ทรัพย์ แยก · ใช้ sub-col ตัวที่ 2 (เลี่ยงบั๊ก mouse:hidden ไม่ชนะ sm:block) · verified 375/768/1024/1280 · **มีรูปเทียบ**
+- **✅ [แก้แล้ว 9ca8e68] วันที่สากลทั้ง 2 แอป** (เจ้าของสั่ง "ดูอินเตอร์") — `14 Jul 2026 · 09:00` (en-GB/ค.ศ./24ชม.) แทน พ.ศ./เดือนไทย/น. · source เดียว `lib/format.ts` (fmtDate/fmtDateTime/fmtRelative) · verified: appointments/contracts/dashboard/bell · **มีรูปเทียบ (widget)**
+- **✅ [แก้แล้ว 5e49218] InfoRow proximity rail** (เจ้าของถาม "ทำไมเว้นกลาง") — sm+ = label w-36 + value รางซ้าย (แบบ Stripe/Linear) · มือถือคง justify-between · แชร์ทุกหน้า detail/modal · verified rail@768/1280 no-overflow · **มีรูปเทียบ (widget)**
+- **⚠️ [ค้าง — backend/นอกรอบ frontend] body แจ้งเตือน+เตือนกำหนดยังเป็นวันที่ไทย/พ.ศ.** — มาจาก API `common/util/thai-datetime.ts` (appointment.service:164, scheduler.service:99/132) · ต้องแก้ฝั่ง backend แยก (R2 = frontend-only) · ของเก่าใน DB เป็นไทยอยู่แล้วจน regenerate
+- **🧹 [test data ค้าง]** notification "QA test นัด (ลบได้) — วันที่ 15 ก.ค. 2569" ใน bell = ของเทสรอบก่อน · รอเจ้าของอนุมัติลบ
