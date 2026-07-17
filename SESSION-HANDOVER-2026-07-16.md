@@ -62,12 +62,31 @@
 
 ## 4) ⏭ ทำต่อ (เรียงความสำคัญ) — **งานหลักถัดไป = หมวด 3.6 + 3.7 (กฎใหม่)**
 
-### 4.1 🎯 แยกหมวดข้อมูล + per-device field priority (กฎ 3.6 + 3.7 — เจ้าของสั่งเน้น)
-เจ้าของชี้: **หลายหน้ามีชุดข้อมูลควรแยกแต่ยัดติดกัน** เช่น:
-- **appointments:** "วันเวลา · ทรัพย์" (วันที่+สถานที่ติดกัน) → ควรแยก · และ combined sub อื่นๆ
-- ไล่สแกน**ทุกหน้า/ทุก card/ทุกตาราง** หา field ที่ควรแยก (วันที่ | สถานที่ | สถานะ ฯลฯ)
-- **+ per-device field priority:** แต่ละ device โชว์ field ตามความสำคัญของหน้านั้น (ไม่ต้องครบ — สุดท้ายคลิก detail อยู่ดี) · **ยกตัวอย่าง:** มือถือหน้านัดควรโชว์อะไร (ชื่อ+เวลา?) · iPad-ตั้ง/นอน เพิ่มอะไร · คอมโชว์อะไร
+### 4.1 🎯 แยกหมวดข้อมูล + per-device field priority (กฎ 3.6 + 3.7 — เจ้าของสั่งเน้น) — **appointments อนุมัติแล้ว รอ implement+verify**
+เจ้าของชี้: **หลายหน้ามีชุดข้อมูลควรแยกแต่ยัดติดกัน** · ไล่สแกน**ทุกหน้า/card/ตาราง** หา field ที่ควรแยก
 - **วิธีทำ (ตามกฎ):** สแกน→เสนอ widget **3 แบบ (มือถือ/iPad/คอม) พร้อมกัน** + before/after + เหตุผล → **ถามก่อน** → แก้ → verify 4 จอ → after
+
+**⭐ appointments — เสนอ+เจ้าของอนุมัติแล้ว (2026-07-16) · เริ่มทำอันนี้ก่อน (implement+verify):**
+ปัญหา: sub = "วันเวลา · ทรัพย์" (WHEN+WHERE มัดรวม ตัดขยะ) · **spec ที่อนุมัติ** (`apps/web-admin/src/app/(app)/appointments/page.tsx` cols ~221):
+```tsx
+{ header: 'นัดกับ', primary: true, cell: (a) => subject(a) },
+{ header: 'วันที่-เวลา', sub: true, cell: (a) => (
+  <>
+    <span className="tabular-nums">{fmt(a.scheduledAt)}</span>
+    {/* ทรัพย์บรรทัด 2 — โชว์เฉพาะ iPad การ์ด (sm:block), ซ่อนบนมือถือ(<sm) + ในตาราง(mouse:) */}
+    {a.property && <span className="hidden truncate text-muted sm:block mouse:hidden">{a.property.titleTh}</span>}
+  </>
+) },
+{ header: 'ทรัพย์', cell: (a) => a.property ? a.property.titleTh : <span className="text-faint">—</span> }, // table-only (plain col)
+{ header: 'สถานะ', right: true, cell: (a) => statusBadge },
+```
+ผลที่ตั้งใจ (ต้อง verify จริงว่า render ถูก — โดยเฉพาะ property บรรทัด 2 ในการ์ด iPad ที่อยู่ใน div `truncate` ของ ListView):
+- **มือถือ 375 (การ์ด):** ชื่อ + วันที่-เวลา + สถานะ (ไม่มีทรัพย์ = เจ้าของเลือก minimal)
+- **iPad-ตั้ง/นอน (การ์ด):** + ทรัพย์คนละบรรทัด (map-pin) — ใช้ `sm:block mouse:hidden`
+- **คอม (ตาราง):** นัดกับ | วันที่-เวลา | ทรัพย์ | สถานะ (แยกคอลัมน์ · plain col ทรัพย์ = table-only)
+- **⚠️ ต้องเทส:** การ์ด iPad property บรรทัด 2 อาจโดน `truncate`(nowrap) ของ ListView card sub div ตัด — ถ้าเพี้ยน อาจต้องปรับ ListView ให้ sub รองรับ 2 บรรทัด หรือใช้ block wrapper · verify 375/768/1024/1280 + inject-force-touch สำหรับการ์ด iPad
+
+**หน้าอื่นที่ควรไล่ต่อ (สแกนหา combined/มัดรวม):** leads (เบอร์·source) · properties(รหัส/ทรัพย์ block) · customers/owners detail · dashboard agenda · ทุกที่ที่ยัด 2 ความหมายในบรรทัดเดียว — เสนอทีละหน้า (widget 3 จอ + ถาม)
 
 ### 4.2 🔍 pause-scan overflow/wrap ต่อให้ครบ (หมวด 5)
 - วิธีใหม่ (จับ wrap ด้วย height ไม่ใช่แค่ scrollWidth) — ไล่หน้าที่เหลือ: detail pages, forms, **iPad-นอน 1024, มือถือ-นอน (landscape)** — อาจมีจุด wrap ที่ scanner เก่าพลาด
