@@ -219,7 +219,12 @@ export default function AppointmentsPage() {
   const subject = (a: Appt) => a.lead?.fullName || a.title || `นัด ${a.code}`;
   const cols: Col<Appt>[] = [
     { header: 'นัดกับ', primary: true, cell: (a) => subject(a) },
-    { header: 'วันเวลา · ทรัพย์', sub: true, cell: (a) => `${fmt(a.scheduledAt)}${a.property ? ` · ${a.property.titleTh}` : ''}` },
+    { header: 'วันที่-เวลา', sub: true, cell: (a) => <span className="tabular-nums">{fmt(a.scheduledAt)}</span> },
+    // ทรัพย์ = คอลัมน์ sub ตัวที่ 2 → เดสก์ท็อป: คอลัมน์ตารางแยก (ตัด …) · การ์ด: บรรทัดของตัวเอง
+    // hidden sm:inline → ซ่อนบนมือถือ (การ์ด minimal ไม่มีทรัพย์) · โผล่ตั้งแต่ iPad ขึ้นไป (การ์ด+ตาราง)
+    { header: 'ทรัพย์', sub: true, cell: (a) => a.property
+      ? <span className="hidden sm:inline">{a.property.titleTh}</span>
+      : <span className="hidden text-faint sm:inline">—</span> },
     { header: 'สถานะ', right: true, cell: (a) => (
       // Phase 25: ปรับสถานะจากลิสต์ได้เลย (upcoming) — stopPropagation กันเปิด detail modal
       <span className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
