@@ -150,24 +150,27 @@ export function InfoRow({
     </span>
   );
   const chevron = interactive
-    ? <Icon name="chevron-right" size={16} className="shrink-0 text-faint transition group-hover:text-muted" />
+    ? <Icon name="chevron-right" size={16} className="shrink-0 text-faint transition group-hover:text-muted sm:ml-auto" />
     : null;
   // ไอคอนนำหน้า label (ถ้ามี) — ช่วยกวาดสายตากลุ่มสเปก
   const labelNode = icon
     ? <span className="inline-flex items-center gap-1.5"><Icon name={icon} size={14} className="shrink-0 text-faint" />{label}</span>
     : label;
 
-  // สไตล์ Claude: label ซ้าย (จาง) / value ขวา (เข้ม) แนวตรงทั้งคอลัมน์ → ตากวาดขอบซ้าย=label ขอบขวา=value
-  // stack = ค่ายาว (ที่อยู่/โน้ต) → label บน / value ล่าง เต็มกว้าง (ห่อหลายบรรทัดสวย ไม่บีบ) · มือถือก็อ่านสบาย
+  // proximity (Gestalt): label กับ value เป็นคู่กัน ต้องอยู่ใกล้กัน
+  //  - มือถือ (<sm): label ซ้าย / value ขวา (justify-between) — จอแคบ ช่องเล็ก คุ้นตาแบบ iOS Settings
+  //  - iPad/เดสก์ท็อป (sm+): label คอลัมน์แคบคงที่ (w-36) / value ชิด label ซ้าย เป็น "รางเดียว"
+  //    → คู่อยู่ติดกัน ไม่มีช่องกลางบานเสียเปล่าบนจอกว้าง (แบบ Stripe/Linear/GitHub sidebar)
+  // stack = ค่ายาว (ที่อยู่/โน้ต) → label บน / value ล่าง เต็มกว้าง (ห่อหลายบรรทัดสวย ไม่บีบ)
   const inner = stack ? (
     <div className="py-2.5 touch:py-3">
       <span className="mb-1 block text-xs text-muted">{labelNode}</span>
       <span className="flex min-w-0 items-start gap-2">{valueNode}{action}{chevron}</span>
     </div>
   ) : (
-    <div className="flex items-center justify-between gap-4 py-2.5 touch:py-3">
-      <span className="shrink-0 text-sm text-muted">{labelNode}</span>
-      <span className="flex min-w-0 items-center justify-end gap-2 text-right">{valueNode}{action}{chevron}</span>
+    <div className="flex items-center justify-between gap-4 py-2.5 touch:py-3 sm:justify-start sm:gap-3">
+      <span className="shrink-0 text-sm text-muted sm:w-36">{labelNode}</span>
+      <span className="flex min-w-0 items-center justify-end gap-2 text-right sm:flex-1 sm:justify-start sm:text-left">{valueNode}{action}{chevron}</span>
     </div>
   );
 
