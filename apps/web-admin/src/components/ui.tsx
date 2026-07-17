@@ -847,7 +847,7 @@ export function ListView<T>({
   // เปลี่ยนหน้า: คงแถวเดิมไว้ (จางลง) จนข้อมูลใหม่มา → ความสูงไม่หด/กระโดด → ปุ่มลูกศรอยู่จุดเดิม
   return (
     <div className={loading ? 'pointer-events-none opacity-50 transition-opacity duration-150' : 'transition-opacity duration-150'}>
-      {/* เดสก์ท็อป (เมาส์/แทร็กแพด): ตาราง */}
+      {/* เดสก์ท็อป (เมาส์/แทร็กแพด): ตาราง — cell nowrap → ทุกแถว 1 บรรทัด ไม่ตก 2 บรรทัด · auto-layout คงความกว้างตามเนื้อหา (คอมเห็นเต็ม ไม่ตัด) · กว้างเกิน container → เลื่อนแนวนอน (wrapper overflow-x-auto) แทน wrap */}
       <div className="hidden overflow-x-auto mouse:block">
         <table className="w-full text-sm">
           <thead className="text-left text-xs uppercase tracking-wide text-muted">
@@ -865,7 +865,8 @@ export function ListView<T>({
                 onClick={onRow ? () => onRow(it) : undefined}>
                 {leading && <td className="py-3.5 pl-5">{leading(it)}</td>}
                 {cols.map((c, i) => (
-                  <td key={i} className={`py-3.5 ${c.right ? 'text-right' : ''} ${leading && i === 0 ? 'pl-3 pr-5' : 'px-5'}`}>{c.cell(it)}</td>
+                  // primary/sub = คอลัมน์ข้อความยืดหยุ่น (ชื่อ/ทรัพย์) → max-w-0+truncate: แบ่งพื้นที่ที่เหลือกัน ตัด "…" ถ้ายาว · คอลัมน์คงที่ (รหัส/วันที่/สถานะ/ราคา) nowrap เห็นครบ → ตารางพอดี container ทุกแถว 1 บรรทัด ไม่ตก 2 บรรทัด
+                  <td key={i} className={`py-3.5 ${c.right ? 'whitespace-nowrap text-right' : c.sub ? 'w-full max-w-0 truncate' : 'whitespace-nowrap'} ${leading && i === 0 ? 'pl-3 pr-5' : 'px-5'}`}>{c.cell(it)}</td>
                 ))}
               </tr>
             ))}
