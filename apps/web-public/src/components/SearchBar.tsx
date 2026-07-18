@@ -175,14 +175,19 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className={`relative ${compact ? '' : 'rounded-xl2 bg-surface p-2.5 shadow-lift'}`}>
-      <form onSubmit={go} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative sm:flex-1" ref={suggRef}>
+      <form onSubmit={go} className="flex items-center gap-2">
+        <div className="relative flex-1" ref={suggRef}>
           <input
-            className="field w-full"
+            className="field w-full pr-12"
             placeholder={t('searchPlaceholder')}
             value={q}
             onChange={(e) => { setQ(e.target.value); setSuggOpen(true); }}
             onFocus={() => { setOpen(false); if (q.trim().length >= 2) setSuggOpen(true); }} />
+          {/* แว่น = submit ในแถบ (แบบ Airbnb/Google) — เลิกปุ่ม "ค้นหา" ใหญ่แยก (ซ้ำ keyboard-go + มี suggestion สด) */}
+          <button type="submit" aria-label={t('search')}
+            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-gold text-white transition hover:bg-gold-dark active:scale-95">
+            <Icon name="search" size={16} />
+          </button>
           {/* ผลแนะนำสด — คลิกไปหน้ารายละเอียดทรัพย์ทันที (ปุ่ม "ค้นหา" ยังพาไปหน้า /properties ตามเดิม) */}
           {suggOpen && !open && q.trim().length >= 2 && (
             <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl2 border border-border bg-surface py-1 text-left shadow-lift">
@@ -209,13 +214,10 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
-            className={`btn-ghost ${open || activeCount ? 'border-ink' : ''}`}>
-            {t('filters')}{activeCount > 0 && <span className="ml-1 text-gold-dark">({activeCount})</span>}
-          </button>
-          <button type="submit" className="btn-gold flex-1 sm:flex-none">{t('search')}</button>
-        </div>
+        <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
+          className={`btn-ghost shrink-0 ${open || activeCount ? 'border-ink' : ''}`}>
+          {t('filters')}{activeCount > 0 && <span className="ml-1 text-gold-dark">({activeCount})</span>}
+        </button>
       </form>
 
       {open && (isSheet ? (
