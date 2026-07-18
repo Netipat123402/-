@@ -72,3 +72,6 @@
 - **✅ [แก้แล้ว 5e49218] InfoRow proximity rail** (เจ้าของถาม "ทำไมเว้นกลาง") — sm+ = label w-36 + value รางซ้าย (แบบ Stripe/Linear) · มือถือคง justify-between · แชร์ทุกหน้า detail/modal · verified rail@768/1280 no-overflow · **มีรูปเทียบ (widget)**
 - **⚠️ [ค้าง — backend/นอกรอบ frontend] body แจ้งเตือน+เตือนกำหนดยังเป็นวันที่ไทย/พ.ศ.** — มาจาก API `common/util/thai-datetime.ts` (appointment.service:164, scheduler.service:99/132) · ต้องแก้ฝั่ง backend แยก (R2 = frontend-only) · ของเก่าใน DB เป็นไทยอยู่แล้วจน regenerate
 - **🧹 [test data ค้าง]** notification "QA test นัด (ลบได้) — วันที่ 15 ก.ค. 2569" ใน bell = ของเทสรอบก่อน · รอเจ้าของอนุมัติลบ
+- **✅ [แก้แล้ว f344908] leads แยก source เป็น channel chip ต่อ device** — `เบอร์ · ช่องทาง` → เบอร์(sub) + chip ช่องทาง(sub-col 2) · มือถือ=ชื่อ+เบอร์+สถานะ(ซ่อน source) · iPad=+chip · เดสก์ท็อป=คอลัมน์ ช่องทาง · verified 375/768/1024/1280 · **รูป widget**
+- **✅ [แก้แล้ว c654b83] properties แยก ทำเล/ประเภท + เพิ่ม bedrooms** — `ประเภท · ทำเล` → ทำเล(sub ทุกจอ) + ประเภท·นอน specs(sub-col 2, hidden มือถือ) · ดึง bedrooms ที่มีแต่ไม่โชว์มาใช้ (แบบ Zillow) · ประเภท=ข้อความล้วน (การ์ดมีรูปแล้ว) · verified 4 จอ ไม่ล้น · **รูป widget**
+- **หมายเหตุ §3.6:** list หลักแยก field ครบ (appointments·leads·properties) · เหลือ dashboard agenda (peer-list สรุป — priority ต่ำ) · customers/owners แยกดีอยู่แล้ว
