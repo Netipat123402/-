@@ -29,13 +29,15 @@
 - ✅ ยกเว้นที่อนุญาต: `env(safe-area-inset-*)` (bottom-nav), `pb-24` (เว้น fixed bar)
 - ❌ ห้าม `p-[7px]`, `gap-[13px]` ฯลฯ
 
-## 3) Radius
+## 3) Radius — [v3 2026-07-18: A refined · พรีเมียมแต่อบอุ่น (โซน Apple/Airbnb) · เลิก pill ปุ่ม]
 | Token | px | ใช้ |
 |---|---|---|
-| `rounded-lg` | 8 | input/field, chip, thumbnail |
-| `rounded-xl2` | 20 | search panel, dropdown |
-| `rounded-card` | 16 | card, กล่องเอกสาร |
-| `rounded-full` | ∞ | **ปุ่ม (pill), badge, avatar, heart** |
+| `rounded-lg` | 8 | **ปุ่ม (.btn)**, input/field, chip/tab, thumbnail |
+| `rounded-card` | 12 | card, กล่องเอกสาร |
+| `rounded-xl2` | 14 | search panel, dropdown, floating bottom-nav |
+| `rounded-full` | ∞ | **เฉพาะ** badge/tag เล็ก, avatar, heart, dot, spinner, progress bar |
+- ❌ **ห้าม pill (rounded-full) กับ ปุ่ม/แท็บ/การ์ด/แผง** — ดู "consumer/เล่น" ลดความแพง · pill สงวนให้ของกลม/tag จิ๋วเท่านั้น
+- ปุ่มมือถือ `.btn` = h-11 (44px, เกณฑ์ Apple) ไม่เทอะทะ · (เคยลอง B editorial 6–8px แล้วเจ้าของว่า "เหมือนเว็บไม่เสร็จ" → กลับ A)
 
 ## 4) Shadow
 | Token | ใช้ |
