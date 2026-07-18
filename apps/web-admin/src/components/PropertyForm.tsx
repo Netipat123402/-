@@ -259,7 +259,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
                 <div className="flex flex-wrap gap-2">
                   {b.items.map((a) => (
                     <button type="button" key={a.code} onClick={() => toggleAmenity(a.code)}
-                      className={`rounded-full px-3 py-1.5 text-sm transition ${
+                      className={`rounded-lg px-3 py-1.5 text-sm transition ${
                         f.amenities?.[a.code] ? 'bg-gold text-[#1c1b18]' : 'border border-border bg-surface text-ink-soft hover:bg-raised'
                       }`}>
                       {a.labelTh}

@@ -39,8 +39,9 @@ module.exports = {
       },
       // micro token (badge/unit/count/nav) — แทนที่ arbitrary text-[11px] ที่กระจายอยู่ (ค่าเท่าเดิม 11px)
       fontSize: { '2xs': '0.6875rem' },
-      // Redesign v2: มุมโค้งใหญ่ขึ้น (สไตล์แอพ Claude) — card 16, xl2 20
-      borderRadius: { card: '16px', xl2: '20px' },
+      // Redesign v3 (2026-07-18, เจ้าของเคาะ A refined หลังลอง B แล้วคมไป): พรีเมียมแต่ยังอบอุ่น (โซน Apple/Airbnb)
+      //   card 16→12 · panel(xl2) 20→14 · ปุ่ม/ชิป = rounded-lg(8) (ไม่ pill) · คงวงกลมเฉพาะ avatar/หัวใจ/dot
+      borderRadius: { card: '12px', xl2: '14px' },
       boxShadow: {
         card: '0 1px 3px rgba(0,0,0,0.06)',
       },

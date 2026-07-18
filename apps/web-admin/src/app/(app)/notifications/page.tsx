@@ -201,7 +201,7 @@ function CatChip({ label, icon, unread, on, onClick }: {
 }) {
   return (
     <button type="button" onClick={onClick}
-      className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
+      className={`flex shrink-0 items-center gap-2 rounded-lg border px-4 py-2 text-sm transition ${
         on ? 'border-gold bg-gold/15 text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
       }`}>
       <Icon name={icon} size={16} className={on ? '' : 'text-faint'} />

@@ -233,7 +233,7 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">{filterFields}</div>
             <div className="flex shrink-0 items-center gap-2 border-t border-border px-4 py-3">
               <button type="button" onClick={clearAll}
-                className="rounded-full border border-gold/45 px-4 py-2.5 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
+                className="rounded-lg border border-gold/45 px-4 py-2.5 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
                 {t('clearFilters')}
               </button>
               <button type="button" className="btn-gold flex-1" onClick={() => go()}>{t('applyFilters')}</button>

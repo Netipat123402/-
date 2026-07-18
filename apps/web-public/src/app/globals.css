@@ -34,7 +34,7 @@
 @layer components {
   .badge { @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium; }
   .card { @apply rounded-card border border-border bg-surface shadow-card; }
-  .btn { @apply inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100; }
+  .btn { @apply inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-medium transition active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100; }
   .btn-gold { @apply btn bg-gold text-white hover:bg-gold-dark; }
   .btn-ink { @apply btn bg-ink text-white hover:bg-ink/90; }
   .btn-line { @apply btn text-white; background-color: #06C755; }
@@ -42,7 +42,7 @@
   .btn-ghost { @apply btn border border-border bg-surface text-ink hover:bg-canvas; }
   .btn-sm { @apply h-10 px-4; }
   /* ช่องกรอก: 16px บนมือถือ (กัน iOS auto-zoom) → 14px จอ ≥sm */
-  .field { @apply h-12 w-full rounded-lg border border-border bg-surface px-3.5 text-base outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 sm:text-sm; }
+  .field { @apply h-11 w-full rounded-lg border border-border bg-surface px-3.5 text-base outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 sm:text-sm; }
 
   /* dual-thumb price range — สองหัวบนรางเดียว (ต่ำสุด–สูงสุด) */
   .range-dual { @apply pointer-events-none absolute inset-x-0 top-1/2 h-5 w-full -translate-y-1/2 appearance-none bg-transparent; }

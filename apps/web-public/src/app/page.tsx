@@ -88,7 +88,7 @@ export default async function HomePage() {
           <span className="text-xs font-medium uppercase tracking-wide text-muted"><T k="popularLabel" /></span>
           {POPULAR.map((c) => (
             <Link key={c.href} href={c.href}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm text-ink-soft transition hover:border-gold hover:text-ink hover:shadow-lift">
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm text-ink-soft transition hover:border-gold hover:text-ink hover:shadow-lift">
               {c.icon && <Icon name={c.icon} size={14} className="text-gold-dark/70" />}
               <T k={c.k} />
             </Link>

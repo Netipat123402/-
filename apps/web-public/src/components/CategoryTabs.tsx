@@ -32,7 +32,7 @@ export default function CategoryTabs({ sp }: { sp: Record<string, string | undef
         const on = active === ty.v;
         return (
           <Link key={ty.v || 'all'} href={href(ty.v)} scroll={false}
-            className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm transition ${
+            className={`whitespace-nowrap rounded-lg border px-4 py-2 text-sm transition ${
               on ? 'border-gold/50 bg-gold/10 font-medium text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
             }`}>
             <T k={ty.k} />

@@ -43,7 +43,7 @@ export function Header() {
           <SavedLink />
           <LangToggle />
           <a href={LINE_URL} target="_blank" rel="noreferrer"
-            className="hidden items-center rounded-full border border-gold/45 px-4 py-2 text-sm font-medium text-gold-dark transition hover:bg-gold hover:text-white lg:inline-flex">
+            className="hidden items-center rounded-lg border border-gold/45 px-4 py-2 text-sm font-medium text-gold-dark transition hover:bg-gold hover:text-white lg:inline-flex">
             {t('contact')}
           </a>
         </nav>

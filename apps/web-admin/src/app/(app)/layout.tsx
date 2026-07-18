@@ -306,7 +306,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           แต่ต่ำกว่า modal (z-50) → modal/ฟอร์มทับแถบได้ถูกต้อง · ซ่อนเมื่อเปิดเมนูโปรไฟล์ (drawer)
           active = วงกลม ink · ทรัพย์(กลาง) = ไอคอนทองเมื่อยังไม่ active · แตะรอบ ๆ ทะลุไปเนื้อหาได้ */}
       <nav className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(0.875rem,env(safe-area-inset-bottom))] mouse:hidden ${drawer || kbOpen ? 'hidden' : ''}`}>
-        <div className={`pointer-events-auto flex w-full max-w-md origin-bottom items-center justify-between rounded-full border border-border bg-surface/95 px-4 py-1.5 shadow-lift backdrop-blur transition-[transform,opacity] duration-300 ease-out ${navCollapsed ? 'translate-y-1 scale-[0.86] opacity-80' : 'scale-100'}`}>
+        <div className={`pointer-events-auto flex w-full max-w-md origin-bottom items-center justify-between rounded-xl2 border border-border bg-surface/95 px-4 py-1.5 shadow-lift backdrop-blur transition-[transform,opacity] duration-300 ease-out ${navCollapsed ? 'translate-y-1 scale-[0.86] opacity-80' : 'scale-100'}`}>
           {slots.map((s) => {
             const on = 'href' in s ? isActive(s.href) : drawer; // action ที่เหลือ = โปรไฟล์ (drawer)
             const center = 'center' in s && s.center;

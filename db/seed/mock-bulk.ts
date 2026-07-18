@@ -34,17 +34,20 @@ const ROOM_NAMES = [
   'ห้องน้ำ', 'ระเบียง / วิว', 'สระว่ายน้ำ', 'ฟิตเนส', 'พื้นที่ส่วนกลาง',
 ];
 
-function buildSvg(code: string, n: number, total: number): string {
+// เนื้อหา "อยู่กลาง" (safe zone) เท่านั้น — เลี่ยง text ริมขอบที่โดน object-cover ครอบ 4:3 ตัดจนคำหาย
+// (ตัวนับ/รหัสริมขอบเดิม → UI มี "N รูป" + dots อยู่แล้ว ไม่ต้อง bake ซ้ำ)
+function buildSvg(code: string, n: number, _total: number): string {
   const hue = (n * 36) % 360;
-  const bg = `hsl(${hue} 52% 58%)`;
-  const bgDark = `hsl(${hue} 48% 40%)`;
+  const bg = `hsl(${hue} 32% 60%)`;
+  const bg2 = `hsl(${hue} 34% 50%)`;
   const room = ROOM_NAMES[(n - 1) % ROOM_NAMES.length];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
-  <rect width="1200" height="800" fill="${bg}"/>
-  <rect y="640" width="1200" height="160" fill="${bgDark}"/>
-  <text x="60" y="160" font-family="sans-serif" font-size="120" font-weight="700" fill="rgba(255,255,255,0.92)">${n}/${total}</text>
-  <text x="60" y="720" font-family="sans-serif" font-size="56" font-weight="700" fill="#ffffff">${code}</text>
-  <text x="1140" y="720" text-anchor="end" font-family="sans-serif" font-size="48" fill="rgba(255,255,255,0.95)">${room}</text>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bg}"/><stop offset="1" stop-color="${bg2}"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#g)"/>
+  <g text-anchor="middle" font-family="sans-serif" fill="#ffffff">
+    <text x="600" y="392" font-size="104" font-weight="300" letter-spacing="14" fill="rgba(255,255,255,0.92)">ROS</text>
+    <text x="600" y="470" font-size="40" font-weight="500" fill="rgba(255,255,255,0.82)">${room}</text>
+  </g>
 </svg>`;
 }
 

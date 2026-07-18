@@ -89,7 +89,7 @@ export default function CommunityBoard() {
           <div className="flex flex-wrap gap-2">
             {CATS.map((c) => (
               <button type="button" key={c.v} onClick={() => setCat(c.v)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm transition ${cat === c.v ? 'border-ink bg-ink text-white' : 'border-border text-ink-soft hover:border-ink/40'}`}>
+                className={`rounded-lg border px-3.5 py-1.5 text-sm transition ${cat === c.v ? 'border-ink bg-ink text-white' : 'border-border text-ink-soft hover:border-ink/40'}`}>
                 {tt(c.th, c.en)}
               </button>
             ))}
@@ -112,9 +112,9 @@ export default function CommunityBoard() {
 
       {/* ตัวกรองหมวด */}
       <div className="mb-4 flex flex-wrap gap-2">
-        <button onClick={() => setFilter('')} className={`rounded-full border px-3.5 py-1.5 text-sm transition ${filter === '' ? 'border-ink bg-ink text-white' : 'border-border text-ink-soft hover:border-ink/40'}`}>{tt('ทั้งหมด', 'All')}</button>
+        <button onClick={() => setFilter('')} className={`rounded-lg border px-3.5 py-1.5 text-sm transition ${filter === '' ? 'border-ink bg-ink text-white' : 'border-border text-ink-soft hover:border-ink/40'}`}>{tt('ทั้งหมด', 'All')}</button>
         {CATS.map((c) => (
-          <button key={c.v} onClick={() => setFilter(c.v)} className={`rounded-full border px-3.5 py-1.5 text-sm transition ${filter === c.v ? 'border-ink bg-ink text-white' : 'border-border text-ink-soft hover:border-ink/40'}`}>{tt(c.th, c.en)}</button>
+          <button key={c.v} onClick={() => setFilter(c.v)} className={`rounded-lg border px-3.5 py-1.5 text-sm transition ${filter === c.v ? 'border-ink bg-ink text-white' : 'border-border text-ink-soft hover:border-ink/40'}`}>{tt(c.th, c.en)}</button>
         ))}
       </div>
 
