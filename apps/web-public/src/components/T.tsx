@@ -31,7 +31,13 @@ export function SpecStrip({
   if (bedrooms != null) specs.push({ icon: 'bed', label: t('bedrooms'), value: bedrooms });
   if (bathrooms != null) specs.push({ icon: 'bath', label: t('bathrooms'), value: bathrooms });
   if (areaSqm != null) specs.push({ icon: 'area', label: t('area'), value: areaSqm, unit: t('sqmUnit') });
-  if (floor) specs.push({ icon: 'floor', label: t('floor'), value: floor });
+  // ชั้น: ถ้าเป็นรูป "6/9" (ชั้นยูนิต/ชั้นรวม) → เน้นชั้นยูนิต (6) · "/9" เล็กจาง กันอ่านสับสนเป็นเศษ/วันที่
+  if (floor) {
+    const parts = typeof floor === 'string' && /^\d+\s*\/\s*\d+$/.test(floor) ? floor.split('/').map((s) => s.trim()) : null;
+    specs.push(parts
+      ? { icon: 'floor', label: t('floor'), value: parts[0], unit: `/${parts[1]}` }
+      : { icon: 'floor', label: t('floor'), value: floor });
+  }
   if (specs.length === 0) return null;
   return (
     // แถวเดียวทุกขนาด (มือถือ→เดสก์ท็อป) — กวาดสายตาซ้าย→ขวาครั้งเดียว ไม่แตกเป็น 2×2
