@@ -26,8 +26,9 @@ export default function CategoryTabs({ sp }: { sp: Record<string, string | undef
     const s = p.toString();
     return s ? `/properties?${s}` : '/properties';
   };
+  // เซ็ตสั้นคงที่ (5 หมวด) → flex-wrap เห็นครบทุกคำ · ห้าม overflow-scroll ตัดกลางคำ (§8b)
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [mask-image:linear-gradient(to_right,#000_calc(100%-24px),transparent)] [scrollbar-width:none] [-webkit-mask-image:linear-gradient(to_right,#000_calc(100%-24px),transparent)] [&::-webkit-scrollbar]:hidden">
+    <div className="flex flex-wrap gap-2">
       {TYPES.map((ty) => {
         const on = active === ty.v;
         return (
