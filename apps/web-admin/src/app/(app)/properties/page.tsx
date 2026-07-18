@@ -104,7 +104,13 @@ export default function PropertiesPage() {
         </span>
       ),
     },
-    { header: 'ประเภท · ทำเล', sub: true, cell: (p) => `${PROPERTY_TYPE[p.propertyType] ?? p.propertyType}${p.province ? ` · ${p.province}` : ''}` },
+    // ทำเล = คีย์สแกนอสังหา (ที่ตั้ง) → แยกจากชนิด · โชว์ทุกจอ (มือถือ+)
+    { header: 'ทำเล', sub: true, cell: (p) => p.province || <span className="text-faint">—</span> },
+    // ประเภท · ห้องนอน = specs → hidden sm:inline: ซ่อนมือถือ (การ์ดมีรูป+ราคาแล้ว = minimal) · โผล่ iPad+ · เดสก์ท็อป = คอลัมน์แยกจากทำเล
+    // (bedrooms เดิมมีใน data แต่ไม่เคยโชว์ — attr สแกนหลักของอสังหา แบบ Zillow/Airbnb)
+    { header: 'ประเภท', sub: true, cell: (p) => (
+      <span className="hidden sm:inline">{PROPERTY_TYPE[p.propertyType] ?? p.propertyType}{p.bedrooms ? ` · ${p.bedrooms} นอน` : ''}</span>
+    ) },
     {
       // สถานะ + ค่าเช่า รวมคอลัมน์เดียว: สถานะอยู่บน · ราคาอยู่ล่าง · จัดกึ่งกลางเข้าหากัน
       header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (p) => (
