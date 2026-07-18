@@ -133,19 +133,13 @@ export default function PropertyCardView({ p }: { p: PropertyCard }) {
     <Link href={`/properties/${p.code}`} className="card group block overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-lift">
       <CardImages code={p.code} type={p.type} images={p.images ?? []} cover={p.coverImage} alt={title} lang={lang} />
       <div className="p-4">
-        {/* ชื่อทรัพย์ → ทำเล → สเปก(ไอคอน) → ราคาทองเด่น → ป้ายเด่น */}
-        <p className="truncate font-medium">{p.projectName || title}</p>
-        {location && <p className="mt-0.5 truncate text-sm text-muted">{location}</p>}
-        <CardSpecs p={p} />
-        <p className="mt-2.5 text-xl font-semibold tracking-tight text-gold-dark">
+        {/* B (Zillow, เจ้าของเคาะ): ราคานำเด่น → specs → ชื่อ/ทำเล · amenity เต็มไปหน้า detail (progressive disclosure) */}
+        <p className="text-xl font-semibold tracking-tight text-gold-dark">
           ฿{baht(p.monthlyRent)} <span className="text-xs font-normal text-muted">{t('perMonth')}</span>
         </p>
-        {(p.nearTransit || p.petFriendly) && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {p.nearTransit && <span className="badge inline-flex items-center gap-1 bg-gold/10 text-gold-dark"><Icon name="train" size={13} />{t('nearTransit')}</span>}
-            {p.petFriendly && <span className="badge inline-flex items-center gap-1 bg-gold/10 text-gold-dark"><Icon name="paw" size={13} />{t('petFriendly')}</span>}
-          </div>
-        )}
+        <CardSpecs p={p} />
+        <p className="mt-2.5 truncate font-medium">{p.projectName || title}</p>
+        {location && <p className="mt-0.5 truncate text-sm text-muted">{location}</p>}
       </div>
     </Link>
   );
