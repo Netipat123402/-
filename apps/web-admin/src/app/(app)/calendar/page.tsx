@@ -14,8 +14,8 @@ interface Appt {
   lead?: { fullName: string }; property?: { titleTh: string };
 }
 
-const MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-const DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+// วันในสัปดาห์แบบสากล (§7 — ให้เข้ากับหัวเดือน Latin) · เริ่มอาทิตย์ (ตรงกับกริดที่ขึ้นต้น getDay()=0)
+const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function CalendarPage() {
@@ -121,7 +121,7 @@ export default function CalendarPage() {
         <div className="card h-fit p-4">
           <div className="mb-4 flex items-center justify-between">
             <button aria-label="เดือนก่อนหน้า" className="btn-ghost h-9 w-9 p-0" onClick={() => shift(-1)}><Icon name="chevron-left" size={18} /></button>
-            <h2 className="font-semibold">{MONTHS[month]} {year + 543}</h2>
+            <h2 className="font-semibold">{new Date(year, month, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</h2>
             <button aria-label="เดือนถัดไป" className="btn-ghost h-9 w-9 p-0" onClick={() => shift(1)}><Icon name="chevron-right" size={18} /></button>
           </div>
           <div className="mb-1 grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted">
