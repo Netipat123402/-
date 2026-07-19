@@ -61,8 +61,9 @@ export default async function HomePage() {
 
   return (
     <main>
-      {/* Hero — ดาร์กพรีเมียม: gold spotlight glow + กริดสถาปัตย์จาง (fade ขอบ) · depth ระดับ Linear/Vercel · luxury minimal */}
-      <section className="relative overflow-hidden bg-ink px-4 pb-24 pt-16 text-center text-white lg:px-8 lg:pb-28 lg:pt-24">
+      {/* Hero — Editorial Dark (แบบ A): spotlight ทอง + กริดจาง · search = พระเอกกลาง · ตัวกรอง/ชิป เงียบใต้ (§8c)
+          B-ready: สลับเป็น photo hero ภายหลัง = แทนพื้น bg-ink + 2 บล็อก glow/grid ด้วย <Image> ทรัพย์ + overlay มืด */}
+      <section className="relative overflow-hidden bg-ink px-4 pb-16 pt-16 text-center text-white lg:px-8 lg:pb-20 lg:pt-24">
         {/* spotlight ทองนุ่มด้านบน — โฟกัสหัวข้อ อบอุ่น พรีเมียม */}
         <div aria-hidden className="pointer-events-none absolute inset-0"
           style={{ background: 'radial-gradient(70% 90% at 50% -10%, rgba(200,169,106,0.28), transparent 60%)' }} />
@@ -77,24 +78,21 @@ export default async function HomePage() {
           <p className="mx-auto mt-4 max-w-xl text-white/70">
             <T k="heroSub" />
           </p>
+          {/* Search เต็มแถว (การ์ดลอย) + ตัวกรอง/ชิปยอดนิยม เงียบใต้ */}
+          <div className="mx-auto mt-8 max-w-2xl">
+            <SearchBar hero chips={<>
+              <span className="hidden text-xs font-medium uppercase tracking-wide text-white/40 sm:inline"><T k="popularLabel" /></span>
+              {POPULAR.map((c) => (
+                <Link key={c.href} href={c.href}
+                  className="inline-flex items-center gap-1.5 text-sm text-white/60 transition hover:text-white">
+                  {c.icon && <Icon name={c.icon} size={14} className="text-gold-light/70" />}
+                  <T k={c.k} />
+                </Link>
+              ))}
+            </>} />
+          </div>
         </div>
       </section>
-
-      {/* Search (overlap hero) */}
-      <div className="mx-auto -mt-12 max-w-content px-4 lg:px-8">
-        <SearchBar />
-        {/* ชิปยอดนิยม — เริ่มค้นหาไวด้วยคลิกเดียว (info scent) */}
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted"><T k="popularLabel" /></span>
-          {POPULAR.map((c) => (
-            <Link key={c.href} href={c.href}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm text-ink-soft transition hover:border-gold hover:text-ink hover:shadow-lift">
-              {c.icon && <Icon name={c.icon} size={14} className="text-gold-dark/70" />}
-              <T k={c.k} />
-            </Link>
-          ))}
-        </div>
-      </div>
 
       {/* Type shortcuts */}
       <section className="mx-auto max-w-content px-4 py-10 lg:px-8">

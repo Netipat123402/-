@@ -65,7 +65,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-export default function SearchBar({ compact = false }: { compact?: boolean }) {
+// variant: default (search+ปุ่มกรองข้าง) · compact (listing: search เต็มแถว, กรองแยกที่ FilterBar)
+// · hero (home: search เต็มแถวเด่น + ลิงก์ "ตัวกรอง" เงียบ + ชิปยอดนิยม ใต้ — §8c, premium minimal)
+export default function SearchBar({ compact = false, hero = false, chips }: { compact?: boolean; hero?: boolean; chips?: React.ReactNode }) {
   const router = useRouter();
   const sp = useSearchParams();
   const { t, lang } = useLang();
@@ -173,91 +175,130 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
     </>
   );
 
-  return (
-    <div className={`relative ${compact ? '' : 'rounded-xl2 bg-surface p-2.5 shadow-lift'}`}>
-      <form onSubmit={go} className="flex items-center gap-2">
-        <div className="relative flex-1" ref={suggRef}>
-          <input
-            className="field w-full pr-12"
-            placeholder={t('searchPlaceholder')}
-            value={q}
-            onChange={(e) => { setQ(e.target.value); setSuggOpen(true); }}
-            onFocus={() => { setOpen(false); if (q.trim().length >= 2) setSuggOpen(true); }} />
-          {/* แว่น = submit ในแถบ (แบบ Airbnb/Google) — เลิกปุ่ม "ค้นหา" ใหญ่แยก (ซ้ำ keyboard-go + มี suggestion สด) */}
-          <button type="submit" aria-label={t('search')}
-            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-gold text-white transition hover:bg-gold-dark active:scale-95">
-            <Icon name="search" size={16} />
+  // ช่องค้นหา + ผลแนะนำสด (ใช้ร่วมทุก variant) — hero/compact = เต็มแถว · default = มีปุ่มกรองข้าง
+  const searchForm = (
+    <form onSubmit={go} className="flex items-center gap-2">
+      <div className="relative flex-1" ref={suggRef}>
+        <input
+          className="field w-full pr-12"
+          placeholder={t('searchPlaceholder')}
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setSuggOpen(true); }}
+          onFocus={() => { setOpen(false); if (q.trim().length >= 2) setSuggOpen(true); }} />
+        {/* แว่น = submit ในแถบ (แบบ Airbnb/Google) — เลิกปุ่ม "ค้นหา" ใหญ่แยก (ซ้ำ keyboard-go + มี suggestion สด) */}
+        <button type="submit" aria-label={t('search')}
+          className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md bg-gold text-white transition hover:bg-gold-dark active:scale-95">
+          <Icon name="search" size={16} />
+        </button>
+        {/* ผลแนะนำสด — คลิกไปหน้ารายละเอียดทรัพย์ทันที (ปุ่ม "ค้นหา" ยังพาไปหน้า /properties ตามเดิม) */}
+        {suggOpen && !open && q.trim().length >= 2 && (
+          <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl2 border border-border bg-surface py-1 text-left text-ink shadow-lift">
+            {loadingSugg && sugg.length === 0 ? (
+              <p className="flex items-center justify-center gap-2 px-3 py-4 text-sm text-muted"><Spinner className="h-4 w-4" /></p>
+            ) : sugg.length === 0 ? (
+              <p className="px-3 py-4 text-center text-sm text-muted">{t('noResults')}</p>
+            ) : (
+              <ul className="max-h-80 overflow-y-auto">
+                {sugg.map((p) => (
+                  <li key={p.id}>
+                    <button type="button" onClick={() => pickSuggestion(p.code)}
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-canvas">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{p.projectName || pick(p.title, lang)}</span>
+                        <span className="block truncate text-xs text-muted">{typeLabel(p.type, lang)}{p.province ? ` · ${p.province}` : ''}</span>
+                      </span>
+                      <span className="shrink-0 text-sm font-semibold text-gold-dark">{baht(p.monthlyRent)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+      {/* compact/hero = ช่องค้นหาเต็มแถว (ตัวกรองแยก) · default = ปุ่มกรองข้าง */}
+      {!compact && !hero && (
+        <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
+          className={`btn-ghost shrink-0 ${open || activeCount ? 'border-ink' : ''}`}>
+          {t('filters')}{activeCount > 0 && <span className="ml-1 text-gold-dark">({activeCount})</span>}
+        </button>
+      )}
+    </form>
+  );
+
+  // มือถือ = bottom-sheet: สูงคงที่ ~82vh · หัว(ที่จับ+ชื่อ+ปิด)ตรึง · ท้าย(ปุ่ม)ตรึง · เฉพาะรายการเลื่อน
+  const sheetPanel = (
+    <>
+      <div className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
+      <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col rounded-t-xl2 border-t border-border bg-surface text-ink shadow-lift"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} role="dialog" aria-modal="true" aria-label={t('filters')}>
+        <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-border" />
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="font-semibold">{t('filters')}</h3>
+          <button type="button" onClick={() => setOpen(false)} aria-label="ปิด"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-canvas hover:text-ink"><Icon name="x" size={18} /></button>
+        </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">{filterFields}</div>
+        <div className="flex shrink-0 items-center gap-2 border-t border-border px-4 py-3">
+          <button type="button" onClick={clearAll}
+            className="rounded-lg border border-gold/45 px-4 py-2.5 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
+            {t('clearFilters')}
           </button>
-          {/* ผลแนะนำสด — คลิกไปหน้ารายละเอียดทรัพย์ทันที (ปุ่ม "ค้นหา" ยังพาไปหน้า /properties ตามเดิม) */}
-          {suggOpen && !open && q.trim().length >= 2 && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl2 border border-border bg-surface py-1 text-left shadow-lift">
-              {loadingSugg && sugg.length === 0 ? (
-                <p className="flex items-center justify-center gap-2 px-3 py-4 text-sm text-muted"><Spinner className="h-4 w-4" /></p>
-              ) : sugg.length === 0 ? (
-                <p className="px-3 py-4 text-center text-sm text-muted">{t('noResults')}</p>
-              ) : (
-                <ul className="max-h-80 overflow-y-auto">
-                  {sugg.map((p) => (
-                    <li key={p.id}>
-                      <button type="button" onClick={() => pickSuggestion(p.code)}
-                        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-canvas">
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium">{p.projectName || pick(p.title, lang)}</span>
-                          <span className="block truncate text-xs text-muted">{typeLabel(p.type, lang)}{p.province ? ` · ${p.province}` : ''}</span>
-                        </span>
-                        <span className="shrink-0 text-sm font-semibold text-gold-dark">{baht(p.monthlyRent)}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+          <button type="button" className="btn-gold flex-1" onClick={() => go()}>{t('applyFilters')}</button>
+        </div>
+      </div>
+    </>
+  );
+  // เนื้อใน dropdown เดสก์ท็อป (ใช้ร่วม default + hero — ต่างแค่ตำแหน่ง)
+  const dropdownInner = (
+    <>
+      <div className="space-y-4">{filterFields}</div>
+      <div className="mt-5 flex items-center justify-between">
+        <button type="button" onClick={clearAll}
+          className="rounded-lg border border-gold/45 px-3.5 py-2 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
+          {t('clearFilters')}
+        </button>
+        <button type="button" className="btn-gold btn-sm" onClick={() => go()}>{t('applyFilters')}</button>
+      </div>
+    </>
+  );
+
+  // hero (home) — search การ์ดลอยเต็มแถว (พระเอก) · ตัวกรอง = ลิงก์เงียบ + ชิป ใต้ (บนพื้น hero มืด)
+  if (hero) {
+    return (
+      <div className="relative">
+        <div className="relative rounded-xl2 bg-surface p-2 shadow-lift">
+          {searchForm}
+          {open && !isSheet && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+              <div className="absolute left-1/2 top-full z-50 mt-2 w-[min(92vw,360px)] -translate-x-1/2 rounded-xl2 border border-border bg-surface p-4 text-left text-ink shadow-lift">
+                {dropdownInner}
+              </div>
+            </>
           )}
         </div>
-        {/* compact (listing) = ช่องค้นหาเต็มแถว · ตัวกรองย้ายไป FilterBar (pills ใต้) · home = คงปุ่มตัวกรอง+sheet */}
-        {!compact && (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-2">
           <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
-            className={`btn-ghost shrink-0 ${open || activeCount ? 'border-ink' : ''}`}>
-            {t('filters')}{activeCount > 0 && <span className="ml-1 text-gold-dark">({activeCount})</span>}
+            className="inline-flex items-center gap-1.5 text-sm text-white/85 transition hover:text-white">
+            <Icon name="sliders" size={15} />{t('filters')}{activeCount > 0 && <span className="text-gold-light">({activeCount})</span>}
           </button>
-        )}
-      </form>
+          {chips && <><span aria-hidden className="h-3.5 w-px bg-white/20" />{chips}</>}
+        </div>
+        {open && isSheet && sheetPanel}
+      </div>
+    );
+  }
 
-      {!compact && open && (isSheet ? (
-        /* มือถือ = bottom-sheet: สูงคงที่ ~82vh · หัว(ที่จับ+ชื่อ+ปิด)ตรึง · ท้าย(ปุ่ม)ตรึง · เฉพาะรายการเลื่อน */
-        <>
-          <div className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
-          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col rounded-t-xl2 border-t border-border bg-surface shadow-lift"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} role="dialog" aria-modal="true" aria-label={t('filters')}>
-            <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-border" />
-            <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-              <h3 className="font-semibold">{t('filters')}</h3>
-              <button type="button" onClick={() => setOpen(false)} aria-label="ปิด"
-                className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition hover:bg-canvas hover:text-ink"><Icon name="x" size={18} /></button>
-            </div>
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">{filterFields}</div>
-            <div className="flex shrink-0 items-center gap-2 border-t border-border px-4 py-3">
-              <button type="button" onClick={clearAll}
-                className="rounded-lg border border-gold/45 px-4 py-2.5 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
-                {t('clearFilters')}
-              </button>
-              <button type="button" className="btn-gold flex-1" onClick={() => go()}>{t('applyFilters')}</button>
-            </div>
-          </div>
-        </>
-      ) : (
+  return (
+    <div className={`relative ${compact ? '' : 'rounded-xl2 bg-surface p-2.5 shadow-lift'}`}>
+      {searchForm}
+      {!compact && open && (isSheet ? sheetPanel : (
         /* เดสก์ท็อป = dropdown เล็กชิดขวาปุ่ม */
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-2 w-[340px] rounded-xl2 border border-border bg-surface p-4 shadow-lift">
-            <div className="space-y-4">{filterFields}</div>
-            <div className="mt-5 flex items-center justify-between">
-              <button type="button" onClick={clearAll}
-                className="rounded-lg border border-gold/45 px-3.5 py-2 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
-                {t('clearFilters')}
-              </button>
-              <button type="button" className="btn-gold btn-sm" onClick={() => go()}>{t('applyFilters')}</button>
-            </div>
+          <div className="absolute right-0 top-full z-50 mt-2 w-[340px] rounded-xl2 border border-border bg-surface p-4 text-ink shadow-lift">
+            {dropdownInner}
           </div>
         </>
       ))}

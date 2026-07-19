@@ -17,6 +17,8 @@ const ICONS = {
   'file-text': (<><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z" /><path d="M14 3v4.5h4.5" /><path d="M9 13h6" /><path d="M9 16.5h6" /><path d="M9 9.5h2" /></>),
   image: (<><rect x="3.5" y="3.5" width="17" height="17" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M20 14.5 15.5 10 5 20.5" /></>),
   menu: (<><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>),
+  // sliders (แนวนอน) = affordance ของ "ตัวกรอง" — 2 ราง + ปุ่มปรับ
+  sliders: (<><path d="M4 8h6" /><path d="M14 8h6" /><circle cx="12" cy="8" r="2" /><path d="M4 16h10" /><path d="M18 16h2" /><circle cx="16" cy="16" r="2" /></>),
   x: (<><path d="M6 6 18 18" /><path d="M18 6 6 18" /></>),
   'chevron-down': (<path d="M6 9.5 12 15.5 18 9.5" />),
   'chevron-left': (<path d="M14.5 18 8.5 12 14.5 6" />),
