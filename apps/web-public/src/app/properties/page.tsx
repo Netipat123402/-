@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { publicGet, PUBLIC_PROPERTIES_TAG, type PropertyCard } from '@/lib/api';
 import SearchBar from '@/components/SearchBar';
-import ListingSearch from '@/components/ListingSearch';
-import CategoryTabs from '@/components/CategoryTabs';
 import FilterBar from '@/components/FilterBar';
 import PropertyCardView from '@/components/PropertyCard';
 import { Icon } from '@/components/Icon';
@@ -47,20 +45,11 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
     <main className="mx-auto max-w-content px-4 py-8 lg:px-8">
       <h1 className="text-2xl font-semibold tracking-tight"><T k="browseTitle" /></h1>
 
-      {/* ค้นหา — มือถือ: SearchBar เดิม (input+sheet) · เดสก์ท็อป: ช่องค้นหา (ตัวกรองไปอยู่ sidebar)
-          key = คิวรีปัจจุบัน → remount SearchBar ให้ sync state จาก URL เมื่อแท็บ/ตัวกรองเปลี่ยน (กัน internal state ค้าง) */}
-      <div className="mt-4 lg:hidden"><SearchBar key={JSON.stringify(searchParams)} compact /></div>
-      <div className="mt-4 hidden lg:block"><ListingSearch /></div>
-
-      {/* แท็บประเภท (ทุกขนาด) */}
-      <div className="mt-4"><CategoryTabs sp={searchParams} /></div>
-
-      {/* เดสก์ท็อป: filter-bar แนวนอน (dropdown pills) + จำนวนผลลัพธ์ชิดขวา · มือถือ: ตัวกรองอยู่ใน sheet ของ SearchBar */}
-      <div className="mt-4 hidden items-center justify-between gap-4 lg:flex">
-        <FilterBar />
-        <p className="shrink-0 text-sm text-muted"><ResultCount total={total} /></p>
-      </div>
-      <p className="mt-4 text-sm text-muted lg:hidden"><ResultCount total={total} /></p>
+      {/* A (Zillow, เจ้าของเคาะ): ช่องค้นหาเต็มแถว → FilterBar (dropdown pills ทุกจอ) · type เป็น dropdown ใน FilterBar
+          (ไม่มี CategoryTabs แยก · filter อยู่ "ใต้" search ไม่ใช่ "ข้าง") · key remount sync state จาก URL */}
+      <div className="mt-4"><SearchBar key={JSON.stringify(searchParams)} compact /></div>
+      <div className="mt-3"><FilterBar /></div>
+      <p className="mt-3 text-sm text-muted"><ResultCount total={total} /></p>
 
       {/* ผลลัพธ์เต็มความกว้าง (ไม่มี sidebar) — การ์ด 4 คอลัมน์บนจอใหญ่ */}
       <div className="mt-4">

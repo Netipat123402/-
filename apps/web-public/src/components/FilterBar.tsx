@@ -48,9 +48,15 @@ export default function FilterBar() {
   const [open, setOpen] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
+  const type = sp.get('type') ?? '';
   const province = sp.get('province') ?? '';
   const train = sp.get('train') ?? '';
   const bedrooms = sp.get('bedrooms') ?? '';
+  const typeOptions = [
+    { v: 'condo', l: t('typeCondo') }, { v: 'house', l: t('typeHouse') },
+    { v: 'townhome', l: t('typeTownhome') }, { v: 'apartment', l: t('typeApartment') },
+  ];
+  const typeLabel = typeOptions.find((o) => o.v === type)?.l;
   const urlLo = sp.get('minRent') ? Number(sp.get('minRent')) : 0;
   const urlHi = sp.get('maxRent') ? Number(sp.get('maxRent')) : PRICE_MAX;
   const [lo, setLo] = useState(urlLo);
@@ -80,9 +86,11 @@ export default function FilterBar() {
 
   const priceActive = !!(sp.get('minRent') || sp.get('maxRent'));
   const priceLabel = lo <= 0 && hi >= PRICE_MAX ? t('anyPrice') : `${baht(lo)}–${hi >= PRICE_MAX ? `${baht(PRICE_MAX)}+` : baht(hi)}`;
-  const activeCount = [province, train, bedrooms].filter(Boolean).length + (priceActive ? 1 : 0);
+  const activeCount = [type, province, train, bedrooms].filter(Boolean).length + (priceActive ? 1 : 0);
 
-  const Pill = ({ id, label, active, width = 'w-64', children }: { id: string; label: string; active?: boolean; width?: string; children: React.ReactNode }) => (
+  // มือถือ: เปิดเป็น modal กลางจอ + backdrop (dropdown เล็กแบบ desktop จะล้นขอบเมื่อ pill อยู่ขวา)
+  // เดสก์ท็อป (sm+): dropdown ใต้ pill · width ส่งเป็น sm:w-XX (ให้ Tailwind เห็น class จริง)
+  const Pill = ({ id, label, active, width = 'sm:w-64', children }: { id: string; label: string; active?: boolean; width?: string; children: React.ReactNode }) => (
     <div className="relative">
       <button type="button" onClick={() => setOpen(open === id ? null : id)}
         className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm transition ${active ? 'border-gold/50 bg-gold/10 font-medium text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'}`}>
@@ -90,16 +98,22 @@ export default function FilterBar() {
         <Icon name="chevron-down" size={14} className={`transition ${open === id ? 'rotate-180' : ''}`} />
       </button>
       {open === id && (
-        <div className={`absolute left-0 top-full z-30 mt-2 ${width} rounded-xl2 border border-border bg-surface p-3.5 shadow-lift`}>
-          {children}
-        </div>
+        <>
+          <div className="fixed inset-0 z-40 bg-ink/30 backdrop-blur-[1px] sm:hidden" onClick={() => setOpen(null)} aria-hidden />
+          <div className={`z-50 rounded-xl2 border border-border bg-surface p-4 shadow-lift max-sm:fixed max-sm:inset-x-4 max-sm:top-1/2 max-sm:-translate-y-1/2 sm:absolute sm:left-0 sm:top-full sm:mt-2 sm:p-3.5 ${width}`}>
+            {children}
+          </div>
+        </>
       )}
     </div>
   );
 
   return (
     <div ref={wrapRef} className="flex flex-wrap items-center gap-2">
-      <Pill id="price" label={priceActive ? priceLabel : t('priceRange')} active={priceActive} width="w-72">
+      <Pill id="type" label={typeLabel ?? t('propertyType')} active={!!type} width="sm:w-56">
+        <Chips options={typeOptions} value={type} onToggle={(v) => push({ type: type === v ? undefined : v })} />
+      </Pill>
+      <Pill id="price" label={priceActive ? priceLabel : t('priceRange')} active={priceActive} width="sm:w-72">
         <PriceRange min={0} max={PRICE_MAX} step={PRICE_STEP} lo={lo} hi={hi} onChange={onPrice} />
         <div className="mt-1 flex justify-between text-2xs text-muted"><span>฿0</span><span>฿100,000+</span></div>
       </Pill>
@@ -113,7 +127,7 @@ export default function FilterBar() {
         <ProvinceCombobox value={province} onChange={(v) => { push({ province: v || undefined }); setOpen(null); }} placeholder={t('provinceLabel')} allLabel={t('allProvinces')} />
       </Pill>
       {activeCount > 0 && (
-        <button type="button" onClick={() => push({ province: undefined, train: undefined, bedrooms: undefined, minRent: undefined, maxRent: undefined })}
+        <button type="button" onClick={() => push({ type: undefined, province: undefined, train: undefined, bedrooms: undefined, minRent: undefined, maxRent: undefined })}
           className="ml-1 text-sm font-medium text-gold-dark hover:underline">{t('clearFilters')}</button>
       )}
     </div>

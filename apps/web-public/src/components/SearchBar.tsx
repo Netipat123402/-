@@ -214,13 +214,16 @@ export default function SearchBar({ compact = false }: { compact?: boolean }) {
             </div>
           )}
         </div>
-        <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
-          className={`btn-ghost shrink-0 ${open || activeCount ? 'border-ink' : ''}`}>
-          {t('filters')}{activeCount > 0 && <span className="ml-1 text-gold-dark">({activeCount})</span>}
-        </button>
+        {/* compact (listing) = ช่องค้นหาเต็มแถว · ตัวกรองย้ายไป FilterBar (pills ใต้) · home = คงปุ่มตัวกรอง+sheet */}
+        {!compact && (
+          <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
+            className={`btn-ghost shrink-0 ${open || activeCount ? 'border-ink' : ''}`}>
+            {t('filters')}{activeCount > 0 && <span className="ml-1 text-gold-dark">({activeCount})</span>}
+          </button>
+        )}
       </form>
 
-      {open && (isSheet ? (
+      {!compact && open && (isSheet ? (
         /* มือถือ = bottom-sheet: สูงคงที่ ~82vh · หัว(ที่จับ+ชื่อ+ปิด)ตรึง · ท้าย(ปุ่ม)ตรึง · เฉพาะรายการเลื่อน */
         <>
           <div className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
