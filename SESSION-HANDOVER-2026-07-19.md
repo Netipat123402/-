@@ -50,7 +50,8 @@
 - **§11 field ต่อ device — เสนอชุด field ที่เหมาะแต่ละ device ต่อหน้า** (มือถือโชว์ N ตัวสำคัญ · iPad เพิ่ม · คอมมากสุด · ไม่ต้องครบ) + ถามก่อน + เหตุผล
 - ✅ **DONE `5c4cda9`+`06a71f4`** — home hero = **Editorial Dark (แบบ A)** ตรง §8c: search เต็มแถวเด่น + ลิงก์ "ตัวกรอง" เงียบ + ชิปยอดนิยม ใต้ (บนพื้นมืด) · SearchBar เพิ่ม variant `hero` · Icon เพิ่ม `sliders` · verify 3 จอจริง (375/768/1200). เจ้าของเลือก **"A ตอนนี้ → B ภายหลัง"** — โครง B-ready ไว้แล้ว (คอมเมนต์กำกับใน page hero) · **fix `06a71f4`: dropdown ตัวกรองเดสก์ท็อปตกกรอบ** — เดิม `<section>` hero มี overflow-hidden เลย clip dropdown → ย้าย overflow-hidden ไปห่อเฉพาะ bg glow/grid + anchor dropdown ใต้แถวตัวกรอง
 - **home hero → B (Photo Immersive) ภายหลัง** — เมื่อมี **ภาพทรัพย์จริงสวยๆ** (ตอนนี้ mock SVG ไม่พอ): แทนพื้น `bg-ink` + 2 บล็อก glow/grid ด้วย `<Image>` ทรัพย์ + overlay มืด (gradient bottom-dark) · headline/search/ชิป โครงเดิม
-- **motion/transition polish** (card hover · sheet slide · image crossfade) = ยกระดับพรีเมียม
+- ✅ **DONE `072af2b`** — motion polish: filter panel entrance (มือถือ sheet สไลด์ขึ้น · เดสก์ท็อป dropdown modal-in · backdrop fade) + hero fade-rise stagger · ทุกตัว fill=backwards จบ transform:none (กัน Combobox ตกกรอบ) + reduced-motion. **การ์ด/รูป/หัวใจ มี motion ดีอยู่แล้ว ไม่แตะ** (hover lift · Ken Burns · heart-pop). keyframe `sheet-up` ใหม่ใน globals
+- **motion อื่น (ถ้าอยากต่อ)** — image crossfade มีแล้ว (`duration-500`) · อาจเพิ่ม page-transition ระหว่างหน้า (ต้อง view-transition API/lib)
 - (เมื่อมี token เจ้าของ) push commit ค้างทั้งหมด
 
 ## 6) 🛠 วิธี/เครื่องมือ
