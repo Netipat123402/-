@@ -7,9 +7,9 @@ import { bahtFormat } from '@/lib/status';
 import { Segmented, ErrorState } from '@/components/ui';
 import { Icon, type IconName } from '@/components/Icon';
 
-interface ApptRow { id: string; code: string; scheduledAt: string; }
+interface ApptRow { id: string; code: string; scheduledAt: string; title?: string | null; lead?: { fullName: string } | null; property?: { titleTh: string } | null; }
 interface LeadRow { id: string; code: string; fullName: string; phone: string; createdAt: string; }
-interface ContractRow { id: string; code: string; endDate?: string; }
+interface ContractRow { id: string; code: string; endDate?: string; customer?: { fullName: string } | null; property?: { titleTh: string } | null; }
 
 // วันที่ local (ไม่ใช้ toISOString ซึ่งเลื่อนไปเป็น UTC ใกล้เที่ยงคืนได้)
 const toISODate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -150,11 +150,29 @@ export default function DashboardPage() {
           <div className="divide-y divide-border">
             {can('appointment', 'read') && (
               <AgendaSection title="นัดหมาย" icon="clock" href="/calendar" hrefLabel="ปฏิทิน" count={winAppts.length}>
-                {winAppts.slice(0, 4).map((a) => (
-                  <Row key={a.id} href="/calendar"
-                    left={<span className="font-medium">{new Date(a.scheduledAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · {new Date(a.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>}
-                    right={<span className="font-mono text-xs text-muted">{a.code}</span>} />
-                ))}
+                {winAppts.slice(0, 4).map((a) => {
+                  // §10 แยกความหมาย: ใคร-อะไร (นำ) · เมื่อไร · โค้ด(จาง) — §11 มือถือ 2 field, iPad +ทรัพย์, เดสก์ท็อป +โค้ด
+                  const dt = new Date(a.scheduledAt);
+                  const dayMon = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                  const time = dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                  const who = a.lead?.fullName || a.title || 'นัดหมาย'; // นัดดูทรัพย์ = ชื่อลูกค้า · นัดนอกรอบ = title
+                  return (
+                    <li key={a.id}>
+                      <Link href="/calendar" className="flex items-center gap-3 px-4 py-2.5 hover:bg-raised sm:px-5">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{who}</p>
+                          {/* มือถือ: sub = เมื่อไร · sm+: sub = ทรัพย์ (เมื่อไรย้ายไป rail ขวา) */}
+                          <p className="truncate text-xs text-muted">
+                            <span className="sm:hidden">{dayMon} · {time}</span>
+                            <span className="hidden sm:inline">{a.property?.titleTh || `${dayMon} · ${time}`}</span>
+                          </p>
+                        </div>
+                        <span className="hidden shrink-0 whitespace-nowrap text-xs text-ink-soft sm:inline">{dayMon} · {time}</span>
+                        <span className="hidden shrink-0 font-mono text-2xs text-faint lg:inline">{a.code}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </AgendaSection>
             )}
             {can('lead', 'read') && (
@@ -167,11 +185,30 @@ export default function DashboardPage() {
             )}
             {can('contract', 'read') && (
               <AgendaSection title="สัญญาใกล้ครบ" icon="file-text" href="/contracts?status=active" hrefLabel="ดูทั้งหมด" count={winContracts.length}>
-                {winContracts.slice(0, 4).map((c) => (
-                  <Row key={c.id} href={`/contracts/${c.id}`}
-                    left={<span className="font-mono text-sm">{c.code}</span>}
-                    right={<span className="whitespace-nowrap text-xs font-medium text-gold-dark">{c.endDate ? `ครบ ${new Date(c.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}` : ''}</span>} />
-                ))}
+                {winContracts.slice(0, 4).map((c) => {
+                  // §10/§11: ทรัพย์ (นำ) · ผู้เช่า/ความเร่งด่วน · โค้ด(จาง desktop) — มือถือโชว์ "ครบใน N วัน" แทน rail
+                  const end = c.endDate ? new Date(c.endDate) : null;
+                  const endLabel = end ? end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+                  const daysLeft = end ? Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86_400_000)) : null;
+                  const name = c.property?.titleTh || c.code;
+                  return (
+                    <li key={c.id}>
+                      <Link href={`/contracts/${c.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-raised sm:px-5">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{name}</p>
+                          <p className="truncate text-xs">
+                            <span className="text-gold-dark sm:hidden">{daysLeft != null ? `ครบใน ${daysLeft} วัน` : ''}</span>
+                            <span className="hidden text-muted sm:inline">{c.customer?.fullName || (daysLeft != null ? `ครบใน ${daysLeft} วัน` : '')}</span>
+                          </p>
+                        </div>
+                        <span className="hidden shrink-0 whitespace-nowrap text-xs font-medium text-gold-dark sm:inline">
+                          {endLabel ? `ครบ ${endLabel}` : ''}<span className="hidden lg:inline">{daysLeft != null ? ` · อีก ${daysLeft} วัน` : ''}</span>
+                        </span>
+                        <span className="hidden shrink-0 font-mono text-2xs text-faint lg:inline">{c.code}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </AgendaSection>
             )}
           </div>
