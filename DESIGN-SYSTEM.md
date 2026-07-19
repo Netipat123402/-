@@ -79,6 +79,11 @@ UI ทุกที่ใช้รูปแบบสากล — **ห้าม 
 - ค่าที่ต้องเห็นครบ = ย่อ label / `flex-wrap` / responsive font / "+N เพิ่มเติม" overflow menu — เลือกตามบริบท
 - ⚠️ "ตัวหนังสือตกกรอบ" อาจเป็น **text ฝังในรูป** (mock SVG bake ป้ายริมขอบ → การ์ด 4:3 ครอบตัด) ไม่ใช่บั๊ก CSS — เช็ค DOM ก่อนโทษ layout ([[ros-radius-and-mock-images]])
 
+## 8c) Search + Filter layout · [ใหม่ 2026-07-18]
+- **search = เต็มความกว้าง แถวของตัวเอง · filter = แถว "ใต้" (ไม่ใช่ "ข้าง")** — โลกจริง (Zillow/Airbnb/Booking) วาง filter ใต้ search เป็น chips/dropdowns · ปุ่ม filter เบียดข้าง search = ช่องพิมพ์แคบ ดูแปลก (เจ้าของจับได้)
+- **surface top filter (ราคา·ห้องนอน·ประเภท·รถไฟฟ้า) เป็น dropdown/chip กด 1 ที** · ที่เหลือ (จังหวัด ฯลฯ) ใน "ตัวกรอง" · progressive disclosure + mobile parity (§3.5)
+- ⚠️ **filter popover บนมือถือ = modal กลางจอ/bottom-sheet ห้าม dropdown เล็ก** (dropdown `absolute` ของ pill ฝั่งขวา = ล้นขอบจอ) · เดสก์ท็อป = dropdown ใต้ pill · การ์ด listing = **price-first (Zillow)**: ราคานำ → specs → ชื่อ/ทำเล · amenity ไป detail
+
 ## 9) วิธีทำงาน = วิจารณ์ตรง เสนอเชิงรุก · [ใหม่ 2026-07-18 เจ้าของสั่ง]
 **ติเตียนเสมอ ห้ามอวย · อย่าตามใจ ให้ความเห็นตัวเอง · เสนอเชิงรุกอิงระดับโลก · เจอหลักดีๆ = เพิ่มเป็นกฎทันที** (ราย­ละเอียด [[ros-critique-and-proactive]])
 
