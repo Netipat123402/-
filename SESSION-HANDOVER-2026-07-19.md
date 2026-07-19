@@ -45,7 +45,8 @@
 3. **test data ค้าง** — notification "QA test นัด (ลบได้) 15 ก.ค. 2569" + lead "QA ทดสอบระบบ" · รอเจ้าของอนุมัติลบ
 
 ## 5) 🎯 งานถัดไป (เสนอไว้ + กฎใหม่รองรับ)
-- **§10 แยกหมวด — ไล่สแกนหน้าที่เหลือ** (customers/owners detail · dashboard agenda · ที่อื่นที่ยัด 2 ความหมาย) → เสนอ **widget 3 จอ (มือถือ/iPad/คอม) + before/after + เหตุผล + ถามก่อน**
+- ✅ **DONE `fd5ffcf`** — dashboard agenda §10/§11 (นัด/สัญญานำด้วยคน/ทรัพย์ · โค้ดจาง desktop-only · มือถือ2/iPad3/คอม4 field · verify worktree+API จริงครบ 3 tier). customers/owners detail สแกนแล้ว = §10-clean อยู่แล้ว · **ค้าง: แถวสัญญาใน agenda ยังไม่ verify ภาพ (ไม่มีสัญญาใกล้ครบใน 30 วันใน demo)**
+- **§10 แยกหมวด — ไล่สแกนหน้าที่เหลือ** (ที่อื่นที่ยัด 2 ความหมาย) → เสนอ **widget 3 จอ (มือถือ/iPad/คอม) + before/after + เหตุผล + ถามก่อน**
 - **§11 field ต่อ device — เสนอชุด field ที่เหมาะแต่ละ device ต่อหน้า** (มือถือโชว์ N ตัวสำคัญ · iPad เพิ่ม · คอมมากสุด · ไม่ต้องครบ) + ถามก่อน + เหตุผล
 - **home hero** — ยังใช้ search+ตัวกรองข้างกัน (ไม่ตรง Zillow layout §8c) → เสนอจัดให้เข้าชุด
 - **motion/transition polish** (card hover · sheet slide · image crossfade) = ยกระดับพรีเมียม
