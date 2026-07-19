@@ -26,6 +26,9 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
   qs.set('limit', String(PAGE_SIZE));
   qs.set('page', String(page));
 
+  // มีตัวกรองอยู่ไหม (ไม่นับ sort/page) — ใช้ตัดสินใจโชว์ปุ่ม "ล้างตัวกรอง" ตอนไม่พบผล
+  const hasFilters = FILTER_KEYS.some((k) => k !== 'sort' && searchParams[k]);
+
   const result = await publicGet<PropertyCard[]>(`/public/properties?${qs.toString()}`, 300, [PUBLIC_PROPERTIES_TAG]);
   const items = result.data ?? [];
   const total = result.meta?.total ?? 0;
@@ -59,9 +62,18 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
       {/* ผลลัพธ์เต็มความกว้าง (ไม่มี sidebar) — การ์ด 4 คอลัมน์บนจอใหญ่ */}
       <div className="mt-4">
         {items.length === 0 ? (
-          <div className="card px-6 py-20 text-center">
-            <p className="font-medium"><T k="noResults" /></p>
-            <p className="mt-1 text-sm text-muted"><T k="noResultsHint" /></p>
+          <div className="card flex flex-col items-center px-6 py-20 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/10 text-gold-dark">
+              <Icon name="search" size={26} />
+            </span>
+            <p className="mt-4 font-medium"><T k="noResults" /></p>
+            <p className="mt-1 max-w-sm text-sm text-muted"><T k="noResultsHint" /></p>
+            {hasFilters && (
+              <Link href="/properties" scroll={false}
+                className="mt-6 inline-flex items-center gap-1.5 rounded-lg border border-gold/45 px-4 py-2.5 text-sm font-medium text-gold-dark transition hover:bg-gold/5">
+                <T k="clearFilters" />
+              </Link>
+            )}
           </div>
         ) : (
           <>
