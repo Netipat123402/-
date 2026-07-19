@@ -63,13 +63,16 @@ export default async function HomePage() {
     <main>
       {/* Hero — Editorial Dark (แบบ A): spotlight ทอง + กริดจาง · search = พระเอกกลาง · ตัวกรอง/ชิป เงียบใต้ (§8c)
           B-ready: สลับเป็น photo hero ภายหลัง = แทนพื้น bg-ink + 2 บล็อก glow/grid ด้วย <Image> ทรัพย์ + overlay มืด */}
-      <section className="relative overflow-hidden bg-ink px-4 pb-16 pt-16 text-center text-white lg:px-8 lg:pb-20 lg:pt-24">
-        {/* spotlight ทองนุ่มด้านบน — โฟกัสหัวข้อ อบอุ่น พรีเมียม */}
-        <div aria-hidden className="pointer-events-none absolute inset-0"
-          style={{ background: 'radial-gradient(70% 90% at 50% -10%, rgba(200,169,106,0.28), transparent 60%)' }} />
-        {/* กริดสถาปัตย์จาง — depth ไม่รก (mask ให้เข้มบน-จางล่าง) */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.05]"
-          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)', backgroundSize: '56px 56px', WebkitMaskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)', maskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)' }} />
+      <section className="relative bg-ink px-4 pb-16 pt-16 text-center text-white lg:px-8 lg:pb-20 lg:pt-24">
+        {/* พื้นหลังตกแต่ง — overflow-hidden ห่อเฉพาะชั้นนี้ (ไม่ใส่ที่ section มิฉะนั้น dropdown ตัวกรองจะโดน clip ตกกรอบ) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* spotlight ทองนุ่มด้านบน — โฟกัสหัวข้อ อบอุ่น พรีเมียม */}
+          <div className="absolute inset-0"
+            style={{ background: 'radial-gradient(70% 90% at 50% -10%, rgba(200,169,106,0.28), transparent 60%)' }} />
+          {/* กริดสถาปัตย์จาง — depth ไม่รก (mask ให้เข้มบน-จางล่าง) */}
+          <div className="absolute inset-0 opacity-[0.05]"
+            style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)', backgroundSize: '56px 56px', WebkitMaskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)', maskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)' }} />
+        </div>
         <div className="relative mx-auto max-w-content">
           <p className="text-sm font-medium tracking-wide text-gold-light"><T k="heroLabel" /></p>
           <h1 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold leading-tight tracking-tight lg:text-5xl">

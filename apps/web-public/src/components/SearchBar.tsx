@@ -267,16 +267,8 @@ export default function SearchBar({ compact = false, hero = false, chips }: { co
   if (hero) {
     return (
       <div className="relative">
-        <div className="relative rounded-xl2 bg-surface p-2 shadow-lift">
+        <div className="rounded-xl2 bg-surface p-2 shadow-lift">
           {searchForm}
-          {open && !isSheet && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-              <div className="absolute left-1/2 top-full z-50 mt-2 w-[min(92vw,360px)] -translate-x-1/2 rounded-xl2 border border-border bg-surface p-4 text-left text-ink shadow-lift">
-                {dropdownInner}
-              </div>
-            </>
-          )}
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-2">
           <button type="button" onClick={() => { setSuggOpen(false); setOpen((v) => !v); }}
@@ -285,6 +277,15 @@ export default function SearchBar({ compact = false, hero = false, chips }: { co
           </button>
           {chips && <><span aria-hidden className="h-3.5 w-px bg-white/20" />{chips}</>}
         </div>
+        {/* dropdown เด้งใต้ "แถวตัวกรอง" (top-full ของกล่องนอก) จัดกึ่งกลาง — ไม่ทับปุ่มที่กดเปิด */}
+        {open && !isSheet && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <div className="absolute left-1/2 top-full z-50 mt-2 w-[min(92vw,360px)] -translate-x-1/2 rounded-xl2 border border-border bg-surface p-4 text-left text-ink shadow-lift">
+              {dropdownInner}
+            </div>
+          </>
+        )}
         {open && isSheet && sheetPanel}
       </div>
     );
