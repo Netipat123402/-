@@ -40,7 +40,7 @@
 - **auto-memory** (operating manual): `ros-master-workflow`(⭐อ่านก่อน) · `ros-comparison-responsive-protocol`(รูปเทียบ=show_widget เสมอ · per-device) · `ros-critique-and-proactive`(⭐ติตรง ไม่อวย ไม่ตามใจ เสนอเชิงรุก codify ทันที) · `ros-radius-and-mock-images` · `ros-inter-look-date-and-labelvalue` · `tailwind-mouse-variant-order` · `ros-reseed-and-contract-side-effects`
 
 ## 4) ⚠️ ยังไม่ verify / เหลือ / ขาด
-1. **mobile filter sheet (`5d37e11`) — ยังไม่ได้ tap-test จริง** · preview script-เปิด sheet ไม่ได้ (แต่ dropdown เดสก์ท็อปเดิมที่ proven ก็เปิดผ่าน preview_click ไม่ได้เหมือนกัน = ข้อจำกัด preview ไม่ใช่บั๊ก) · **ให้เจ้าของ tap ปุ่มตัวกรองบนมือถือจริง** ว่า sheet เด้งครบ · แผนสำรอง: ใช้ SearchBar sheet ที่ proven
+1. **mobile filter sheet — de-risked แล้วบางส่วน** · `5c4cda9` เห็น SearchBar bottom-sheet **เปิด+render ครบจริงบนมือถือ 375** ผ่าน worktree preview (ประเภท/จังหวัด/ราคา/รถไฟ/ห้องนอน + ล้าง/ใช้ตัวกรอง) = โค้ด path ของ sheet ทำงาน · เหลือ tap-test FilterBar sheet ของ listing (`5d37e11`) ที่ใช้ trigger คนละตัว บนเครื่องจริง ให้ชัวร์ 100%
 2. **backend dates** — body แจ้งเตือน/เตือนกำหนดยังเป็นไทย/พ.ศ. (`apps/api common/util/thai-datetime.ts` → appointment.service:164, scheduler:99/132) · ติด R2 frontend-only → **task chip ตั้งไว้** (`task_fcd29015`) · ใบเสร็จ PDF คงไทยเจตนา
 3. **test data ค้าง** — notification "QA test นัด (ลบได้) 15 ก.ค. 2569" + lead "QA ทดสอบระบบ" · รอเจ้าของอนุมัติลบ
 
@@ -48,7 +48,8 @@
 - ✅ **DONE `fd5ffcf`** — dashboard agenda §10/§11 (นัด/สัญญานำด้วยคน/ทรัพย์ · โค้ดจาง desktop-only · มือถือ2/iPad3/คอม4 field · verify worktree+API จริงครบ 3 tier). customers/owners detail สแกนแล้ว = §10-clean อยู่แล้ว · **ค้าง: แถวสัญญาใน agenda ยังไม่ verify ภาพ (ไม่มีสัญญาใกล้ครบใน 30 วันใน demo)**
 - **§10 แยกหมวด — ไล่สแกนหน้าที่เหลือ** (ที่อื่นที่ยัด 2 ความหมาย) → เสนอ **widget 3 จอ (มือถือ/iPad/คอม) + before/after + เหตุผล + ถามก่อน**
 - **§11 field ต่อ device — เสนอชุด field ที่เหมาะแต่ละ device ต่อหน้า** (มือถือโชว์ N ตัวสำคัญ · iPad เพิ่ม · คอมมากสุด · ไม่ต้องครบ) + ถามก่อน + เหตุผล
-- **home hero** — ยังใช้ search+ตัวกรองข้างกัน (ไม่ตรง Zillow layout §8c) → เสนอจัดให้เข้าชุด
+- ✅ **DONE `5c4cda9`** — home hero = **Editorial Dark (แบบ A)** ตรง §8c: search เต็มแถวเด่น + ลิงก์ "ตัวกรอง" เงียบ + ชิปยอดนิยม ใต้ (บนพื้นมืด) · SearchBar เพิ่ม variant `hero` · Icon เพิ่ม `sliders` · verify 3 จอจริง (375/768/1200). เจ้าของเลือก **"A ตอนนี้ → B ภายหลัง"** — โครง B-ready ไว้แล้ว (คอมเมนต์กำกับใน page hero)
+- **home hero → B (Photo Immersive) ภายหลัง** — เมื่อมี **ภาพทรัพย์จริงสวยๆ** (ตอนนี้ mock SVG ไม่พอ): แทนพื้น `bg-ink` + 2 บล็อก glow/grid ด้วย `<Image>` ทรัพย์ + overlay มืด (gradient bottom-dark) · headline/search/ชิป โครงเดิม
 - **motion/transition polish** (card hover · sheet slide · image crossfade) = ยกระดับพรีเมียม
 - (เมื่อมี token เจ้าของ) push commit ค้างทั้งหมด
 
