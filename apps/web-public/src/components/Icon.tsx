@@ -19,6 +19,8 @@ const ICONS = {
   menu: (<><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>),
   // sliders (แนวนอน) = affordance ของ "ตัวกรอง" — 2 ราง + ปุ่มปรับ
   sliders: (<><path d="M4 8h6" /><path d="M14 8h6" /><circle cx="12" cy="8" r="2" /><path d="M4 16h10" /><path d="M18 16h2" /><circle cx="16" cy="16" r="2" /></>),
+  // sort = ลูกศรขึ้น/ลง 2 อัน (affordance ของ "เรียงลำดับ")
+  sort: (<><path d="M8 4v16" /><path d="M4.5 7.5 8 4l3.5 3.5" /><path d="M16 20V4" /><path d="M12.5 16.5 16 20l3.5-3.5" /></>),
   x: (<><path d="M6 6 18 18" /><path d="M18 6 6 18" /></>),
   'chevron-down': (<path d="M6 9.5 12 15.5 18 9.5" />),
   'chevron-left': (<path d="M14.5 18 8.5 12 14.5 6" />),

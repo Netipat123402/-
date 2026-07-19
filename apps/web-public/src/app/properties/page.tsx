@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { publicGet, PUBLIC_PROPERTIES_TAG, type PropertyCard } from '@/lib/api';
 import SearchBar from '@/components/SearchBar';
 import FilterBar from '@/components/FilterBar';
+import SortSelect from '@/components/SortSelect';
 import PropertyCardView from '@/components/PropertyCard';
 import { Icon } from '@/components/Icon';
 import { T, ResultCount } from '@/components/T';
@@ -49,7 +50,11 @@ export default async function SearchPage({ searchParams }: { searchParams: SP })
           (ไม่มี CategoryTabs แยก · filter อยู่ "ใต้" search ไม่ใช่ "ข้าง") · key remount sync state จาก URL */}
       <div className="mt-4"><SearchBar key={JSON.stringify(searchParams)} compact /></div>
       <div className="mt-3"><FilterBar /></div>
-      <p className="mt-3 text-sm text-muted"><ResultCount total={total} /></p>
+      {/* แถวผลลัพธ์ — ผลซ้าย · เรียงขวา (Zillow) · sort โผล่เมื่อมีผลให้เรียง */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p className="text-sm text-muted"><ResultCount total={total} /></p>
+        {total > 0 && <SortSelect />}
+      </div>
 
       {/* ผลลัพธ์เต็มความกว้าง (ไม่มี sidebar) — การ์ด 4 คอลัมน์บนจอใหญ่ */}
       <div className="mt-4">

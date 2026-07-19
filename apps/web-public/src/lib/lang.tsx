@@ -45,6 +45,12 @@ const DICT = {
   resultsUnit: { th: 'รายการ', en: 'results' },
   noResults: { th: 'ไม่พบทรัพย์ตามเงื่อนไข', en: 'No properties found' },
   noResultsHint: { th: 'ลองปรับตัวกรอง หรือติดต่อทีมงานเพื่อให้ช่วยหา', en: 'Try adjusting the filters or contact our team for help' },
+  // sort (listing) — ตรงกับค่าที่ API รองรับ: newest/price_asc/price_desc/popular
+  sortLabel: { th: 'เรียง', en: 'Sort' },
+  sortNewest: { th: 'ใหม่ล่าสุด', en: 'Newest' },
+  sortPriceAsc: { th: 'ราคา: ต่ำ → สูง', en: 'Price: low to high' },
+  sortPriceDesc: { th: 'ราคา: สูง → ต่ำ', en: 'Price: high to low' },
+  sortPopular: { th: 'ยอดนิยม', en: 'Most popular' },
   // card / spec labels
   perMonth: { th: '/เดือน', en: '/mo' },
   details: { th: 'รายละเอียด', en: 'Details' },
