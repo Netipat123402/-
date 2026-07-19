@@ -136,7 +136,7 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
         {/* ปุ่มดูรูปทั้งหมด — มุมขวาล่างของกริด (Fitts: target ชัด) */}
         {has && (
           <button type="button" onClick={() => openAt(0)}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-ink-soft transition hover:border-gold hover:text-ink">
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-ink-soft transition hover:border-gold hover:text-ink">
             <Icon name="image" size={16} />
             {t('viewAllPhotos')} <span className="text-muted">({images.length})</span>
           </button>

@@ -72,7 +72,7 @@ export default function SavedPage() {
             <p className="mt-4 font-medium">{t('savedEmpty')}</p>
             <p className="mt-1 max-w-sm text-sm text-muted">{t('savedEmptyHint')}</p>
             <Link href="/properties"
-              className="mt-6 inline-flex items-center gap-1.5 rounded-md bg-ink px-5 py-2.5 text-sm font-medium text-white transition hover:bg-ink/90">
+              className="mt-6 inline-flex items-center gap-1.5 rounded-lg bg-ink px-5 py-2.5 text-sm font-medium text-white transition hover:bg-ink/90">
               <Icon name="search" size={16} />
               {t('browseAll')}
             </Link>
