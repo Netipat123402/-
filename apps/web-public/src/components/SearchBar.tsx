@@ -229,8 +229,8 @@ export default function SearchBar({ compact = false, hero = false, chips }: { co
   // มือถือ = bottom-sheet: สูงคงที่ ~82vh · หัว(ที่จับ+ชื่อ+ปิด)ตรึง · ท้าย(ปุ่ม)ตรึง · เฉพาะรายการเลื่อน
   const sheetPanel = (
     <>
-      <div className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
-      <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col rounded-t-xl2 border-t border-border bg-surface text-ink shadow-lift"
+      <div className="animate-fade-in fixed inset-0 z-40 bg-ink/40 backdrop-blur-[1px]" onClick={() => setOpen(false)} />
+      <div className="animate-sheet-up fixed inset-x-0 bottom-0 z-50 flex max-h-[82vh] flex-col rounded-t-xl2 border-t border-border bg-surface text-ink shadow-lift"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }} role="dialog" aria-modal="true" aria-label={t('filters')}>
         <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-border" />
         <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
@@ -281,7 +281,8 @@ export default function SearchBar({ compact = false, hero = false, chips }: { co
         {open && !isSheet && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="absolute left-1/2 top-full z-50 mt-2 w-[min(92vw,360px)] -translate-x-1/2 rounded-xl2 border border-border bg-surface p-4 text-left text-ink shadow-lift">
+            {/* จัดกึ่งกลางด้วย inset-x-0 + mx-auto (ไม่ใช้ -translate-x เพราะ modal-in animate transform จะทับ = เด้งแนวนอน) */}
+            <div className="animate-modal-in absolute inset-x-0 top-full z-50 mx-auto mt-2 w-[min(92vw,360px)] rounded-xl2 border border-border bg-surface p-4 text-left text-ink shadow-lift">
               {dropdownInner}
             </div>
           </>
@@ -298,7 +299,7 @@ export default function SearchBar({ compact = false, hero = false, chips }: { co
         /* เดสก์ท็อป = dropdown เล็กชิดขวาปุ่ม */
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-2 w-[340px] rounded-xl2 border border-border bg-surface p-4 text-ink shadow-lift">
+          <div className="animate-modal-in absolute right-0 top-full z-50 mt-2 w-[340px] rounded-xl2 border border-border bg-surface p-4 text-ink shadow-lift">
             {dropdownInner}
           </div>
         </>

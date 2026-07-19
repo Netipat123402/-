@@ -74,15 +74,16 @@ export default async function HomePage() {
             style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px)', backgroundSize: '56px 56px', WebkitMaskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)', maskImage: 'radial-gradient(80% 80% at 50% 0%, #000, transparent 75%)' }} />
         </div>
         <div className="relative mx-auto max-w-content">
-          <p className="text-sm font-medium tracking-wide text-gold-light"><T k="heroLabel" /></p>
-          <h1 className="mx-auto mt-3 max-w-3xl text-4xl font-semibold leading-tight tracking-tight lg:text-5xl">
+          {/* เข้าจอ fade-rise เบา ๆ ไล่ลำดับ (stagger) — animate-fade-rise เคารพ prefers-reduced-motion อยู่แล้ว */}
+          <p className="animate-fade-rise text-sm font-medium tracking-wide text-gold-light"><T k="heroLabel" /></p>
+          <h1 className="animate-fade-rise mx-auto mt-3 max-w-3xl text-4xl font-semibold leading-tight tracking-tight lg:text-5xl" style={{ animationDelay: '70ms' }}>
             <T k="heroTitle1" /><br /><T k="heroTitle2" />
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-white/70">
+          <p className="animate-fade-rise mx-auto mt-4 max-w-xl text-white/70" style={{ animationDelay: '140ms' }}>
             <T k="heroSub" />
           </p>
           {/* Search เต็มแถว (การ์ดลอย) + ตัวกรอง/ชิปยอดนิยม เงียบใต้ */}
-          <div className="mx-auto mt-8 max-w-2xl">
+          <div className="animate-fade-rise mx-auto mt-8 max-w-2xl" style={{ animationDelay: '210ms' }}>
             <SearchBar hero chips={<>
               <span className="hidden text-xs font-medium uppercase tracking-wide text-white/40 sm:inline"><T k="popularLabel" /></span>
               {POPULAR.map((c) => (

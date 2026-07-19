@@ -85,4 +85,15 @@
   @media (prefers-reduced-motion: reduce) {
     .animate-heart-pop { animation: none; }
   }
+  /* bottom-sheet สไลด์ขึ้น (มือถือ) — fill=backwards เหมือน fade-rise: จบที่ transform:none
+     กัน residual transform ดักจับ position:fixed (Combobox/dropdown ในชีตจะได้ไม่ตกกรอบ) */
+  @keyframes sheet-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .animate-sheet-up { animation: sheet-up 0.26s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  /* fade-in / modal-in นิยามใน preset (tailwind) — เพิ่ม override reduced-motion ที่นี่ให้ครบ */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-sheet-up, .animate-fade-in, .animate-modal-in { animation: none; }
+  }
 }
