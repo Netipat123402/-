@@ -29,13 +29,13 @@
 
 ---
 
-## Phase 1 — Detail/Modal consistency (จากรูปที่เจ้าของชี้ + ต่อเนื่อง)  ⭐ ทำก่อน
+## Phase 1 — Detail/Modal consistency (จากรูปที่เจ้าของชี้ + ต่อเนื่อง)  ✅ เสร็จ (T1.1–T1.5)
 
 - [x] **T1.1 · นัดหมาย drawer (#2)** — ✅ `5861a2c` **status-driven bar (C, owner เลือกจาก A/B/C)** · glance วันเวลาเด่นขึ้นหัว · แถบเปลี่ยนตามสถานะ (upcoming=ทอง+urgency fmtUntil+CTA · done/cancelled=neutral+สรุป+นัดใหม่) · ซ่อนกล่องว่าง · dedupe กล่องนัดหมาย · verify authed 3 จอ
-- [ ] **T1.2 · ลูกค้า detail (#3)** — **dedupe เบอร์โทร** (โผล่ใต้ชื่อ + กล่องติดต่อ = ซ้ำ) → หัว=ชื่อ+เบอร์(1) · กล่องติดต่อ=อีเมล/ที่อยู่ · เรียง: ติดต่อ→สัญญา→เอกสาร · กรอบชัด
-- [ ] **T1.3 · สัญญา detail (#4)** — glance identifier (code·สถานะ·ชื่อ·฿·action ขวา) · **dedupe ค่าเช่า** (หัว ฿12,000 ซ้ำกล่องการเงิน) → การเงินเหลือ มัดจำ/นายหน้า · กรอบชุดชัด
-- [ ] **T1.4 · เจ้าของ detail** — เช็ค dedupe เบอร์ (เหมือน customer) · เรียง: ติดต่อ→ทรัพย์ที่เป็นเจ้าของ→สัญญา→เอกสาร (ข้อมูลของ owner)
-- [ ] **T1.5 · property wizard (new/edit)** — เช็ค step/field grouping ต่อ device
+- [x] **T1.2 · ลูกค้า detail (#3)** — ✅ `bf49711` เบอร์อยู่ใต้ชื่อ (hero) ที่เดียว → กล่องติดต่อเหลือ อีเมล/ที่อยู่ · verify authed
+- [x] **T1.3 · สัญญา detail (#4)** — ✅ `bf49711` glance ฿/เดือน บนหัวอยู่แล้ว → **dedupe ค่าเช่า** ออกจากกล่องการเงิน (เหลือ มัดจำ/นายหน้า + กันกล่องว่าง) · verify authed
+- [x] **T1.4 · เจ้าของ detail** — ✅ `bf49711` dedupe เบอร์ (เหมือน customer) → กล่องเหลือ อีเมล/เลขบัตร/ที่อยู่/โน้ต · verify authed
+- [x] **T1.5 · property wizard (new/edit)** — ✅ ประเมินแล้ว = ดีอยู่แล้ว (stepper + progress "ขั้นที่ x/4" + grid per-device + label ซ่อนมือถือ) ไม่ปั้นงานหลอก · ยกไป Phase 4 เช็ค per-device พร้อมหน้าอื่น
 
 ## Phase 2 — "ข้อมูลของใครของมัน" (per-entity relevance)
 - [ ] **T2.1** — นิยามชุดข้อมูลหลักของแต่ละ entity + ลำดับความสำคัญ:
@@ -60,6 +60,8 @@
 ---
 
 ## Log (อัปเดตเมื่อ done)
+- ✅ **T1.2/T1.3/T1.4 detail dedupe** (`bf49711`) · ลูกค้า/เจ้าของ เบอร์อยู่ hero ที่เดียว · สัญญา ค่าเช่าอยู่หัว การเงินเหลือมัดจำ/นายหน้า · verify authed 3 หน้า · **Phase 1 ครบ** (T1.5 wizard = ดีอยู่แล้ว ไม่แตะ)
+- ✅ **T1.1 polish (owner review)** (`46358aa`) · ปุ่ม stack เต็มกว้างเรียงตรง · ตัดไอคอน ☎/chevron (PhoneLink hideIcon + InfoRow hideChevron opt-in) → [[ros-clean-detail-rows]]
 - ✅ **T1.1 นัดหมาย modal — status-driven bar (C)** (`5861a2c`) · owner เทียบ A(sticky footer)/B(header actions)/C(status bar) เลือก C · +fmtUntil ใน lib/format · verify worktree authed (upcoming ทอง+"เลยกำหนดแล้ว" · done neutral+นัดใหม่ · mobile375)
 - ✅ appointments list — status badge ชิดซ้ายตรงกัน (`1001148`)
 - ✅ property detail — glance identifier + dedupe (`84be651`)
