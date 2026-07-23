@@ -213,10 +213,11 @@ export default function ContractDetailPage() {
       </InfoGroup>
 
       {/* การเงิน + ระยะเวลา (ข้อ 6 · Phase 32) */}
+      {/* ค่าเช่าเด่นบนหัว (glance) แล้ว → การเงินเหลือ มัดจำ/นายหน้า ไม่ซ้ำ (T1.3 dedupe) */}
       <InfoGroup label="การเงิน" id="c-finance" className="mt-4">
-        <InfoRow label="ค่าเช่า / เดือน" value={`฿${bahtFormat(Number(c.monthlyRent))}`} strong mono />
         <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
         <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
+        {!c.depositAmount && !c.commissionAmount && <p className="py-2.5 text-sm text-muted">ยังไม่ระบุมัดจำ/ค่านายหน้า</p>}
       </InfoGroup>
       <InfoGroup label="ระยะเวลา" id="c-period" className="mt-4">
         <InfoRow label="วันเริ่ม" value={d(c.startDate)} />

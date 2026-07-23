@@ -81,10 +81,10 @@ export default function CustomerDetailPage() {
           </div>
         ) : (
           <div className="divide-y divide-border/60">
-            <InfoRow label="เบอร์โทร" value={c.phone ? <PhoneLink phone={c.phone} /> : undefined} hideEmpty />
+            {/* เบอร์อยู่ใต้ชื่อ (hero) แล้ว = glance + แตะโทร → ไม่ซ้ำในกล่องนี้ (T1.2 dedupe) */}
             <InfoRow label="อีเมล" value={c.email || undefined} hideEmpty />
             <InfoRow label="ที่อยู่" value={c.address || undefined} stack hideEmpty />
-            {!c.phone && !c.email && !c.address && <p className="py-2.5 text-center text-sm text-muted">ยังไม่มีข้อมูลติดต่อ — กด “แก้ไข” เพื่อเพิ่ม</p>}
+            {!c.email && !c.address && <p className="py-2.5 text-center text-sm text-muted">ยังไม่มีอีเมล/ที่อยู่ — กด “แก้ไข” เพื่อเพิ่ม</p>}
           </div>
         )}
       </div>
