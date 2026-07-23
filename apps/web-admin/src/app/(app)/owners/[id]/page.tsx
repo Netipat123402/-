@@ -62,24 +62,42 @@ export default function OwnerDetailPage() {
   const contracts = o.contracts ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl xl:max-w-6xl">
       <Link href="/owners" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><Icon name="arrow-left" size={16} /> กลับ</Link>
 
-      {/* PRIMARY — ชื่อเด่น + อักษรย่อ + แตะโทรได้ */}
-      <div className="mt-4 flex items-center gap-3.5">
-        <Avatar name={o.fullName} size={52} />
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{o.fullName}</h1>
-          {o.phone && <PhoneLink phone={o.phone} className="mt-0.5 text-sm text-muted" />}
+      {/* HEADER glance identifier — ชื่อ + เบอร์(ไม่มีไอคอน) + action · มือถือ stack / sm+ แนวนอน (action ขวา) */}
+      <div className="mt-4 sm:flex sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex items-center gap-3.5">
+          <Avatar name={o.fullName} size={52} />
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{o.fullName}</h1>
+            {o.phone && <PhoneLink phone={formatPhone(o.phone)} hideIcon className="mt-0.5 text-sm text-muted" />}
+          </div>
+        </div>
+        {can('owner', 'update') && !edit && (
+          <button className="btn-ghost btn-sm mt-3 w-full sm:mt-0 sm:w-auto" onClick={startEdit}>แก้ไขข้อมูล</button>
+        )}
+      </div>
+
+      {/* พอร์ต = glance stat (landlord: ทรัพย์คือ asset หลัก) — ยกยอดรวมจากท้ายการ์ดขึ้นหัว */}
+      <div className="mt-4 flex gap-8 border-y border-border/60 py-3">
+        <div>
+          <div className="text-lg font-semibold tabular-nums text-ink">{props.length}</div>
+          <div className="text-xs text-muted">ทรัพย์</div>
+        </div>
+        <div>
+          <div className="text-lg font-semibold tabular-nums text-gold-dark">฿{bahtFormat(props.reduce((s, p) => s + Number(p.monthlyRent ?? 0), 0))}<span className="text-xs font-normal text-faint">/เดือน</span></div>
+          <div className="text-xs text-muted">มูลค่าเช่ารวม</div>
         </div>
       </div>
 
-      {/* ① ข้อมูลเจ้าของ (ติดต่อ + ส่วนตัว รวมติดกัน · Phase 43) — แก้ได้ครบทุกฟิลด์ (Phase 44) */}
-      <div className="mt-6 card p-5">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <SectionLabel>ข้อมูลเจ้าของ</SectionLabel>
-          {can('owner', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={startEdit}>แก้ไข</button>}
-        </div>
+      {/* คอม (xl) = 2 คอลัมน์ (ซ้าย ข้อมูล/พอร์ต/สัญญา · ขวา rail เอกสาร — ตรงหน้าสัญญา) · มือถือ/iPad คอลัมน์เดียว */}
+      <div className="mt-6 xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
+      <div className="min-w-0 space-y-6">
+
+      {/* ข้อมูลเจ้าของ (ติดต่อ/KYC) — แก้ผ่านปุ่ม "แก้ไขข้อมูล" บนหัว */}
+      <div className="card p-5">
+        <SectionLabel className="mb-3">ข้อมูลเจ้าของ</SectionLabel>
         {edit ? (
           <div className="space-y-4">
             <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
@@ -111,13 +129,12 @@ export default function OwnerDetailPage() {
         )}
       </div>
 
-      {/* ② ทรัพย์ที่เป็นเจ้าของ */}
-      <div className="mt-6 card p-5">
+      {/* ทรัพย์ที่เป็นเจ้าของ — ยอดรวมไปหัว (glance) แล้ว เหลือรายการสะอาด */}
+      <div className="card p-5">
         <SectionLabel className="mb-4">ทรัพย์ที่เป็นเจ้าของ · {props.length}</SectionLabel>
         {props.length === 0 ? (
           <p className="text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
         ) : (
-          <>
           <ul className="divide-y divide-border">
             {props.map((p) => (
               <li key={p.id}>
@@ -133,18 +150,12 @@ export default function OwnerDetailPage() {
               </li>
             ))}
           </ul>
-          {/* ท้าย: มูลค่าเช่ารวมของพอร์ต (ข้อมูลใหม่ ไม่ซ้ำหัว) */}
-          <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
-            <span className="text-muted">มูลค่าเช่ารวม</span>
-            <span className="font-medium tabular-nums text-ink">฿{bahtFormat(props.reduce((s, p) => s + Number(p.monthlyRent ?? 0), 0))}/เดือน</span>
-          </div>
-          </>
         )}
       </div>
 
-      {/* SECONDARY — สัญญา (ซ่อนเมื่อไม่มี) */}
+      {/* สัญญา (ซ่อนเมื่อไม่มี) */}
       {contracts.length > 0 && (
-        <div className="mt-6 card p-5">
+        <div className="card p-5">
           <SectionLabel className="mb-4">สัญญา · {contracts.length}</SectionLabel>
           <ul className="divide-y divide-border">
             {contracts.map((c) => (
@@ -160,11 +171,17 @@ export default function OwnerDetailPage() {
         </div>
       )}
 
-      {/* ④ เอกสาร */}
-      <div className="mt-6 card p-5">
-        <SectionLabel className="mb-4">เอกสาร</SectionLabel>
-        <DocumentSection entityType="owner" entityId={o.id} />
-      </div>
+      </div>{/* /คอลัมน์ซ้าย */}
+
+      {/* คอลัมน์ขวา (xl) — เอกสาร · มือถือ/iPad ต่อท้ายปกติ */}
+      <aside className="mt-6 xl:mt-0">
+        <div className="card p-5">
+          <SectionLabel className="mb-4">เอกสาร</SectionLabel>
+          <DocumentSection entityType="owner" entityId={o.id} />
+        </div>
+      </aside>
+
+      </div>{/* /grid 2 คอลัมน์ */}
     </div>
   );
 }
