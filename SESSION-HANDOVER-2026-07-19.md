@@ -58,6 +58,10 @@
   - **learning:** ตาราง admin ควรมี flex คอลัมน์เดียว(ชื่อ) · หลาย sub-col แย่งกันเป็น root ของ ห่าง/ตกกรอบ — [[admin-listview-single-flex-column]]
 - ✅ **DONE `49f0931`** — home hero = **Photo Immersive (B)** เปิดแล้ว (เจ้าของมีรูปจริง) · footer จัดคอลัมน์+i18n. **⚠️ ต้องวางไฟล์ `apps/web-public/public/hero.jpg`** (เจ้าของเคาะรูป 3 — ท้องฟ้าโล่ง) · ถ้ายังไม่วาง → degrade เป็น dark hero (bg-ink) สวยเหมือนกัน · overlay (bg-ink/55 + gradient) คุมตัวอักษรขาวบนภาพสว่างแล้ว
 - ✅ **header/footer review** — header ช่องว่างกลาง = **ระดับโลกมาตรฐาน** (โลโก้ซ้าย/เมนูขวา) ไม่ต้องแก้ · footer = จัดคอลัมน์+i18n แล้ว (`49f0931`)
+- ✅ **owner review batch 2 (`efc33c0`+`84be651`)** — 8 จุด:
+  - `efc33c0`: LangToggle inset concentric (เลิกเหลี่ยม) · footer เอาไอคอนออก · properties ประเภท = type อย่างเดียว (เลิก "· N นอน")
+  - `84be651`: eyebrow → "ทรัพย์คัดสรร/Curated rentals" · privacy 5 หัวข้อ · **#4 property detail = glance identifier** (DetailHeader เพิ่ม `actions` ขวาหัว/มือถือ stack · ราคา dedupe → กล่องล่าง "เงื่อนไขการเช่า") · **#5 lead modal = action-first** (ปุ่มหลักขึ้นบนสุด)
+  - verdict: header/logo/hero-copy/footer-tagline = **ระดับโลกอยู่แล้ว** · #5 two-column(E) ข้าม (modal แคบ breakpoint viewport-based เสี่ยง)
 - ✅ **DONE `072af2b`** — motion polish: filter panel entrance (มือถือ sheet สไลด์ขึ้น · เดสก์ท็อป dropdown modal-in · backdrop fade) + hero fade-rise stagger · ทุกตัว fill=backwards จบ transform:none (กัน Combobox ตกกรอบ) + reduced-motion. **การ์ด/รูป/หัวใจ มี motion ดีอยู่แล้ว ไม่แตะ** (hover lift · Ken Burns · heart-pop). keyframe `sheet-up` ใหม่ใน globals
 - **motion อื่น (ถ้าอยากต่อ)** — image crossfade มีแล้ว (`duration-500`) · อาจเพิ่ม page-transition ระหว่างหน้า (ต้อง view-transition API/lib)
 - (เมื่อมี token เจ้าของ) push commit ค้างทั้งหมด
