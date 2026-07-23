@@ -225,12 +225,12 @@ export default function AppointmentsPage() {
     { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
       ? <span className="hidden sm:inline">{a.property.titleTh}</span>
       : <span className="hidden text-faint sm:inline">—</span> },
-    { header: 'สถานะ', right: true, cell: (a) => (
+    { header: 'สถานะ', right: true, width: 'w-32', cell: (a) => (
       // Phase 25: ปรับสถานะจากลิสต์ได้เลย (upcoming) — stopPropagation กันเปิด detail modal
-      // ⋯ มี slot ตายตัว (w-6) ทุกแถว → badge เรียงตรง ไม่เยื้อง (แถวที่ปรับสถานะไม่ได้ = slot ว่าง)
-      <span className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+      // badge ชิดซ้าย (ขอบซ้ายตรงกันทุกแถว ไม่เยื้อง) · ⋯ ชิดขวาสุด (slot ตายตัว) → justify-between + width คงที่
+      <span className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
         <StatusBadge map={APPOINTMENT_STATUS} value={a.status} />
-        <span className="flex w-6 shrink-0 justify-center">
+        <span className="flex w-5 shrink-0 justify-center">
           {a.status === 'upcoming' && can('appointment', 'change_status') && (
             <MoreMenu items={[
               { label: 'พบลูกค้าแล้ว', icon: 'check', onClick: () => run(a, 'complete', 'บันทึกว่าพบแล้ว', 'done') },
