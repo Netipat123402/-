@@ -51,6 +51,11 @@ const DICT = {
   sortPriceAsc: { th: 'ราคา: ต่ำ → สูง', en: 'Price: low to high' },
   sortPriceDesc: { th: 'ราคา: สูง → ต่ำ', en: 'Price: high to low' },
   sortPopular: { th: 'ยอดนิยม', en: 'Most popular' },
+  // footer
+  footerTagline: { th: 'บริการนายหน้าปล่อยเช่าอสังหาริมทรัพย์ คอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์ — คัดสรรคุณภาพโดยทีมงานมืออาชีพ', en: 'Rental brokerage for condos, houses, townhomes and apartments — curated by professional agents.' },
+  footerExplore: { th: 'สำรวจ', en: 'Explore' },
+  footerContact: { th: 'ติดต่อ', en: 'Contact' },
+  footerRights: { th: '© 2026 ROS Real Estate สงวนลิขสิทธิ์', en: '© 2026 ROS Real Estate. All rights reserved.' },
   // card / spec labels
   perMonth: { th: '/เดือน', en: '/mo' },
   details: { th: 'รายละเอียด', en: 'Details' },

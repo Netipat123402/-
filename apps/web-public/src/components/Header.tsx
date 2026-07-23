@@ -53,23 +53,40 @@ export function Header() {
 }
 
 export function Footer() {
+  const { t } = useLang();
   return (
     <footer className="mt-16 border-t border-border bg-surface">
-      {/* เว้นล่างบนมือถือให้พ้น bottom-nav/StickyCTA (fixed) — เดสก์ท็อปไม่มีแถบล่าง */}
-      <div className="mx-auto max-w-content px-4 pb-24 pt-10 lg:px-8 lg:pb-10">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-sm font-semibold text-gold">R</span>
-          <span className="text-lg font-semibold">ROS</span>
+      {/* เว้นล่างบนมือถือให้พ้น bottom-nav/StickyCTA (fixed) — เดสก์ท็อปไม่มีแถบล่าง
+          จัดคอลัมน์: แบรนด์ซ้าย · สำรวจ/ติดต่อ ขวา (มือถือ stack) · แถบ copyright ล่าง (i18n ครบ) */}
+      <div className="mx-auto max-w-content px-4 pb-24 pt-12 lg:px-8 lg:pb-12">
+        <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
+          <div className="max-w-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-sm font-semibold text-gold">R</span>
+              <span className="text-lg font-semibold">ROS</span>
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-muted">{t('footerTagline')}</p>
+          </div>
+          <div className="flex gap-12 sm:gap-16">
+            <div>
+              <p className="text-2xs font-medium uppercase tracking-wide text-faint">{t('footerExplore')}</p>
+              <ul className="mt-3 space-y-2.5 text-sm">
+                <li><Link href="/properties" className="text-ink-soft transition hover:text-ink">{t('searchProperties')}</Link></li>
+                <li><Link href="/saved" className="text-ink-soft transition hover:text-ink">{t('saved')}</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-2xs font-medium uppercase tracking-wide text-faint">{t('footerContact')}</p>
+              <ul className="mt-3 space-y-2.5 text-sm">
+                <li><a href={LINE_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-ink-soft transition hover:text-ink"><Icon name="message" size={15} className="text-gold-dark" />LINE Official</a></li>
+                <li><Link href="/privacy" className="text-ink-soft transition hover:text-ink">{t('consentPolicy')}</Link></li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <p className="mt-3 max-w-md text-sm text-muted">
-          บริการนายหน้าปล่อยเช่าอสังหาริมทรัพย์ คอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์ — คัดสรรคุณภาพโดยทีมงานมืออาชีพ
-        </p>
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
-          <Link href="/properties" className="hover:text-ink">ค้นหาทรัพย์</Link>
-          <Link href="/privacy" className="hover:text-ink">นโยบายความเป็นส่วนตัว</Link>
-          <a href={LINE_URL} target="_blank" rel="noreferrer" className="hover:text-ink">LINE</a>
+        <div className="mt-10 border-t border-border pt-6 text-xs text-muted">
+          {t('footerRights')}
         </div>
-        <p className="mt-8 text-xs text-muted">© 2026 ROS Real Estate. All rights reserved.</p>
       </div>
     </footer>
   );
