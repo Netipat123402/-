@@ -222,21 +222,24 @@ export default function AppointmentsPage() {
     { header: 'วันที่-เวลา', sub: true, cell: (a) => <span className="tabular-nums">{fmt(a.scheduledAt)}</span> },
     // ทรัพย์ = คอลัมน์ sub ตัวที่ 2 → เดสก์ท็อป: คอลัมน์ตารางแยก (ตัด …) · การ์ด: บรรทัดของตัวเอง
     // hidden sm:inline → ซ่อนบนมือถือ (การ์ด minimal ไม่มีทรัพย์) · โผล่ตั้งแต่ iPad ขึ้นไป (การ์ด+ตาราง)
-    { header: 'ทรัพย์', sub: true, cell: (a) => a.property
+    { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
       ? <span className="hidden sm:inline">{a.property.titleTh}</span>
       : <span className="hidden text-faint sm:inline">—</span> },
     { header: 'สถานะ', right: true, cell: (a) => (
       // Phase 25: ปรับสถานะจากลิสต์ได้เลย (upcoming) — stopPropagation กันเปิด detail modal
+      // ⋯ มี slot ตายตัว (w-6) ทุกแถว → badge เรียงตรง ไม่เยื้อง (แถวที่ปรับสถานะไม่ได้ = slot ว่าง)
       <span className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
         <StatusBadge map={APPOINTMENT_STATUS} value={a.status} />
-        {a.status === 'upcoming' && can('appointment', 'change_status') && (
-          <MoreMenu items={[
-            { label: 'พบลูกค้าแล้ว', icon: 'check', onClick: () => run(a, 'complete', 'บันทึกว่าพบแล้ว', 'done') },
-            { label: 'เลื่อนนัด', icon: 'clock', onClick: () => { setReAt(''); setReFor(a); } },
-            { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run(a, 'cancel', 'ยกเลิกนัด', 'cancelled') },
-            { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run(a, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled') },
-          ]} />
-        )}
+        <span className="flex w-6 shrink-0 justify-center">
+          {a.status === 'upcoming' && can('appointment', 'change_status') && (
+            <MoreMenu items={[
+              { label: 'พบลูกค้าแล้ว', icon: 'check', onClick: () => run(a, 'complete', 'บันทึกว่าพบแล้ว', 'done') },
+              { label: 'เลื่อนนัด', icon: 'clock', onClick: () => { setReAt(''); setReFor(a); } },
+              { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run(a, 'cancel', 'ยกเลิกนัด', 'cancelled') },
+              { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run(a, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled') },
+            ]} />
+          )}
+        </span>
       </span>
     ) },
   ];

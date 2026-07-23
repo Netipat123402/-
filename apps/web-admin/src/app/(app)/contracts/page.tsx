@@ -138,7 +138,7 @@ export default function ContractsPage() {
   const cols: Col<Contract>[] = [
     { header: 'ลูกค้า', primary: true, cell: (c) => c.customer?.fullName || `สัญญา ${c.code}` },
     { header: 'รหัส', cell: (c) => <span className="font-mono text-xs text-gold-dark">{c.code}</span> },
-    { header: 'ทรัพย์', sub: true, cell: (c) => c.property?.titleTh || <span className="text-faint">—</span> },
+    { header: 'ทรัพย์', sub: true, width: 'w-56', cell: (c) => c.property?.titleTh || <span className="text-faint">—</span> },
     { header: 'ช่วงสัญญา', cell: (c) => {
       // ระยะเวลาสัญญาเป็นแก่นของสัญญาเช่า → โชว์ช่วงเต็ม (เริ่ม–สิ้นสุด) ในคอลัมน์เดียว · สิ้นสุดเน้นทอง (actionable) · ปีย่อ 2 หลักให้กระชับ
       const fmt = (d?: string) => fmtDate(d) || '—';

@@ -823,7 +823,8 @@ export interface Col<T> {
   primary?: boolean; // มือถือ: หัวการ์ด (ตัวหนา)
   sub?: boolean;     // มือถือ: บรรทัดรอง (เล็ก/จาง)
   right?: boolean;   // desktop ชิดขวา + มือถือไปอยู่มุมขวาบน
-  width?: string;    // desktop: คุมความกว้างคอลัมน์ (เช่น 'w-32') ให้ชิด ไม่ถ่าง
+  width?: string;    // desktop: คุมความกว้างคอลัมน์ (เช่น 'w-48') → คอลัมน์ยาวตัด "…" พอดี ไม่ถ่าง
+  grow?: boolean;    // desktop: คอลัมน์ "ดูดพื้นที่เหลือ" เพียงตัวเดียว (default = primary) — กัน 2 คอลัมน์ flex แย่งกันจนห่าง/ตกกรอบ
 }
 
 export function ListView<T>({
@@ -846,6 +847,9 @@ export function ListView<T>({
   const primary = cols.find((c) => c.primary);
   const subs = cols.filter((c) => c.sub);
   const rights = cols.filter((c) => c.right);
+  // คอลัมน์ที่ "ดูดพื้นที่เหลือ" ตัวเดียว (flex): ระบุ grow เอง ไม่งั้น default = primary (ชื่อ)
+  //   → ตารางมี flex คอลัมน์เดียว ชื่อยาวได้ประโยชน์ · คอลัมน์อื่นชิดกระชับ (ไม่ห่าง/ไม่ตกกรอบ)
+  const growCol = cols.find((c) => c.grow) ?? primary;
 
   // เปลี่ยนหน้า: คงแถวเดิมไว้ (จางลง) จนข้อมูลใหม่มา → ความสูงไม่หด/กระโดด → ปุ่มลูกศรอยู่จุดเดิม
   return (
@@ -857,7 +861,7 @@ export function ListView<T>({
             <tr className="border-b border-border">
               {leading && <th className="w-[68px] py-3 pl-5" aria-hidden />}
               {cols.map((c, i) => (
-                <th key={i} scope="col" className={`px-5 py-3 font-medium ${c.right ? 'text-right' : ''} ${c.width ?? ''}`}>{c.header}</th>
+                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c.right ? 'text-right' : ''} ${c === growCol ? '' : c.width ?? ''}`}>{c.header}</th>
               ))}
             </tr>
           </thead>
@@ -867,10 +871,20 @@ export function ListView<T>({
                 className={`border-b border-border last:border-0 ${onRow ? 'cursor-pointer transition hover:bg-raised' : ''}`}
                 onClick={onRow ? () => onRow(it) : undefined}>
                 {leading && <td className="py-3.5 pl-5">{leading(it)}</td>}
-                {cols.map((c, i) => (
-                  // primary/sub = คอลัมน์ข้อความยืดหยุ่น (ชื่อ/ทรัพย์) → max-w-0+truncate: แบ่งพื้นที่ที่เหลือกัน ตัด "…" ถ้ายาว · คอลัมน์คงที่ (รหัส/วันที่/สถานะ/ราคา) nowrap เห็นครบ → ตารางพอดี container ทุกแถว 1 บรรทัด ไม่ตก 2 บรรทัด
-                  <td key={i} className={`py-3.5 ${c.right ? 'whitespace-nowrap text-right' : c.sub ? 'w-full max-w-0 truncate' : 'whitespace-nowrap'} ${leading && i === 0 ? 'pl-3 pr-5' : 'px-5'}`}>{c.cell(it)}</td>
-                ))}
+                {cols.map((c, i) => {
+                  // flex คอลัมน์เดียว (grow/primary) = w-full max-w-0 truncate ดูดพื้นที่ + ตัด "…" ถ้ายาว
+                  // คอลัมน์มี width = คุมกว้าง + ตัด "…" (เช่น ทรัพย์ชื่อยาว) · ที่เหลือ nowrap เห็นครบ → 1 บรรทัดเสมอ
+                  const colCls = c.right
+                    ? `whitespace-nowrap text-right ${c.width ?? ''}`
+                    : c === growCol
+                    ? 'w-full max-w-0 truncate'
+                    : c.width
+                    ? `${c.width} truncate`
+                    : 'whitespace-nowrap';
+                  return (
+                    <td key={i} className={`py-3.5 ${colCls} ${leading && i === 0 ? 'pl-3 pr-5' : 'px-5'}`}>{c.cell(it)}</td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
