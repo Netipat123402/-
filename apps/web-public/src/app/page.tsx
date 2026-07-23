@@ -128,34 +128,35 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* Why ROS — แถบความน่าเชื่อถือ (trust → conversion) */}
-      <section className="border-y border-border bg-canvas/40">
-        <div className="mx-auto grid max-w-content grid-cols-2 gap-x-4 gap-y-6 px-4 py-10 sm:grid-cols-4 lg:px-8">
-          {TRUST.map((it) => (
-            <div key={it.k} className="flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-left">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold/10 text-gold-dark">
-                <Icon name={it.icon} size={20} />
+      {/* Why ROS — trust bar กระชับ กลาง มีเส้นคั่น (มือถือ wrap 2×2 · sm+ แถวเดียวกลาง) */}
+      <section className="border-y border-border">
+        <div className="mx-auto flex max-w-content flex-wrap items-center justify-center gap-y-3 px-4 py-6 lg:px-8">
+          {TRUST.map((it, i) => (
+            <div key={it.k} className="flex items-center">
+              {i > 0 && <span aria-hidden className="mx-4 hidden h-3.5 w-px bg-border sm:block lg:mx-6" />}
+              <span className="flex items-center gap-2 px-2 sm:px-0">
+                <Icon name={it.icon} size={16} className="shrink-0 text-gold-dark" />
+                <span className="whitespace-nowrap text-sm text-ink-soft"><T k={it.k} /></span>
               </span>
-              <span className="text-sm font-medium text-ink-soft"><T k={it.k} /></span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ขั้นตอนใช้งาน 3 สเต็ป — ค้นหา → นัดชม → ย้ายเข้า */}
+      {/* ขั้นตอนใช้งาน 3 สเต็ป — D · Editorial เส้นทอง (STEP 0X + เส้นทองซ้าย · มือถือเรียงลง · sm+ 3 คอลัมน์) */}
       <section className="mx-auto max-w-content px-4 py-16 lg:px-8">
         <div className="text-center">
           <h2 className="text-2xl font-semibold tracking-tight lg:text-3xl"><T k="howItWorksTitle" /></h2>
           <p className="mx-auto mt-2 max-w-lg text-muted"><T k="howItWorksSub" /></p>
         </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
+        <div className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-7">
           {STEPS.map((s) => (
-            <div key={s.n} className="card flex flex-col items-center px-6 py-8 text-center">
-              <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-canvas text-gold-dark">
-                <Icon name={s.icon} size={24} />
-                <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-xs font-semibold text-white">{s.n}</span>
-              </span>
-              <h3 className="mt-4 font-semibold"><T k={s.tk} /></h3>
+            <div key={s.n} className="border-l-2 border-gold/60 pl-4 sm:pl-5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold-dark">STEP {String(s.n).padStart(2, '0')}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <Icon name={s.icon} size={18} className="shrink-0 text-gold-dark" />
+                <h3 className="font-semibold"><T k={s.tk} /></h3>
+              </div>
               <p className="mt-1.5 text-sm text-muted"><T k={s.sk} /></p>
             </div>
           ))}
