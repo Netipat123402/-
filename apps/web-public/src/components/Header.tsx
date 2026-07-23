@@ -78,7 +78,7 @@ export function Footer() {
             <div>
               <p className="text-2xs font-medium uppercase tracking-wide text-faint">{t('footerContact')}</p>
               <ul className="mt-3 space-y-2.5 text-sm">
-                <li><a href={LINE_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-ink-soft transition hover:text-ink"><Icon name="message" size={15} className="text-gold-dark" />LINE Official</a></li>
+                <li><a href={LINE_URL} target="_blank" rel="noreferrer" className="text-ink-soft transition hover:text-ink">LINE Official</a></li>
                 <li><Link href="/privacy" className="text-ink-soft transition hover:text-ink">{t('consentPolicy')}</Link></li>
               </ul>
             </div>

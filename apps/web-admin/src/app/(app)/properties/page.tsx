@@ -106,10 +106,10 @@ export default function PropertiesPage() {
     },
     // ทำเล = คีย์สแกนอสังหา (ที่ตั้ง) → แยกจากชนิด · โชว์ทุกจอ (มือถือ+)
     { header: 'ทำเล', sub: true, cell: (p) => p.province || <span className="text-faint">—</span> },
-    // ประเภท · ห้องนอน = specs → hidden sm:inline: ซ่อนมือถือ (การ์ดมีรูป+ราคาแล้ว = minimal) · โผล่ iPad+ · เดสก์ท็อป = คอลัมน์แยกจากทำเล
-    // (bedrooms เดิมมีใน data แต่ไม่เคยโชว์ — attr สแกนหลักของอสังหา แบบ Zillow/Airbnb)
+    // ประเภท = ชนิดทรัพย์อย่างเดียว (§10: 1 คอลัมน์ 1 ความหมาย) — เลิกพ่วง "· N นอน"
+    //   เดิมพ่วงห้องนอน = ซ้ำกับชื่อทรัพย์ที่มี "— N นอน" อยู่แล้ว + ปนความหมาย · ห้องนอนอยู่ในหน้า detail
     { header: 'ประเภท', sub: true, cell: (p) => (
-      <span className="hidden sm:inline">{PROPERTY_TYPE[p.propertyType] ?? p.propertyType}{p.bedrooms ? ` · ${p.bedrooms} นอน` : ''}</span>
+      <span className="hidden sm:inline">{PROPERTY_TYPE[p.propertyType] ?? p.propertyType}</span>
     ) },
     {
       // สถานะ + ค่าเช่า รวมคอลัมน์เดียว: สถานะอยู่บน · ราคาอยู่ล่าง · จัดกึ่งกลางเข้าหากัน
