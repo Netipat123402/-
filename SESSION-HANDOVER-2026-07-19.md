@@ -1,8 +1,10 @@
-# ROS — SESSION HANDOVER (2026-07-19)
+# ROS — SESSION HANDOVER (2026-07-19 → ต่อเนื่องถึง 07-23)
 
 > **อ่านไฟล์เดียวจบ.** สรุปทุกอย่าง: โครงสร้าง · ทำอะไรไปแล้ว · เหลือ/ขาดอะไร · เสนออะไร · ทำอะไรต่อ.
-> คู่กับ: `DESIGN-SYSTEM.md` (กฎดีไซน์ locked §1–11) · `PAGE-QA-SWEEP.md` (tracker ต่อหน้า) · auto-memory (operating rules).
-> handover เก่า + audit เก่า ย้ายไป `docs/archive/` แล้ว (ประวัติ ไม่ลบ).
+> คู่กับ: `DESIGN-SYSTEM.md` (กฎดีไซน์ locked §1–11) · `PAGE-QA-SWEEP.md` (tracker ต่อหน้า) · **`docs/ADMIN-DESIGN-PHASES.md` (แผนเฟส/ทาส admin — งานถัดไป)** · auto-memory (operating rules).
+> reference: `docs/reference/SYSTEM-KNOWLEDGE.md` + `RELATIONSHIP-MAP.md` (ความรู้ระบบ ยังใช้ได้).
+> **MD housekeeping (07-23):** root เหลือ 4 (handover·PAGE-QA-SWEEP·DESIGN-SYSTEM·README) · handover/audit เก่า + design-plan เก่า (DESIGN-REFERENCE-ANALYSIS·PHASE2-PLAN) → `docs/archive/` (24 ไฟล์ ประวัติ) · **กฎ: อย่าสร้าง MD ใหม่ — อัปเดต handover + ADMIN-DESIGN-PHASES + PAGE-QA-SWEEP เท่านั้น**
+> **git:** commit ทั้งหมด = local git (ถาวรในเครื่อง) · **ยังไม่ push GitHub** (`git push -u origin recover/redesign-v2` — ต้อง token เจ้าของ) · ~120 commit ค้าง
 
 ---
 
@@ -45,6 +47,18 @@
 3. **test data ค้าง** — notification "QA test นัด (ลบได้) 15 ก.ค. 2569" + lead "QA ทดสอบระบบ" · รอเจ้าของอนุมัติลบ
 
 ## 5) 🎯 งานถัดไป (เสนอไว้ + กฎใหม่รองรับ)
+
+### ⭐ NEXT SESSION เริ่มตรงนี้ → `docs/ADMIN-DESIGN-PHASES.md` (Phase 1)
+งานถัดไปที่เจ้าของสั่ง (จากรูปที่ชี้ · แต่ละทาส = widget เทียบ 3 จอ + ถามก่อน + verify authed):
+- **Phase 1 · Detail/Modal:** T1.1 นัดหมาย drawer (action-first + แยก วันที่/สถานที่ §10) · T1.2 ลูกค้า detail (dedupe เบอร์) · T1.3 สัญญา detail (dedupe ค่าเช่า) · T1.4 เจ้าของ detail · T1.5 property wizard
+- **Phase 2:** "ข้อมูลของใครของมัน" + กรอบชุดข้อมูลชัด (§10) · **Phase 4:** per-device field priority ต่อหน้า (§11 — เสนอมือถือ/iPad/คอมโชว์หัวข้อไหน + ถามก่อน)
+- หลักการร่วม (ใช้ทุก detail): glance identifier · dedupe · กรอบชัด · action-first · ข้อมูลของใครของมัน
+
+### ✅ done รอบ design-polish (07-20→23) — สรุป (ดูรายละเอียดล่างต่อ)
+public: home hero A→**B photo** (`49f0931` รอวาง`public/hero.jpg` รูป3) · Zillow search/filter/**sort** · empty state · **trust bar+3 steps editorial** · footer คอลัมน์+i18n · privacy 5 หัวข้อ · eyebrow "ทรัพย์คัดสรร" · lang toggle concentric · motion polish
+admin: **ListView flex คอลัมน์เดียว(ชื่อ)** แก้ห่าง/ตกกรอบ/badge เยื้อง (§10 root fix) · **property detail glance identifier + dedupe** · **lead drawer action-first** · ประเภท=type ล้วน · appointments status badge ชิดซ้าย
+
+---
 - ✅ **DONE `fd5ffcf`** — dashboard agenda §10/§11 (นัด/สัญญานำด้วยคน/ทรัพย์ · โค้ดจาง desktop-only · มือถือ2/iPad3/คอม4 field · verify worktree+API จริงครบ 3 tier). customers/owners detail สแกนแล้ว = §10-clean อยู่แล้ว · **ค้าง: แถวสัญญาใน agenda ยังไม่ verify ภาพ (ไม่มีสัญญาใกล้ครบใน 30 วันใน demo)**
 - ✅ **§10/§11 admin scan เสร็จ — ทุกหน้า compliant แล้ว** (list: leads channel แยก sub-col · contracts ลูกค้านำ/ทรัพย์รอง/รหัสเฉพาะตาราง · properties ทำเลแยก specs hidden sm · appointments ชื่อคนนำ · detail: InfoGroup แยกหมวดครบ, ทำเลแยกจังหวัด·เขต, 2-col xl). **ไม่มี §10 win เหลือใน admin** · ที่ยัง "ชื่อ·เบอร์ / ชื่อ·รหัส" เป็น pattern จงใจ (secondary จาง) แยกแล้วแย่ลง — ห้ามแตะ
 - ✅ **public property detail — ประเมินแล้ว = ดีอยู่แล้ว ไม่ต้อง redesign** (แกลเลอรี mosaic · ราคา text-3xl gold เด่น · SpecStrip · sticky form/CTA) — ไม่ปั้นงานหลอกกับหน้าที่ดี
