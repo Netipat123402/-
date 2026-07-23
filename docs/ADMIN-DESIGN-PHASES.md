@@ -31,7 +31,7 @@
 
 ## Phase 1 — Detail/Modal consistency (จากรูปที่เจ้าของชี้ + ต่อเนื่อง)  ⭐ ทำก่อน
 
-- [ ] **T1.1 · นัดหมาย drawer (#2)** — action-first (ปุ่มพบแล้ว/เลื่อน/ยกเลิก ขึ้นบน) · identity ชื่อ+code+สถานะ · กรอบชุดข้อมูล (นัดหมาย/ลูกค้า/ทรัพย์/รายละเอียด) · ทรัพย์ที่นัด = กดเข้าได้
+- [x] **T1.1 · นัดหมาย drawer (#2)** — ✅ `5861a2c` **status-driven bar (C, owner เลือกจาก A/B/C)** · glance วันเวลาเด่นขึ้นหัว · แถบเปลี่ยนตามสถานะ (upcoming=ทอง+urgency fmtUntil+CTA · done/cancelled=neutral+สรุป+นัดใหม่) · ซ่อนกล่องว่าง · dedupe กล่องนัดหมาย · verify authed 3 จอ
 - [ ] **T1.2 · ลูกค้า detail (#3)** — **dedupe เบอร์โทร** (โผล่ใต้ชื่อ + กล่องติดต่อ = ซ้ำ) → หัว=ชื่อ+เบอร์(1) · กล่องติดต่อ=อีเมล/ที่อยู่ · เรียง: ติดต่อ→สัญญา→เอกสาร · กรอบชัด
 - [ ] **T1.3 · สัญญา detail (#4)** — glance identifier (code·สถานะ·ชื่อ·฿·action ขวา) · **dedupe ค่าเช่า** (หัว ฿12,000 ซ้ำกล่องการเงิน) → การเงินเหลือ มัดจำ/นายหน้า · กรอบชุดชัด
 - [ ] **T1.4 · เจ้าของ detail** — เช็ค dedupe เบอร์ (เหมือน customer) · เรียง: ติดต่อ→ทรัพย์ที่เป็นเจ้าของ→สัญญา→เอกสาร (ข้อมูลของ owner)
@@ -60,6 +60,7 @@
 ---
 
 ## Log (อัปเดตเมื่อ done)
+- ✅ **T1.1 นัดหมาย modal — status-driven bar (C)** (`5861a2c`) · owner เทียบ A(sticky footer)/B(header actions)/C(status bar) เลือก C · +fmtUntil ใน lib/format · verify worktree authed (upcoming ทอง+"เลยกำหนดแล้ว" · done neutral+นัดใหม่ · mobile375)
 - ✅ appointments list — status badge ชิดซ้ายตรงกัน (`1001148`)
 - ✅ property detail — glance identifier + dedupe (`84be651`)
 - ✅ lead drawer — action-first (`84be651`)
