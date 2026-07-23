@@ -296,13 +296,13 @@ export default function AppointmentsPage() {
                 </span>
                 {can('appointment', 'change_status') && (
                   <div className="space-y-2">
+                    {/* action เรียงเต็มกว้าง center ตรงแนวเดียวกัน (Linear/Cal.com) · ทำลาย = text จาง ไม่ตะโกน */}
                     <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
-                    <div className="flex gap-2">
-                      <button className="btn-ghost flex-1" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
-                      <MoreMenu items={[
-                        { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled') },
-                        { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled') },
-                      ]} />
+                    <button className="btn-ghost w-full" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
+                    <div className="flex items-center justify-center gap-3 pt-1 text-xs">
+                      <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled')}>ยกเลิกนัด</button>
+                      <span className="text-faint">·</span>
+                      <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled')}>ลูกค้าไม่มาตามนัด</button>
                     </div>
                   </div>
                 )}
@@ -332,15 +332,15 @@ export default function AppointmentsPage() {
             {/* ลูกค้า (แตะโทร + กดเข้า lead) */}
             {detail?.lead && (
               <InfoGroup label="ลูกค้า">
-                <InfoRow label="ชื่อ" value={detail.lead.fullName} href={`/leads?focus=${detail.lead.id}`} strong />
-                <InfoRow label="เบอร์โทร" value={detail.lead.phone ? <PhoneLink phone={detail.lead.phone} /> : undefined} hideEmpty />
+                <InfoRow label="ชื่อ" value={detail.lead.fullName} href={`/leads?focus=${detail.lead.id}`} strong hideChevron />
+                <InfoRow label="เบอร์โทร" value={detail.lead.phone ? <PhoneLink phone={detail.lead.phone} hideIcon /> : undefined} hideEmpty />
               </InfoGroup>
             )}
 
             {/* ทรัพย์ (กดเข้าได้) — meeting-center */}
             {detail?.property && (
               <InfoGroup label="ทรัพย์ที่นัดดู">
-                <InfoRow label="ทรัพย์" href={`/properties/${detail.property.id}`} strong
+                <InfoRow label="ทรัพย์" href={`/properties/${detail.property.id}`} strong hideChevron
                   value={<span>{detail.property.titleTh} <span className="font-mono text-xs font-normal text-gold-dark">· {detail.property.code}</span></span>} />
               </InfoGroup>
             )}

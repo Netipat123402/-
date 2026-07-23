@@ -119,7 +119,7 @@ export function ErrorState({ onRetry, text = 'โหลดข้อมูลไ�
  * touch: แถวสูงขึ้น (py-3) ให้ hit-area ≥44px
  */
 export function InfoRow({
-  label, value, href, onClick, action, hideEmpty, stack, strong, mono, icon, className = '',
+  label, value, href, onClick, action, hideEmpty, stack, strong, mono, icon, hideChevron, className = '',
 }: {
   label: React.ReactNode;
   value?: React.ReactNode;
@@ -131,6 +131,7 @@ export function InfoRow({
   strong?: boolean;
   mono?: boolean;
   icon?: IconName; // ไอคอนนำหน้า label (ช่วยกวาดสายตา — ใช้เสริมเฉพาะกลุ่มสเปก ไม่ใส่รก)
+  hideChevron?: boolean; // ซ่อน chevron ท้ายแถวลิงก์ — ใช้ตอนอยาก minimal (นำทางบอกด้วย hover แทน สไตล์ Linear/Notion)
   className?: string;
 }) {
   const isEmpty = value == null || value === '' || value === '—';
@@ -149,7 +150,7 @@ export function InfoRow({
       {isEmpty ? '—' : value}
     </span>
   );
-  const chevron = interactive
+  const chevron = interactive && !hideChevron
     ? <Icon name="chevron-right" size={16} className="shrink-0 text-faint transition group-hover:text-muted sm:ml-auto" />
     : null;
   // ไอคอนนำหน้า label (ถ้ามี) — ช่วยกวาดสายตากลุ่มสเปก
@@ -626,12 +627,12 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
 }
 
 /** เบอร์โทรที่ "แตะแล้วโทรเลย" — หยุด event ไม่ให้ไปชนการแตะแถว (เปิด detail) */
-export function PhoneLink({ phone, className = '' }: { phone?: string | null; className?: string }) {
+export function PhoneLink({ phone, className = '', hideIcon }: { phone?: string | null; className?: string; hideIcon?: boolean }) {
   if (!phone) return <span className={className}>—</span>;
   return (
     <a href={`tel:${phone.replace(/[^0-9+]/g, '')}`} onClick={(e) => e.stopPropagation()}
       className={`inline-flex items-center gap-1 transition hover:text-gold-dark ${className}`}>
-      <Icon name="phone" size={13} className="shrink-0 opacity-60" /> {phone}
+      {!hideIcon && <Icon name="phone" size={13} className="shrink-0 opacity-60" />} {phone}
     </a>
   );
 }
