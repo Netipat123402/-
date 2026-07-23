@@ -211,43 +211,8 @@ export default function LeadsPage() {
               <span className="text-xs text-muted">· {LEAD_SOURCE[active.source] ?? active.source}</span>
             </div>
 
-            {/* ติดต่อ */}
-            <InfoGroup label="ติดต่อ">
-              <InfoRow label="เบอร์โทร" value={active.phone ? <PhoneLink phone={active.phone} /> : undefined} hideEmpty />
-              <InfoRow label="อีเมล" value={active.email || undefined} hideEmpty />
-            </InfoGroup>
-
-            {/* ความต้องการ */}
-            <InfoGroup label="ความต้องการ">
-              <InfoRow label="รายละเอียด" value={active.message || undefined} stack hideEmpty />
-              <InfoRow label="อยากเข้าชม" value={active.preferredViewAt ? fmtDate(active.preferredViewAt) : undefined} hideEmpty />
-              {!active.message && !active.preferredViewAt && <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุ</p>}
-            </InfoGroup>
-
-            {/* ทรัพย์ที่สนใจ (กดเข้าทรัพย์ได้) */}
-            {detail?.interests && detail.interests.length > 0 && (
-              <InfoGroup label={`ทรัพย์ที่สนใจ · ${detail.interests.length}`}>
-                {detail.interests.map((it) => (
-                  <button key={it.property.id} onClick={() => router.push(`/properties/${it.property.id}`)}
-                    className="group flex w-full items-center gap-2 py-2.5 text-left transition hover:opacity-70">
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{it.property.titleTh}</span>
-                    <span className="shrink-0 text-sm font-medium tabular-nums text-gold-dark">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
-                    <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short />
-                    <Icon name="chevron-right" size={15} className="shrink-0 text-faint" />
-                  </button>
-                ))}
-              </InfoGroup>
-            )}
-
-            {/* การดูแล */}
-            <InfoGroup label="การดูแล">
-              <InfoRow label="ผู้ดูแล" value={detail?.assignedTo?.fullName ?? (active.assignedToId ? '—' : 'ยังไม่มอบหมาย')} />
-              <InfoRow label="เข้ามาเมื่อ" value={fmtDate(active.createdAt)} />
-              {active.status === 'closed' && active.lostReason && <InfoRow label="เหตุผลที่ปิด" value={active.lostReason} stack />}
-            </InfoGroup>
-
-            {/* การกระทำ (Phase 16) — 1-2 ปุ่มหลัก context-aware + ⋯ */}
-            <div className="space-y-2 border-t border-border pt-4">
+            {/* การกระทำ (D · action-first) — ปุ่มหลัก context-aware อยู่บนสุด: lead ใหม่ = รีบรับดูแล/นัด (CRM) */}
+            <div className="space-y-2 border-b border-border pb-5">
               {active.status === 'new' && (
                 <div className="flex gap-2">
                   {can('lead', 'assign') ? (
@@ -286,6 +251,41 @@ export default function LeadsPage() {
                 </div>
               )}
             </div>
+
+            {/* ติดต่อ */}
+            <InfoGroup label="ติดต่อ">
+              <InfoRow label="เบอร์โทร" value={active.phone ? <PhoneLink phone={active.phone} /> : undefined} hideEmpty />
+              <InfoRow label="อีเมล" value={active.email || undefined} hideEmpty />
+            </InfoGroup>
+
+            {/* ความต้องการ */}
+            <InfoGroup label="ความต้องการ">
+              <InfoRow label="รายละเอียด" value={active.message || undefined} stack hideEmpty />
+              <InfoRow label="อยากเข้าชม" value={active.preferredViewAt ? fmtDate(active.preferredViewAt) : undefined} hideEmpty />
+              {!active.message && !active.preferredViewAt && <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุ</p>}
+            </InfoGroup>
+
+            {/* ทรัพย์ที่สนใจ (กดเข้าทรัพย์ได้) */}
+            {detail?.interests && detail.interests.length > 0 && (
+              <InfoGroup label={`ทรัพย์ที่สนใจ · ${detail.interests.length}`}>
+                {detail.interests.map((it) => (
+                  <button key={it.property.id} onClick={() => router.push(`/properties/${it.property.id}`)}
+                    className="group flex w-full items-center gap-2 py-2.5 text-left transition hover:opacity-70">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{it.property.titleTh}</span>
+                    <span className="shrink-0 text-sm font-medium tabular-nums text-gold-dark">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
+                    <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short />
+                    <Icon name="chevron-right" size={15} className="shrink-0 text-faint" />
+                  </button>
+                ))}
+              </InfoGroup>
+            )}
+
+            {/* การดูแล */}
+            <InfoGroup label="การดูแล">
+              <InfoRow label="ผู้ดูแล" value={detail?.assignedTo?.fullName ?? (active.assignedToId ? '—' : 'ยังไม่มอบหมาย')} />
+              <InfoRow label="เข้ามาเมื่อ" value={fmtDate(active.createdAt)} />
+              {active.status === 'closed' && active.lostReason && <InfoRow label="เหตุผลที่ปิด" value={active.lostReason} stack />}
+            </InfoGroup>
           </div>
           );
         })()}

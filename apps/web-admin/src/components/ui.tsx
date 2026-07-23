@@ -226,7 +226,7 @@ export function InfoGroup({
  * ใช้ร่วมทุกโมดูล (ทรัพย์/สัญญา/…) — badge ส่งเป็น node ให้ generic ข้ามโมดูล
  */
 export function DetailHeader({
-  backHref, backLabel = 'กลับ', code, badge, meta, title, subtitle, price, priceSuffix, className = '',
+  backHref, backLabel = 'กลับ', code, badge, meta, title, subtitle, price, priceSuffix, actions, className = '',
 }: {
   backHref?: string;
   backLabel?: string;
@@ -237,6 +237,7 @@ export function DetailHeader({
   subtitle?: React.ReactNode;
   price?: React.ReactNode;
   priceSuffix?: React.ReactNode;
+  actions?: React.ReactNode; // ปุ่ม action — เดสก์ท็อป: ชิดขวาหัว (glance identifier + action) · มือถือ: stack ล่าง
   className?: string;
 }) {
   return (
@@ -246,22 +247,25 @@ export function DetailHeader({
           <Icon name="arrow-left" size={16} /> {backLabel}
         </Link>
       )}
-      <div className={backHref ? 'mt-3' : ''}>
-        {(code || badge || meta) && (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {code && <span className="font-mono text-xs text-muted">{code}</span>}
-            {badge}
-            {meta}
-          </div>
-        )}
-        <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
-        {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
-        {price != null && price !== '' && (
-          <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-gold-dark">
-            ฿{price}
-            {priceSuffix && <span className="ml-0.5 text-sm font-normal text-muted">{priceSuffix}</span>}
-          </p>
-        )}
+      <div className={`${backHref ? 'mt-3 ' : ''}sm:flex sm:items-start sm:justify-between sm:gap-4`}>
+        <div className="min-w-0">
+          {(code || badge || meta) && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {code && <span className="font-mono text-xs text-muted">{code}</span>}
+              {badge}
+              {meta}
+            </div>
+          )}
+          <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+          {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
+          {price != null && price !== '' && (
+            <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-gold-dark">
+              ฿{price}
+              {priceSuffix && <span className="ml-0.5 text-sm font-normal text-muted">{priceSuffix}</span>}
+            </p>
+          )}
+        </div>
+        {actions && <div className="mt-4 shrink-0 sm:mt-0">{actions}</div>}
       </div>
     </div>
   );

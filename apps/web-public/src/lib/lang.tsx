@@ -9,7 +9,7 @@ const DICT = {
   searchProperties: { th: 'ค้นหาทรัพย์', en: 'Search' },
   contact: { th: 'ติดต่อเรา', en: 'Contact' },
   // hero
-  heroLabel: { th: 'ROS REAL ESTATE', en: 'ROS REAL ESTATE' },
+  heroLabel: { th: 'ทรัพย์คัดสรร', en: 'Curated rentals' },
   heroTitle1: { th: 'หาบ้านเช่าที่ใช่', en: 'Find your perfect' },
   heroTitle2: { th: 'ในแบบที่คุณต้องการ', en: 'rental home' },
   heroSub: { th: 'คอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์ คัดสรรคุณภาพโดยทีมนายหน้ามืออาชีพ', en: 'Condos, houses, townhomes & apartments — curated by professional agents' },

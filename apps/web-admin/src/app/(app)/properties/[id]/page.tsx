@@ -111,11 +111,9 @@ export default function PropertyDetailPage() {
         subtitle={p.projectName ? p.titleTh : undefined}
         price={bahtFormat(Number(p.monthlyRent))}
         priceSuffix="/เดือน"
-      />
-      {/* หมายเหตุ: สเปค (ประเภท/นอน/น้ำ/พื้นที่) ไม่โชว์ที่หัวแล้ว — อยู่ในกล่อง "ห้อง & พื้นที่" ด้านล่าง (กฎ 1 บรรทัด 1 ข้อมูล) */}
-
-      {/* การกระทำ — 1 primary(gold) ตามสถานะ · featured ghost · อันตราย/รองยุบใน ⋯ (Phase 8) */}
-      <ActionBar className="mt-4">
+        actions={
+          /* glance identifier: action ชิดขวาหัว (เดสก์ท็อป) / stack ล่าง (มือถือ) · 1 primary(gold)ตามสถานะ · featured ghost · อันตราย/รองยุบใน ⋯ */
+          <ActionBar>
         {p.status === 'draft' && can('property', 'approve') && (
           <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
         )}
@@ -139,7 +137,9 @@ export default function PropertyDetailPage() {
           ...(p.status === 'available' && can('property', 'reject') ? [{ label: 'ถอนประกาศ', icon: 'file-text' as const, danger: true, onClick: () => setConfirm('reject') }] : []),
           ...(p.status === 'draft' && can('property', 'delete') ? [{ label: 'ลบทรัพย์', icon: 'trash' as const, danger: true, onClick: () => setConfirm('delete') }] : []),
         ]} />
-      </ActionBar>
+          </ActionBar>
+        }
+      />
 
       {/* hint ตามสถานะ — แถบบาง ไม่กินพื้นที่ */}
       {p.status === 'draft' && (
@@ -268,7 +268,7 @@ export default function PropertyDetailPage() {
 
       {/* section nav — กระโดดไปแต่ละส่วน (หน้ายาว · Stripe/Linear) · dynamic ตามส่วนที่มีจริง */}
       <SectionNav items={[
-        { id: 'sec-price', label: 'ราคา' },
+        p.depositMonths != null && { id: 'sec-price', label: 'เงื่อนไข' },
         hasRoomInfo && { id: 'sec-room', label: 'ห้อง & พื้นที่' },
         hasLocation && { id: 'sec-location', label: 'ทำเล' },
         p.descriptionTh && { id: 'sec-desc', label: 'รายละเอียด' },
@@ -277,10 +277,12 @@ export default function PropertyDetailPage() {
       ].filter(Boolean) as { id: string; label: string }[]} />
       {/* ข้อมูลทรัพย์ (Phase 10) — 1 บรรทัด 1 ข้อมูล ไล่ลง เรียงตามความสำคัญ: ราคา→ห้อง→ทำเล→รายละเอียด→สิ่งอำนวยฯ */}
       <div className="space-y-4">
-        <InfoGroup label="ราคา & เงื่อนไข" id="sec-price">
-          <InfoRow label="ค่าเช่า / เดือน" value={`฿${bahtFormat(Number(p.monthlyRent))}`} strong mono />
-          <InfoRow label="เงินมัดจำ" value={p.depositMonths ? `${p.depositMonths} เดือน` : undefined} hideEmpty />
-        </InfoGroup>
+        {/* ค่าเช่าโชว์ที่หัวจุดเดียว (dedupe) — กล่องนี้เหลือเงื่อนไข (มัดจำ) โชว์เมื่อมีข้อมูล */}
+        {p.depositMonths != null && (
+          <InfoGroup label="เงื่อนไขการเช่า" id="sec-price">
+            <InfoRow label="เงินมัดจำ" value={`${p.depositMonths} เดือน`} />
+          </InfoGroup>
+        )}
 
         {hasRoomInfo && (
           <InfoGroup label="ห้อง & พื้นที่" id="sec-room">
