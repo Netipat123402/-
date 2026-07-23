@@ -10,7 +10,7 @@ import { useToast } from '@/components/Toast';
 import { APPOINTMENT_STATUS } from '@/lib/status';
 import { Col, Combobox, FilterBar, Field, InfoGroup, InfoRow, ListView, Modal, MoreMenu, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
-import { fmtDateTime } from '@/lib/format';
+import { fmtDateTime, fmtUntil } from '@/lib/format';
 
 interface Appt {
   id: string; code: string; scheduledAt: string; status: string;
@@ -275,23 +275,59 @@ export default function AppointmentsPage() {
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
 
-      {/* manage — หัว = ชื่อคน/หัวข้อ · เนื้อ = InfoGroup (Phase 26) */}
+      {/* manage — glance (เมื่อไหร่เด่น) + แถบสถานะพา action (C: status-driven) + กล่องข้อมูล */}
       <Modal open={!!active} onClose={closeAppt} title={active ? subject(active) : ''}>
         {active && (
           <div className="space-y-4">
-            {/* meta: รหัส + สถานะ */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span className="font-mono text-xs text-muted">{active.code}</span>
-              <StatusBadge map={APPOINTMENT_STATUS} value={active.status} />
+            {/* glance identifier: รหัส + วันเวลาเด่น → เปิดมารู้ "เมื่อไหร่" ทันตา */}
+            <div>
+              <div className="font-mono text-xs text-muted">{active.code}</div>
+              <div className="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+                <span className="text-lg font-semibold tracking-tight text-ink">{fmt(active.scheduledAt)}</span>
+                <span className="text-sm text-faint">{active.durationMin} นาที</span>
+              </div>
             </div>
 
-            {/* นัดหมาย: เวลา + ระยะเวลา (+ ผลลัพธ์ถ้าจบ/ยกเลิก) */}
-            <InfoGroup label="นัดหมาย">
-              <InfoRow label="วันเวลา" value={fmt(active.scheduledAt)} strong />
-              <InfoRow label="ระยะเวลา" value={`${active.durationMin} นาที`} />
-              {active.status === 'cancelled' && <InfoRow label="ผลลัพธ์" value={detail?.cancelReason || 'ยกเลิก'} stack />}
-              {active.status === 'done' && <InfoRow label="ผลลัพธ์" value="พบลูกค้าแล้ว" />}
-            </InfoGroup>
+            {/* แถบสถานะพา action — เปลี่ยนตามสถานะ (upcoming = CTA พบแล้ว + urgency · done/cancelled = สรุปผล + นัดใหม่) */}
+            {active.status === 'upcoming' ? (
+              <div className="space-y-3 rounded-xl border border-gold/30 bg-gold/5 p-4">
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-dark">
+                  <Icon name="clock" size={14} className="shrink-0" /> รอพบ · {fmtUntil(active.scheduledAt)}
+                </span>
+                {can('appointment', 'change_status') && (
+                  <div className="space-y-2">
+                    <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
+                    <div className="flex gap-2">
+                      <button className="btn-ghost flex-1" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
+                      <MoreMenu items={[
+                        { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled') },
+                        { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled') },
+                      ]} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+                {active.status === 'done' ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
+                    <Icon name="check" size={15} className="shrink-0" /> พบลูกค้าแล้ว
+                  </span>
+                ) : (
+                  <div className="space-y-1">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-danger">
+                      <Icon name="x" size={15} className="shrink-0" /> ยกเลิก
+                    </span>
+                    {detail?.cancelReason && <p className="text-sm text-muted">{detail.cancelReason}</p>}
+                  </div>
+                )}
+                {can('appointment', 'create') && detail && (
+                  <button className="btn-gold w-full" disabled={busy} onClick={() => rebook(detail)}>
+                    <Icon name="calendar" size={16} /> นัดใหม่อีกครั้ง
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* ลูกค้า (แตะโทร + กดเข้า lead) */}
             {detail?.lead && (
@@ -309,38 +345,13 @@ export default function AppointmentsPage() {
               </InfoGroup>
             )}
 
-            {/* รายละเอียด */}
-            <InfoGroup label="รายละเอียด">
-              <InfoRow label="พนักงาน" value={detail?.agent?.fullName || undefined} hideEmpty />
-              <InfoRow label="สถานที่" value={active.location || undefined} stack hideEmpty />
-              {!detail?.agent?.fullName && !active.location && <p className="py-2.5 text-sm text-muted">—</p>}
-            </InfoGroup>
-
-            {/* การกระทำ */}
-            <div className="border-t border-border pt-4">
-              {active.status === 'upcoming' ? (
-                <div className="space-y-2">
-                  {can('appointment', 'change_status') && (
-                    <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
-                  )}
-                  {can('appointment', 'change_status') && (
-                    <div className="flex gap-2">
-                      <button className="btn-ghost flex-1" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
-                      <MoreMenu items={[
-                        { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled') },
-                        { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled') },
-                      ]} />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                can('appointment', 'create') && detail && (
-                  <button className="btn-gold w-full" disabled={busy} onClick={() => rebook(detail)}>
-                    <Icon name="calendar" size={16} /> นัดใหม่อีกครั้ง
-                  </button>
-                )
-              )}
-            </div>
+            {/* รายละเอียด — ซ่อนทั้งกล่องเมื่อไม่มีพนักงาน/สถานที่ (เลิกกรอบ "—" หลอก) */}
+            {(detail?.agent?.fullName || active.location) && (
+              <InfoGroup label="รายละเอียด">
+                <InfoRow label="พนักงาน" value={detail?.agent?.fullName || undefined} hideEmpty />
+                <InfoRow label="สถานที่" value={active.location || undefined} stack hideEmpty />
+              </InfoGroup>
+            )}
           </div>
         )}
       </Modal>

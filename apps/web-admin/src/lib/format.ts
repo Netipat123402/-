@@ -67,3 +67,22 @@ export function fmtRelative(iso?: string): string {
   if (day < 7) return `${day} วันที่แล้ว`;
   return fmtDate(iso);
 }
+
+/** เวลานับถอยหลัง (อนาคต) เช่น "อีก 5 นาที" / "อีก 2 ชม." / "พรุ่งนี้" / "อีก 3 วัน"
+ *  เกิน ~7 วัน → คืนวันที่เต็ม (fmtDate). อดีต → "เลยกำหนดแล้ว".
+ *  ใช้เป็น urgency hint ของนัด/สัญญาใกล้ครบ (คู่กับ fmtRelative ที่ทำเฉพาะอดีต) */
+export function fmtUntil(iso?: string): string {
+  const d = parse(iso);
+  if (!d) return '';
+  const sec = Math.round((d.getTime() - Date.now()) / 1000);
+  if (sec < -60) return 'เลยกำหนดแล้ว';
+  if (sec < 60) return 'ถึงกำหนดแล้ว';
+  const min = Math.round(sec / 60);
+  if (min < 60) return `อีก ${min} นาที`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `อีก ${hr} ชม.`;
+  const day = Math.round(hr / 24);
+  if (day === 1) return 'พรุ่งนี้';
+  if (day < 7) return `อีก ${day} วัน`;
+  return fmtDate(iso);
+}
