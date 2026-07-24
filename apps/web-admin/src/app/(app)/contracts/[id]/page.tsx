@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
-import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, SectionNav, StatusBadge } from '@/components/ui';
+import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, SectionTabs, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
 
@@ -125,7 +125,7 @@ export default function ContractDetailPage() {
   if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบสัญญา <Link href="/contracts" className="text-gold-dark underline">กลับ</Link></div>;
 
   return (
-    <div className="mx-auto max-w-3xl xl:max-w-6xl">
+    <div className="mx-auto max-w-3xl xl:max-w-5xl">
       <DetailHeader
         backHref="/contracts"
         code={c.code}
@@ -184,78 +184,70 @@ export default function ContractDetailPage() {
         </>
       )}
 
-      {/* section nav — กระโดดไปแต่ละส่วน (เข้าชุด property) */}
-      <SectionNav items={[
-        { id: 'c-parties', label: 'คู่สัญญา' },
-        { id: 'c-finance', label: 'การเงิน' },
-        { id: 'c-period', label: 'ระยะเวลา' },
-        { id: 'c-terms', label: 'เงื่อนไข' },
-        { id: 'c-docs', label: 'เอกสาร' },
-      ]} />
-      {/* xl+ (คอม) = 2 คอลัมน์: ซ้าย ข้อมูลสัญญา · ขวา เอกสาร (ตรงกับ property) · มือถือ/iPad(รวมนอน 1024) คงคอลัมน์เดียว */}
-      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
-      <div className="min-w-0">
-      {/* คู่สัญญา (ข้อ 6) — meeting-center: role ขวา / ชื่อ+เบอร์ ซ้าย · ทุกแถวกดเข้าได้ */}
-      <InfoGroup label="คู่สัญญา" id="c-parties" className="mt-6">
-        {c.customer && (
-          <InfoRow label="ลูกค้า" href={`/customers/${c.customer.id}`} strong
-            value={<span>{c.customer.fullName}{c.customer.phone && <span className="font-normal text-muted"> · {c.customer.phone}</span>}</span>} />
-        )}
-        {c.property && (
-          <InfoRow label="ทรัพย์" href={`/properties/${c.property.id}`} strong
-            value={<span>{c.property.titleTh} <span className="font-mono text-xs font-normal text-gold-dark">· {c.property.code}</span></span>} />
-        )}
-        {c.owner && (
-          <InfoRow label="เจ้าของ" href={`/owners/${c.owner.id}`} strong
-            value={<span>{c.owner.fullName}{c.owner.phone && <span className="font-normal text-muted"> · {c.owner.phone}</span>}</span>} />
-        )}
-        {c.agent && <InfoRow label="พนักงาน" value={c.agent.fullName} />}
-      </InfoGroup>
+      {/* per-device (owner mandate): มือถือ accordion · iPad/คอม แท็บ · sign-flow/action คงเหนือแท็บ (จัดการก่อน) */}
+      <SectionTabs className="mt-6" items={[
+        { id: 'detail', label: 'รายละเอียด', content: (
+          <div className="xl:columns-2 xl:gap-5">
+            {/* คู่สัญญา */}
+            <InfoGroup label="คู่สัญญา" className="mb-4 break-inside-avoid">
+              {c.customer && (
+                <InfoRow label="ลูกค้า" href={`/customers/${c.customer.id}`} strong hideChevron
+                  value={<span>{c.customer.fullName}{c.customer.phone && <span className="font-normal text-muted"> · {c.customer.phone}</span>}</span>} />
+              )}
+              {c.property && (
+                // ข้อ 5: ชื่อทรัพย์เต็มบรรทัดบน · เลขทรัพย์บรรทัดล่างจาง (เลิกชื่อโดนตัด/เลขลอย)
+                <InfoRow label="ทรัพย์" href={`/properties/${c.property.id}`} strong hideChevron
+                  value={<span><span className="block">{c.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{c.property.code}</span></span>} />
+              )}
+              {c.owner && (
+                <InfoRow label="เจ้าของ" href={`/owners/${c.owner.id}`} strong hideChevron
+                  value={<span>{c.owner.fullName}{c.owner.phone && <span className="font-normal text-muted"> · {c.owner.phone}</span>}</span>} />
+              )}
+              {c.agent && <InfoRow label="พนักงาน" value={c.agent.fullName} />}
+            </InfoGroup>
 
-      {/* การเงิน + ระยะเวลา (ข้อ 6 · Phase 32) */}
-      {/* ค่าเช่าเด่นบนหัว (glance) แล้ว → การเงินเหลือ มัดจำ/นายหน้า ไม่ซ้ำ (T1.3 dedupe) */}
-      <InfoGroup label="การเงิน" id="c-finance" className="mt-4">
-        <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
-        <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
-        {!c.depositAmount && !c.commissionAmount && <p className="py-2.5 text-sm text-muted">ยังไม่ระบุมัดจำ/ค่านายหน้า</p>}
-      </InfoGroup>
-      <InfoGroup label="ระยะเวลา" id="c-period" className="mt-4">
-        <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
-        <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">ใกล้ครบกำหนด</span>}</span>} />
-        <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
-      </InfoGroup>
+            {/* การเงิน — ค่าเช่าอยู่หัว glance แล้ว เหลือ มัดจำ/นายหน้า (T1.3) */}
+            <InfoGroup label="การเงิน" className="mb-4 break-inside-avoid">
+              <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
+              <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
+              {!c.depositAmount && !c.commissionAmount && <p className="py-2.5 text-sm text-muted">ยังไม่ระบุมัดจำ/ค่านายหน้า</p>}
+            </InfoGroup>
 
-      <div id="c-terms" className="mt-6 scroll-mt-28 card p-5">
-        <h2 className="mb-4 font-semibold">เงื่อนไขเพิ่มเติม</h2>
-        {terms.length === 0 ? <p className="mb-3 text-sm text-muted">ยังไม่มีเงื่อนไข</p> : (
-          <ul className="mb-3 divide-y divide-border">
-            {terms.map((t) => (
-              <li key={t.id} className="flex items-center justify-between py-2.5 text-sm">
-                <span><span className="font-medium">{t.termKey}:</span> <span className="text-ink-soft">{t.termValue}</span></span>
-                {can('contract', 'update') && <button className="text-xs text-danger hover:underline" onClick={() => delTerm(t.id)}>ลบ</button>}
-              </li>
-            ))}
-          </ul>
-        )}
-        {can('contract', 'update') && (
-          <div className="flex flex-wrap gap-2">
-            <input className="field h-10 max-w-[160px]" placeholder="หัวข้อ (เช่น ค่าน้ำ)" value={tk} onChange={(e) => setTk(e.target.value)} />
-            <input className="field h-10 flex-1" placeholder="รายละเอียด" value={tv} onChange={(e) => setTv(e.target.value)} />
-            <button className="btn-ghost h-10" onClick={addTerm}><Icon name="plus" size={16} /> เพิ่ม</button>
+            {/* ระยะเวลา */}
+            <InfoGroup label="ระยะเวลา" className="mb-4 break-inside-avoid">
+              <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
+              <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">ใกล้ครบกำหนด</span>}</span>} />
+              <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
+            </InfoGroup>
           </div>
-        )}
-      </div>
-
-      </div>{/* /คอลัมน์ซ้าย (ข้อมูลสัญญา) */}
-
-      {/* ── คอลัมน์ขวา (xl+) — เอกสารสัญญา · มือถือ/iPad ต่อท้ายปกติ ── */}
-      <aside>
-      <div id="c-docs" className="mt-6 scroll-mt-28 card p-5">
-        <h2 className="mb-4 font-semibold">เอกสารสัญญา</h2>
-        <DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} />
-      </div>
-      </aside>
-      </div>{/* /grid 2 คอลัมน์ */}
+        ) },
+        { id: 'terms', label: 'เงื่อนไข', content: (
+          <div className="card p-5">
+            {terms.length === 0 ? <p className="mb-3 text-sm text-muted">ยังไม่มีเงื่อนไข</p> : (
+              <ul className="mb-3 divide-y divide-border">
+                {terms.map((t) => (
+                  <li key={t.id} className="flex items-center justify-between py-2.5 text-sm">
+                    <span><span className="font-medium">{t.termKey}:</span> <span className="text-ink-soft">{t.termValue}</span></span>
+                    {can('contract', 'update') && <button className="text-xs text-danger hover:underline" onClick={() => delTerm(t.id)}>ลบ</button>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {can('contract', 'update') && (
+              <div className="flex flex-wrap gap-2">
+                <input className="field h-10 max-w-[160px]" placeholder="หัวข้อ (เช่น ค่าน้ำ)" value={tk} onChange={(e) => setTk(e.target.value)} />
+                <input className="field h-10 flex-1" placeholder="รายละเอียด" value={tv} onChange={(e) => setTv(e.target.value)} />
+                <button className="btn-ghost h-10" onClick={addTerm}><Icon name="plus" size={16} /> เพิ่ม</button>
+              </div>
+            )}
+          </div>
+        ) },
+        { id: 'docs', label: 'เอกสาร', content: (
+          <div className="card p-5">
+            <DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} />
+          </div>
+        ) },
+      ]} />
 
       {/* ออกใบเสร็จ */}
       <Modal open={receiptOpen} onClose={() => setReceiptOpen(false)} title="ออกใบเสร็จ"
