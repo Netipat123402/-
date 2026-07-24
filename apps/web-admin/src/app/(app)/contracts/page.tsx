@@ -135,17 +135,22 @@ export default function ContractsPage() {
   }
 
   // หลัก = ลูกค้า · การ์ด(touch) รอง = ทรัพย์ (สัญญาของใคร/ทรัพย์ไหน — 1 บรรทัดไม่ตัด) · รหัส+สิ้นสุด = คอลัมน์เฉพาะตาราง (คอมกว้าง scan ง่าย) · ตรง pattern customers/users
+  // คอลัมน์: ลูกค้า | ทรัพย์(ชื่อ+รหัสทรัพย์) | ช่วงสัญญา(เริ่ม–สิ้นสุด) | ค่าเช่า | สถานะ
+  //  · ตัดรหัสสัญญา (CT-xxxx = id ภายใน scan ไม่ค่อยได้ → อยู่ใน detail/URL) · ชื่อทรัพย์นำ รหัสทรัพย์รอง
+  //  · การ์ดมือถือ/iPad: primary(ลูกค้า)+sub(ทรัพย์/ช่วง)+right(ค่าเช่า/สถานะ) = 2 บรรทัดซ้อน (แนว C)
   const cols: Col<Contract>[] = [
     { header: 'ลูกค้า', primary: true, cell: (c) => c.customer?.fullName || `สัญญา ${c.code}` },
-    { header: 'รหัส', cell: (c) => <span className="font-mono text-xs text-gold-dark">{c.code}</span> },
-    { header: 'ทรัพย์', sub: true, width: 'w-56', cell: (c) => c.property?.titleTh || <span className="text-faint">—</span> },
-    { header: 'ช่วงสัญญา', cell: (c) => {
-      // ระยะเวลาสัญญาเป็นแก่นของสัญญาเช่า → โชว์ช่วงเต็ม (เริ่ม–สิ้นสุด) ในคอลัมน์เดียว · สิ้นสุดเน้นทอง (actionable) · ปีย่อ 2 หลักให้กระชับ
+    { header: 'ทรัพย์', sub: true, width: 'w-64', cell: (c) => c.property
+      ? <span>{c.property.titleTh} <span className="font-mono text-xs font-normal text-faint">{c.property.code}</span></span>
+      : <span className="text-faint">—</span> },
+    { header: 'ช่วงสัญญา', sub: true, cell: (c) => {
+      // แก่นสัญญาเช่า → ช่วงเต็ม เริ่ม–สิ้นสุด · สิ้นสุดเน้นทอง (actionable ต่อ/ปิด)
       const fmt = (d?: string) => fmtDate(d) || '—';
       return (c.startDate || c.endDate)
         ? <span className="whitespace-nowrap text-muted">{fmt(c.startDate)} – <span className="text-gold-dark">{fmt(c.endDate)}</span></span>
         : <span className="text-faint">—</span>;
     } },
+    { header: 'ค่าเช่า', right: true, cell: (c) => <span className="font-medium tabular-nums">฿{bahtFormat(Number(c.monthlyRent))}</span> },
     {
       header: 'สถานะ', right: true, cell: (c) => (
         <span className="inline-flex items-center gap-1.5">
@@ -154,7 +159,6 @@ export default function ContractsPage() {
         </span>
       ),
     },
-    { header: 'ค่าเช่า', right: true, cell: (c) => <span className="font-medium tabular-nums">฿{bahtFormat(Number(c.monthlyRent))}</span> },
   ];
 
   return (
