@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { Avatar, Field, InfoRow, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { Avatar, Field, InfoRow, PhoneLink, SectionTabs, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
 import { PROPERTY_STATUS, CONTRACT_STATUS, bahtFormat } from '@/lib/status';
@@ -62,7 +62,7 @@ export default function OwnerDetailPage() {
   const contracts = o.contracts ?? [];
 
   return (
-    <div className="mx-auto max-w-3xl xl:max-w-6xl">
+    <div className="mx-auto max-w-3xl xl:max-w-5xl">
       <Link href="/owners" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><Icon name="arrow-left" size={16} /> กลับ</Link>
 
       {/* HEADER glance identifier — ชื่อ + เบอร์(ไม่มีไอคอน) + action · มือถือ stack / sm+ แนวนอน (action ขวา) */}
@@ -91,96 +91,82 @@ export default function OwnerDetailPage() {
         </div>
       </div>
 
-      {/* คอม (xl) = 2 คอลัมน์ (ซ้าย ข้อมูล/พอร์ต/สัญญา · ขวา rail เอกสาร — ตรงหน้าสัญญา) · มือถือ/iPad คอลัมน์เดียว */}
-      <div className="mt-6 xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
-      <div className="min-w-0 space-y-6">
-
-      {/* ข้อมูลเจ้าของ (ติดต่อ/KYC) — แก้ผ่านปุ่ม "แก้ไขข้อมูล" บนหัว */}
-      <div className="card p-5">
-        <SectionLabel className="mb-3">ข้อมูลเจ้าของ</SectionLabel>
-        {edit ? (
-          <div className="space-y-4">
-            <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-            <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
-            <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <Field label="เลขบัตรประชาชน" inputMode="numeric"
-              hint={o.idCardNo ? `ปัจจุบัน: ${o.idCardNo} — เว้นว่าง = ไม่เปลี่ยน` : 'เว้นว่าง = ไม่ระบุ'}
-              placeholder="กรอกเพื่อเปลี่ยน/เพิ่ม" value={idCardInput} onChange={(e) => setIdCardInput(e.target.value)} />
-            <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
-              <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            </label>
-            <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">โน้ต</span>
-              <textarea className="field h-auto py-2.5" rows={2} placeholder="บันทึกภายใน เช่น ช่องทางติดต่อที่สะดวก" value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-            </label>
-            <div className="flex justify-end gap-2">
-              <button className="btn-ghost" onClick={cancelEdit}>ยกเลิก</button>
-              <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
-            </div>
+      {/* per-device: มือถือ accordion · iPad/คอม แท็บ */}
+      <SectionTabs className="mt-6" items={[
+        { id: 'info', label: 'ข้อมูลเจ้าของ', content: (
+          <div className="card p-5">
+            {edit ? (
+              <div className="space-y-4">
+                <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+                <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
+                <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Field label="เลขบัตรประชาชน" inputMode="numeric"
+                  hint={o.idCardNo ? `ปัจจุบัน: ${o.idCardNo} — เว้นว่าง = ไม่เปลี่ยน` : 'เว้นว่าง = ไม่ระบุ'}
+                  placeholder="กรอกเพื่อเปลี่ยน/เพิ่ม" value={idCardInput} onChange={(e) => setIdCardInput(e.target.value)} />
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
+                  <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                </label>
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">โน้ต</span>
+                  <textarea className="field h-auto py-2.5" rows={2} placeholder="บันทึกภายใน เช่น ช่องทางติดต่อที่สะดวก" value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+                </label>
+                <div className="flex justify-end gap-2">
+                  <button className="btn-ghost" onClick={cancelEdit}>ยกเลิก</button>
+                  <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/60">
+                {/* view/edit parity: โชว์ทุกฟิลด์เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว glance แล้ว */}
+                <InfoRow label="อีเมล" value={o.email || undefined} />
+                <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono />
+                <InfoRow label="ที่อยู่" value={o.address || undefined} stack />
+                <InfoRow label="โน้ต" value={o.note || undefined} stack />
+              </div>
+            )}
           </div>
+        ) },
+        { id: 'props', label: 'ทรัพย์', content: props.length === 0 ? (
+          <p className="py-3 text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
         ) : (
-          <div className="divide-y divide-border/60">
-            {/* view/edit parity: โชว์ทุกฟิลด์ของ record เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว glance แล้ว */}
-            <InfoRow label="อีเมล" value={o.email || undefined} />
-            <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono />
-            <InfoRow label="ที่อยู่" value={o.address || undefined} stack />
-            <InfoRow label="โน้ต" value={o.note || undefined} stack />
+          <div className="card p-5">
+            <ul className="divide-y divide-border">
+              {props.map((p) => (
+                <li key={p.id}>
+                  <button onClick={() => router.push(`/properties/${p.id}`)}
+                    className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{p.titleTh}</p>
+                      <p className="text-xs text-muted">{p.code}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-medium text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
+                    <StatusBadge map={PROPERTY_STATUS} value={p.status} short />
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
-        )}
-      </div>
-
-      {/* ทรัพย์ที่เป็นเจ้าของ — ยอดรวมไปหัว (glance) แล้ว เหลือรายการสะอาด */}
-      <div className="card p-5">
-        <SectionLabel className="mb-4">ทรัพย์ที่เป็นเจ้าของ · {props.length}</SectionLabel>
-        {props.length === 0 ? (
-          <p className="text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
+        ) },
+        { id: 'contracts', label: 'สัญญา', content: contracts.length === 0 ? (
+          <p className="py-3 text-sm text-muted">ยังไม่มีสัญญา</p>
         ) : (
-          <ul className="divide-y divide-border">
-            {props.map((p) => (
-              <li key={p.id}>
-                <button onClick={() => router.push(`/properties/${p.id}`)}
-                  className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{p.titleTh}</p>
-                    <p className="text-xs text-muted">{p.code}</p>
-                  </div>
-                  <span className="shrink-0 text-sm font-medium text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
-                  <StatusBadge map={PROPERTY_STATUS} value={p.status} short />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* สัญญา (ซ่อนเมื่อไม่มี) */}
-      {contracts.length > 0 && (
-        <div className="card p-5">
-          <SectionLabel className="mb-4">สัญญา · {contracts.length}</SectionLabel>
-          <ul className="divide-y divide-border">
-            {contracts.map((c) => (
-              <li key={c.id}>
-                <button onClick={() => router.push(`/contracts/${c.id}`)}
-                  className="flex w-full items-center justify-between gap-3 py-3 text-left transition hover:opacity-70">
-                  <span className="text-sm font-medium">{c.code}</span>
-                  <StatusBadge map={CONTRACT_STATUS} value={c.status} short />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      </div>{/* /คอลัมน์ซ้าย */}
-
-      {/* คอลัมน์ขวา (xl) — เอกสาร · มือถือ/iPad ต่อท้ายปกติ */}
-      <aside className="mt-6 xl:mt-0">
-        <div className="card p-5">
-          <SectionLabel className="mb-4">เอกสาร</SectionLabel>
-          <DocumentSection entityType="owner" entityId={o.id} />
-        </div>
-      </aside>
-
-      </div>{/* /grid 2 คอลัมน์ */}
+          <div className="card p-5">
+            <ul className="divide-y divide-border">
+              {contracts.map((c) => (
+                <li key={c.id}>
+                  <button onClick={() => router.push(`/contracts/${c.id}`)}
+                    className="flex w-full items-center justify-between gap-3 py-3 text-left transition hover:opacity-70">
+                    <span className="text-sm font-medium">{c.code}</span>
+                    <StatusBadge map={CONTRACT_STATUS} value={c.status} short />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) },
+        { id: 'docs', label: 'เอกสาร', content: (
+          <div className="card p-5"><DocumentSection entityType="owner" entityId={o.id} /></div>
+        ) },
+      ]} />
     </div>
   );
 }
