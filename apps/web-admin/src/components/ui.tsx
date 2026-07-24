@@ -905,7 +905,8 @@ export function ListView<T>({
             <tr className="border-b border-border">
               {leading && <th className="w-[68px] py-3 pl-5" aria-hidden />}
               {cols.map((c, i) => (
-                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c.right ? 'text-right' : ''} ${c === growCol ? '' : c.width ?? ''}`}>{c.header}</th>
+                // หัวคอลัมน์ชิดซ้ายทุกคอลัมน์ (รวม right cols) → หัวอยู่เหนือจุดเริ่มเนื้อหาตรงกัน (owner: หัวต้องตรงเนื้อหา) · right = ใช้แค่ตอนมือถือ (cluster ขวา)
+                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c === growCol ? '' : c.width ?? ''}`}>{c.header}</th>
               ))}
             </tr>
           </thead>
@@ -919,7 +920,7 @@ export function ListView<T>({
                   // flex คอลัมน์เดียว (grow/primary) = w-full max-w-0 truncate ดูดพื้นที่ + ตัด "…" ถ้ายาว
                   // คอลัมน์มี width = คุมกว้าง + ตัด "…" (เช่น ทรัพย์ชื่อยาว) · ที่เหลือ nowrap เห็นครบ → 1 บรรทัดเสมอ
                   const colCls = c.right
-                    ? `whitespace-nowrap text-right ${c.width ?? ''}`
+                    ? `whitespace-nowrap ${c.width ?? ''}`
                     : c === growCol
                     ? 'w-full max-w-0 truncate'
                     : c.width

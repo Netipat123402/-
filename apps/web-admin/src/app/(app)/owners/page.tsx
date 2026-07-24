@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
-import { Avatar, Col, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
+import { Col, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { formatPhone, phoneDigits } from '@/lib/format';
 
@@ -77,7 +77,7 @@ export default function OwnersPage() {
 
       <div className="mt-4 mouse:card mouse:overflow-hidden">
         <ListView items={rows} cols={cols} keyOf={(o) => o.id} loading={loading} empty="ยังไม่มีเจ้าของทรัพย์"
-          emptyIcon="user" leading={(o) => <Avatar name={o.fullName} size={38} />}
+          emptyIcon="user"
           onRow={(o) => router.push(`/owners/${o.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />

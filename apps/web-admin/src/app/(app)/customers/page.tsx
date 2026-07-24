@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
-import { Avatar, Col, FilterBar, ListView, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
+import { Col, FilterBar, ListView, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
 
 interface Customer { id: string; fullName: string; phone?: string; email?: string; contractCount?: number; }
 
@@ -43,7 +43,7 @@ export default function CustomersPage() {
       <div className="mt-4 mouse:card mouse:overflow-hidden">
         <ListView items={rows} cols={cols} keyOf={(c) => c.id} loading={loading}
           empty="ยังไม่มีลูกค้า — ลูกค้าจะถูกสร้างเมื่อแปลงจาก Lead" emptyIcon="users"
-          leading={(c) => <Avatar name={c.fullName} size={38} />} onRow={(c) => router.push(`/customers/${c.id}`)} />
+          onRow={(c) => router.push(`/customers/${c.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
     </div>
