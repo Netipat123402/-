@@ -57,7 +57,7 @@ export default function CustomerDetailPage() {
         <Avatar name={c.fullName} size={52} />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{c.fullName}</h1>
-          {c.phone && <PhoneLink phone={formatPhone(c.phone)} hideIcon className="mt-0.5 text-sm text-muted" />}
+          {c.phone && <PhoneLink phone={c.phone} className="mt-0.5 text-sm text-muted" />}
         </div>
       </div>
 

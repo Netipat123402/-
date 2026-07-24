@@ -7,6 +7,7 @@ import { useDebouncedValue } from '@/lib/useDebounce';
 import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import { badgeClass, type Tone } from '@/lib/status';
+import { formatPhone } from '@/lib/format';
 import { Icon, type IconName } from '@/components/Icon';
 import PriceRange from '@/components/PriceRange';
 
@@ -627,12 +628,13 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
 }
 
 /** เบอร์โทรที่ "แตะแล้วโทรเลย" — หยุด event ไม่ให้ไปชนการแตะแถว (เปิด detail) */
-export function PhoneLink({ phone, className = '', hideIcon }: { phone?: string | null; className?: string; hideIcon?: boolean }) {
+// ไม่มีไอคอน ☎ (owner precedent: ไอคอนทำข้อความเคลื่อน) + จัดรูปเบอร์ในตัวเอง → ทุกหน้าตรงกันถาวร
+export function PhoneLink({ phone, className = '' }: { phone?: string | null; className?: string }) {
   if (!phone) return <span className={className}>—</span>;
   return (
     <a href={`tel:${phone.replace(/[^0-9+]/g, '')}`} onClick={(e) => e.stopPropagation()}
-      className={`inline-flex items-center gap-1 transition hover:text-gold-dark ${className}`}>
-      {!hideIcon && <Icon name="phone" size={13} className="shrink-0 opacity-60" />} {phone}
+      className={`inline-flex items-center transition hover:text-gold-dark ${className}`}>
+      {formatPhone(phone)}
     </a>
   );
 }

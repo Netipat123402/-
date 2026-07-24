@@ -333,7 +333,7 @@ export default function AppointmentsPage() {
             {detail?.lead && (
               <InfoGroup label="ลูกค้า">
                 <InfoRow label="ชื่อ" value={detail.lead.fullName} href={`/leads?focus=${detail.lead.id}`} strong hideChevron />
-                <InfoRow label="เบอร์โทร" value={detail.lead.phone ? <PhoneLink phone={detail.lead.phone} hideIcon /> : undefined} hideEmpty />
+                <InfoRow label="เบอร์โทร" value={detail.lead.phone ? <PhoneLink phone={detail.lead.phone} /> : undefined} hideEmpty />
               </InfoGroup>
             )}
 

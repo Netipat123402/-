@@ -71,7 +71,7 @@ export default function OwnerDetailPage() {
           <Avatar name={o.fullName} size={52} />
           <div className="min-w-0">
             <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{o.fullName}</h1>
-            {o.phone && <PhoneLink phone={formatPhone(o.phone)} hideIcon className="mt-0.5 text-sm text-muted" />}
+            {o.phone && <PhoneLink phone={o.phone} className="mt-0.5 text-sm text-muted" />}
           </div>
         </div>
         {can('owner', 'update') && !edit && (
