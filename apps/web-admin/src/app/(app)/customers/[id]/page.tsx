@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { Avatar, ConfirmDialog, Field, InfoRow, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { Avatar, ConfirmDialog, Field, InfoRow, PhoneLink, SectionTabs, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import DocumentSection from '@/components/DocumentSection';
@@ -48,81 +48,94 @@ export default function CustomerDetailPage() {
   if (loading) return <div className="mx-auto max-w-3xl"><div className="h-40 animate-pulse rounded-card bg-canvas" /></div>;
   if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบลูกค้า <Link href="/customers" className="text-gold-dark underline">กลับ</Link></div>;
 
+  const contracts = c.contracts ?? [];
+  const activeRent = contracts.filter((ct) => ct.status === 'active').reduce((s, ct) => s + Number(ct.monthlyRent ?? 0), 0);
+
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl xl:max-w-5xl">
       <Link href="/customers" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><Icon name="arrow-left" size={16} /> กลับ</Link>
 
-      {/* hero — ชื่อเด่น + อักษรย่อ + แตะโทรได้ */}
-      <div className="mt-4 flex items-center gap-3.5">
-        <Avatar name={c.fullName} size={52} />
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{c.fullName}</h1>
-          {c.phone && <PhoneLink phone={c.phone} className="mt-0.5 text-sm text-muted" />}
-        </div>
-      </div>
-
-      <div className="mt-6 card p-5">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <SectionLabel>ข้อมูลติดต่อ</SectionLabel>
-          {can('customer', 'update') && !edit && <button className="text-sm text-gold-dark hover:underline" onClick={() => setEdit(true)}>แก้ไข</button>}
-        </div>
-        {edit ? (
-          <div className="space-y-4">
-            <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-            <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
-            <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
-              <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            </label>
-            <div className="flex justify-end gap-2">
-              <button className="btn-ghost" onClick={() => { setEdit(false); setForm(c); }}>ยกเลิก</button>
-              <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
-            </div>
+      {/* HEADER glance — ชื่อ + เบอร์ + action (แก้ไขข้อมูล) · มือถือ stack / sm+ แนวนอน (เข้าชุด owner) */}
+      <div className="mt-4 sm:flex sm:items-start sm:justify-between sm:gap-4">
+        <div className="flex items-center gap-3.5">
+          <Avatar name={c.fullName} size={52} />
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{c.fullName}</h1>
+            {c.phone && <PhoneLink phone={c.phone} className="mt-0.5 text-sm text-muted" />}
           </div>
-        ) : (
-          <div className="divide-y divide-border/60">
-            {/* view/edit parity: โชว์ทุกฟิลด์ของ record เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว hero แล้ว */}
-            <InfoRow label="อีเมล" value={c.email || undefined} />
-            <InfoRow label="ที่อยู่" value={c.address || undefined} stack />
-          </div>
+        </div>
+        {can('customer', 'update') && !edit && (
+          <button className="btn-ghost btn-sm mt-3 w-full sm:mt-0 sm:w-auto" onClick={() => setEdit(true)}>แก้ไขข้อมูล</button>
         )}
       </div>
 
-      {/* SECONDARY — สัญญาเช่าของลูกค้า */}
-      {c.contracts && c.contracts.length > 0 && (
-        <div className="mt-6 card p-5">
-          <SectionLabel className="mb-4">สัญญา · {c.contracts.length}</SectionLabel>
-          <ul className="divide-y divide-border">
-            {c.contracts.map((ct) => (
-              <li key={ct.id}>
-                <button onClick={() => router.push(`/contracts/${ct.id}`)}
-                  className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
-                  <span className="font-mono text-sm font-medium">{ct.code}</span>
-                  {ct.monthlyRent != null && <span className="ml-auto shrink-0 text-sm font-medium tabular-nums text-gold-dark">฿{bahtFormat(Number(ct.monthlyRent))}</span>}
-                  <StatusBadge map={CONTRACT_STATUS} value={ct.status} short />
-                  <Icon name="chevron-right" size={15} className="shrink-0 text-faint" />
-                </button>
-              </li>
-            ))}
-          </ul>
-          {/* ท้าย: สรุปค่าเช่าปัจจุบัน (เฉพาะสัญญา active) — ข้อมูลใหม่ ไม่ซ้ำหัว */}
-          {c.contracts.some((ct) => ct.status === 'active') && (
-            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-3 text-xs">
-              <span className="text-muted">ค่าเช่าปัจจุบัน</span>
-              <span className="font-medium tabular-nums text-ink">฿{bahtFormat(c.contracts.filter((ct) => ct.status === 'active').reduce((s, ct) => s + Number(ct.monthlyRent ?? 0), 0))}/เดือน</span>
+      {/* สัญญา = glance stat (ยกยอดค่าเช่าปัจจุบันขึ้นหัว) — โชว์เมื่อมีสัญญา */}
+      {contracts.length > 0 && (
+        <div className="mt-4 flex gap-8 border-y border-border/60 py-3">
+          <div>
+            <div className="text-lg font-semibold tabular-nums text-ink">{contracts.length}</div>
+            <div className="text-xs text-muted">สัญญา</div>
+          </div>
+          {activeRent > 0 && (
+            <div>
+              <div className="text-lg font-semibold tabular-nums text-gold-dark">฿{bahtFormat(activeRent)}<span className="text-xs font-normal text-faint">/เดือน</span></div>
+              <div className="text-xs text-muted">ค่าเช่าปัจจุบัน</div>
             </div>
           )}
         </div>
       )}
 
-      {/* ADVANCED — เอกสาร */}
-      <div className="mt-6 card p-5">
-        <SectionLabel className="mb-4">เอกสาร</SectionLabel>
-        <DocumentSection entityType="customer" entityId={c.id} />
-      </div>
+      {/* per-device: มือถือ accordion · iPad/คอม แท็บ */}
+      <SectionTabs className="mt-6" items={[
+        { id: 'contact', label: 'ข้อมูลติดต่อ', content: (
+          <div className="card p-5">
+            {edit ? (
+              <div className="space-y-4">
+                <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+                <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
+                <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
+                  <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+                </label>
+                <div className="flex justify-end gap-2">
+                  <button className="btn-ghost" onClick={() => { setEdit(false); setForm(c); }}>ยกเลิก</button>
+                  <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/60">
+                {/* view/edit parity: โชว์ทุกฟิลด์เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว glance แล้ว */}
+                <InfoRow label="อีเมล" value={c.email || undefined} />
+                <InfoRow label="ที่อยู่" value={c.address || undefined} stack />
+              </div>
+            )}
+          </div>
+        ) },
+        { id: 'contracts', label: 'สัญญา', content: contracts.length === 0 ? (
+          <p className="py-3 text-sm text-muted">ยังไม่มีสัญญา</p>
+        ) : (
+          <div className="card p-5">
+            <ul className="divide-y divide-border">
+              {contracts.map((ct) => (
+                <li key={ct.id}>
+                  <button onClick={() => router.push(`/contracts/${ct.id}`)}
+                    className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
+                    <span className="font-mono text-sm font-medium">{ct.code}</span>
+                    {ct.monthlyRent != null && <span className="ml-auto shrink-0 text-sm font-medium tabular-nums text-gold-dark">฿{bahtFormat(Number(ct.monthlyRent))}</span>}
+                    <StatusBadge map={CONTRACT_STATUS} value={ct.status} short />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) },
+        { id: 'docs', label: 'เอกสาร', content: (
+          <div className="card p-5"><DocumentSection entityType="customer" entityId={c.id} /></div>
+        ) },
+      ]} />
 
       {/* ลบลูกค้า — เฉพาะที่ยังไม่มีสัญญา (เช่น convert จาก Lead ผิด) */}
-      {can('customer', 'delete') && !(c.contracts && c.contracts.length > 0) && (
+      {can('customer', 'delete') && contracts.length === 0 && (
         <div className="mt-6 text-center">
           <button className="text-sm text-danger hover:underline" onClick={() => setDelOpen(true)}>ลบลูกค้ารายนี้</button>
         </div>
