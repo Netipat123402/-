@@ -60,6 +60,10 @@
 ---
 
 ## Log (อัปเดตเมื่อ done)
+- ✅ **owner-review batch (per-device + tabs + headers)** — ทั้ง 4 record detail = consistent: **glance header + tabs↔accordion per-device** (มือถือ accordion · iPad tabs 1col · คอม tabs+2col)
+  - `1b2378a` owner: glance header + portfolio stat + list ☎ ออก · `2ad1438` view/edit parity (customer+owner) · `84fa318` **PhoneLink ตัด ☎ ทั้งระบบ** (central) · `606add1` property tabs (+SectionTabs component) · `985f61b` contract tabs + ข้อ5 ทรัพย์/code · `9a641fe` customer glance header + tabs · `37c794a` owner tabs
+  - กฎใหม่: [[ros-sidebar-entity-audit]] · [[ros-view-edit-field-parity]] · [[ros-clean-detail-rows]] (☎ default off)
+  - audit ทั้งระบบ 20 หน้า: กระทบ 4 record detail · อีก 16 (list=pagination · wizard=stepper · dashboard/calendar/search/settings) ดีอยู่แล้ว ไม่แตะ
 - ✅ **T1.2/T1.3/T1.4 detail dedupe** (`bf49711`) · ลูกค้า/เจ้าของ เบอร์อยู่ hero ที่เดียว · สัญญา ค่าเช่าอยู่หัว การเงินเหลือมัดจำ/นายหน้า · verify authed 3 หน้า · **Phase 1 ครบ** (T1.5 wizard = ดีอยู่แล้ว ไม่แตะ)
 - ✅ **T1.1 polish (owner review)** (`46358aa`) · ปุ่ม stack เต็มกว้างเรียงตรง · ตัดไอคอน ☎/chevron (PhoneLink hideIcon + InfoRow hideChevron opt-in) → [[ros-clean-detail-rows]]
 - ✅ **T1.1 นัดหมาย modal — status-driven bar (C)** (`5861a2c`) · owner เทียบ A(sticky footer)/B(header actions)/C(status bar) เลือก C · +fmtUntil ใน lib/format · verify worktree authed (upcoming ทอง+"เลยกำหนดแล้ว" · done neutral+นัดใหม่ · mobile375)
