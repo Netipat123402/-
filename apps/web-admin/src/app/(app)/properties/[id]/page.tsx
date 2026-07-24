@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { mediaUrl } from '@/lib/api';
 import { PROPERTY_STATUS, bahtFormat } from '@/lib/status';
-import { ActionBar, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, ProgressBar, SectionLabel, SectionNav, StatusBadge } from '@/components/ui';
+import { ActionBar, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, ProgressBar, SectionLabel, SectionTabs, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import PropertyForm, { type PropertyInitial } from '@/components/PropertyForm';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -101,7 +101,7 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl xl:max-w-6xl">
+    <div className="mx-auto max-w-3xl xl:max-w-5xl">
       <DetailHeader
         backHref="/properties"
         code={p.code}
@@ -184,10 +184,7 @@ export default function PropertyDetailPage() {
         );
       })()}
 
-      {/* Desktop 2 คอลัมน์ (xl+ เท่านั้น): ซ้าย=รูป+ข้อมูลหลัก · ขวา=เอกสาร+ประวัติ → ใช้พื้นที่จอกว้าง + scroll สั้นลง · มือถือ/iPad(รวมแนวนอน 1024) คงคอลัมน์เดียว (stack) */}
-      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
-      <div className="min-w-0">
-      {/* รูปทรัพย์ — แบบเดียวกับหน้าเว็บ (รูปใหญ่ + thumbnail + lightbox) + ปุ่มจัดการ · มือถือปัด / desktop ลูกศร hover */}
+      {/* รูปทรัพย์ (identity) คงบนสุดเสมอ · มือถือปัด / desktop ลูกศร hover */}
       <div className="mt-6">
         <input ref={fileRef} type="file" accept="image/*" hidden
           onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadImage(file); e.target.value = ''; }} />
@@ -266,84 +263,63 @@ export default function PropertyDetailPage() {
         })()}
       </div>
 
-      {/* section nav — กระโดดไปแต่ละส่วน (หน้ายาว · Stripe/Linear) · dynamic ตามส่วนที่มีจริง */}
-      <SectionNav items={[
-        p.depositMonths != null && { id: 'sec-price', label: 'เงื่อนไข' },
-        hasRoomInfo && { id: 'sec-room', label: 'ห้อง & พื้นที่' },
-        hasLocation && { id: 'sec-location', label: 'ทำเล' },
-        p.descriptionTh && { id: 'sec-desc', label: 'รายละเอียด' },
-        amenities.length > 0 && { id: 'sec-amenities', label: 'สิ่งอำนวยฯ' },
-        p.owner && { id: 'sec-owner', label: 'เจ้าของ' },
-      ].filter(Boolean) as { id: string; label: string }[]} />
-      {/* ข้อมูลทรัพย์ (Phase 10) — 1 บรรทัด 1 ข้อมูล ไล่ลง เรียงตามความสำคัญ: ราคา→ห้อง→ทำเล→รายละเอียด→สิ่งอำนวยฯ */}
-      <div className="space-y-4">
-        {/* ค่าเช่าโชว์ที่หัวจุดเดียว (dedupe) — กล่องนี้เหลือเงื่อนไข (มัดจำ) โชว์เมื่อมีข้อมูล */}
-        {p.depositMonths != null && (
-          <InfoGroup label="เงื่อนไขการเช่า" id="sec-price">
-            <InfoRow label="เงินมัดจำ" value={`${p.depositMonths} เดือน`} />
+      {/* per-device (owner mandate): มือถือ = accordion · iPad/คอม = แท็บ · เนื้อ "ข้อมูลทรัพย์" 2 คอลัมน์บนคอม (xl) */}
+      <SectionTabs className="mt-6" items={[
+        { id: 'info', label: 'ข้อมูลทรัพย์', content: (
+          <div className="xl:columns-2 xl:gap-5">
+            {p.depositMonths != null && (
+              <InfoGroup label="เงื่อนไขการเช่า" className="mb-4 break-inside-avoid">
+                <InfoRow label="เงินมัดจำ" value={`${p.depositMonths} เดือน`} />
+              </InfoGroup>
+            )}
+            {hasRoomInfo && (
+              <InfoGroup label="ห้อง & พื้นที่" className="mb-4 break-inside-avoid">
+                <InfoRow icon="bed" label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
+                <InfoRow icon="bath" label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
+                <InfoRow icon="area" label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
+                <InfoRow icon="floor" label="ชั้น" value={p.floor || undefined} hideEmpty />
+                <InfoRow icon="sofa" label="เฟอร์นิเจอร์" value={p.furnished ? (FURNISHED_TH[p.furnished] ?? p.furnished) : undefined} hideEmpty />
+              </InfoGroup>
+            )}
+            {hasLocation && (
+              <InfoGroup label="ทำเล" className="mb-4 break-inside-avoid">
+                <InfoRow label="โครงการ" value={p.projectName || undefined} hideEmpty />
+                <InfoRow label="จังหวัด" value={p.province || undefined} hideEmpty />
+                <InfoRow label="เขต / อำเภอ" value={p.district || undefined} hideEmpty />
+              </InfoGroup>
+            )}
+            {p.descriptionTh && (
+              <InfoGroup label="รายละเอียด" className="mb-4 break-inside-avoid">
+                <p className="whitespace-pre-line py-3 text-sm leading-relaxed text-ink-soft">{p.descriptionTh}</p>
+              </InfoGroup>
+            )}
+            {amenities.length > 0 && (
+              <InfoGroup label="สิ่งอำนวยความสะดวก" className="mb-4 break-inside-avoid">
+                <div className="flex flex-wrap gap-1.5 py-3">
+                  {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
+                </div>
+              </InfoGroup>
+            )}
+            {p.depositMonths == null && !hasRoomInfo && !hasLocation && !p.descriptionTh && amenities.length === 0 && (
+              <p className="py-3 text-sm text-muted">ยังไม่มีข้อมูลทรัพย์เพิ่มเติม — กด “แก้ไขข้อมูล”</p>
+            )}
+          </div>
+        ) },
+        { id: 'owner', label: 'เจ้าของ', content: p.owner ? (
+          <InfoGroup label="เจ้าของทรัพย์">
+            <InfoRow label="ชื่อ" value={p.owner.fullName} href={p.owner.id ? `/owners/${p.owner.id}` : undefined} strong hideChevron />
+            <InfoRow label="เบอร์โทร" value={p.owner.phone ? <PhoneLink phone={p.owner.phone} /> : undefined} hideEmpty />
+            <InfoRow label="อีเมล" value={p.owner.email || undefined} hideEmpty />
+            <InfoRow label="จำนวนทรัพย์ที่ถือ" value={p.owner._count ? `${p.owner._count.properties} รายการ` : undefined} hideEmpty />
           </InfoGroup>
-        )}
-
-        {hasRoomInfo && (
-          <InfoGroup label="ห้อง & พื้นที่" id="sec-room">
-            <InfoRow icon="bed" label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
-            <InfoRow icon="bath" label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
-            <InfoRow icon="area" label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
-            <InfoRow icon="floor" label="ชั้น" value={p.floor || undefined} hideEmpty />
-            <InfoRow icon="sofa" label="เฟอร์นิเจอร์" value={p.furnished ? (FURNISHED_TH[p.furnished] ?? p.furnished) : undefined} hideEmpty />
-          </InfoGroup>
-        )}
-
-        {hasLocation && (
-          <InfoGroup label="ทำเล" id="sec-location">
-            <InfoRow label="โครงการ" value={p.projectName || undefined} hideEmpty />
-            <InfoRow label="จังหวัด" value={p.province || undefined} hideEmpty />
-            <InfoRow label="เขต / อำเภอ" value={p.district || undefined} hideEmpty />
-          </InfoGroup>
-        )}
-
-        {p.descriptionTh && (
-          <InfoGroup label="รายละเอียด" id="sec-desc">
-            <p className="whitespace-pre-line py-3 text-sm leading-relaxed text-ink-soft">{p.descriptionTh}</p>
-          </InfoGroup>
-        )}
-
-        {amenities.length > 0 && (
-          <InfoGroup label="สิ่งอำนวยความสะดวก" id="sec-amenities">
-            <div className="flex flex-wrap gap-1.5 py-3">
-              {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
-            </div>
-          </InfoGroup>
-        )}
-      </div>
-
-      {/* เจ้าของทรัพย์ (Phase 11) — InfoGroup: ชื่อ(กดเข้า owner)/เบอร์(แตะโทร)/อีเมล/จำนวนทรัพย์ที่ถือ */}
-      {p.owner && (
-        <InfoGroup label="เจ้าของทรัพย์" className="mt-6" id="sec-owner">
-          <InfoRow label="ชื่อ" value={p.owner.fullName} href={p.owner.id ? `/owners/${p.owner.id}` : undefined} strong />
-          <InfoRow label="เบอร์โทร" value={p.owner.phone ? <PhoneLink phone={p.owner.phone} /> : undefined} hideEmpty />
-          <InfoRow label="อีเมล" value={p.owner.email || undefined} hideEmpty />
-          <InfoRow label="จำนวนทรัพย์ที่ถือ" value={p.owner._count ? `${p.owner._count.properties} รายการ` : undefined} hideEmpty />
-        </InfoGroup>
-      )}
-
-      </div>{/* /คอลัมน์ซ้าย (รูป + ข้อมูลหลัก) */}
-
-      {/* ── คอลัมน์ขวา (desktop lg+) — เอกสาร + ประวัติ · มือถือ/iPad ต่อท้ายปกติ (stack) ── */}
-      <aside className="mt-6 space-y-6">
-        {/* documents */}
-        <div className="card p-5">
-          <SectionLabel className="mb-4">เอกสาร</SectionLabel>
-          <DocumentSection entityType="property" entityId={p.id} />
-        </div>
-
-        {/* activity timeline (Activity Center ระดับ entity) */}
-        <div className="card p-5">
-          <SectionLabel className="mb-4">ประวัติการเปลี่ยนแปลง</SectionLabel>
-          <ActivityTimeline path={`/properties/${p.id}/activities`} />
-        </div>
-      </aside>
-      </div>{/* /grid 2 คอลัมน์ */}
+        ) : <p className="py-3 text-sm text-muted">ไม่มีข้อมูลเจ้าของ</p> },
+        { id: 'docs', label: 'เอกสาร', content: (
+          <div className="card p-5"><DocumentSection entityType="property" entityId={p.id} /></div>
+        ) },
+        { id: 'activity', label: 'ประวัติ', content: (
+          <div className="card p-5"><ActivityTimeline path={`/properties/${p.id}/activities`} /></div>
+        ) },
+      ]} />
 
       <Modal open={!!editInitial} onClose={() => setEditInitial(null)} title="แก้ไขทรัพย์" size="xl">
         {editInitial && (

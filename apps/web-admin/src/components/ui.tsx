@@ -223,6 +223,42 @@ export function InfoGroup({
 }
 
 /**
+ * SectionTabs — responsive per-device (owner mandate): มือถือ = accordion (พับ, เปิดทีละอัน) · sm+ = แท็บ (แถบบน + panel เดียว)
+ * เนื้อหาทุก panel mount ตลอด (ซ่อนด้วย hidden ไม่ unmount) → ไม่ refetch ตอนสลับ · active เริ่มที่ 0 (ไม่ hydration mismatch)
+ */
+export function SectionTabs({ items, className = '' }: {
+  items: { id: string; label: React.ReactNode; content: React.ReactNode }[];
+  className?: string;
+}) {
+  const [active, setActive] = useState(0);
+  return (
+    <div className={className}>
+      {/* แท็บบาร์ — sm+ เท่านั้น (มือถือใช้หัว accordion แทน) */}
+      <div className="mb-5 hidden gap-1 border-b border-border sm:flex" role="tablist">
+        {items.map((it, i) => (
+          <button key={it.id} type="button" role="tab" aria-selected={active === i} onClick={() => setActive(i)}
+            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition ${active === i ? 'border-gold text-ink' : 'border-transparent text-muted hover:text-ink'}`}>
+            {it.label}
+          </button>
+        ))}
+      </div>
+      {items.map((it, i) => (
+        <div key={it.id}>
+          {/* หัว accordion — มือถือเท่านั้น */}
+          <button type="button" onClick={() => setActive(i)} aria-expanded={active === i}
+            className={`mb-2 flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-left text-sm font-medium sm:hidden ${active === i ? 'text-ink' : 'text-muted'}`}>
+            {it.label}
+            <Icon name="chevron-right" size={17} className={`shrink-0 text-faint transition ${active === i ? 'rotate-90' : ''}`} />
+          </button>
+          {/* เนื้อหา — โชว์เมื่อ active (ทั้งแท็บ+พับ) · ที่เหลือ hidden (ยัง mount) */}
+          <div role="tabpanel" className={active === i ? 'mb-4 block sm:mb-0' : 'hidden'}>{it.content}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
  * DetailHeader — หัวหน้ารายละเอียดมาตรฐาน (R1: 1 บรรทัด 1 ข้อมูล, ไล่บน→ล่าง)
  * บรรทัด: [back] · code(mono จาง)+badge+meta · ชื่อ(display) · subtitle จาง · ราคา ฿(gold เด่น tabular)
  * ใช้ร่วมทุกโมดูล (ทรัพย์/สัญญา/…) — badge ส่งเป็น node ให้ generic ข้ามโมดูล
