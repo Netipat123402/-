@@ -289,8 +289,8 @@ export default function PropertyDetailPage() {
               </InfoGroup>
             )}
             {p.descriptionTh && (
-              <InfoGroup label="รายละเอียด" className="mb-4 break-inside-avoid">
-                <p className="whitespace-pre-line py-3 text-sm leading-relaxed text-ink-soft">{p.descriptionTh}</p>
+              <InfoGroup className="mb-4 break-inside-avoid">
+                <InfoRow label="รายละเอียด" stack value={<span className="whitespace-pre-line leading-relaxed">{p.descriptionTh}</span>} />
               </InfoGroup>
             )}
             {amenities.length > 0 && (

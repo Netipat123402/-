@@ -165,9 +165,10 @@ export function InfoRow({
   //    → คู่อยู่ติดกัน ไม่มีช่องกลางบานเสียเปล่าบนจอกว้าง (แบบ Stripe/Linear/GitHub sidebar)
   // stack = ค่ายาว (ที่อยู่/โน้ต) → label บน / value ล่าง เต็มกว้าง (ห่อหลายบรรทัดสวย ไม่บีบ)
   const inner = stack ? (
-    <div className="py-2.5 touch:py-3">
-      <span className="mb-1 block text-xs text-muted">{labelNode}</span>
-      <span className="flex min-w-0 items-start gap-2">{valueNode}{action}{chevron}</span>
+    // มือถือ = stack (label บน / value ล่าง full-width อ่านง่าย) · sm+ = rail (label w-36 + value flex-1) ให้ค่ายาว (ที่อยู่/โน้ต/รายละเอียด) align คอลัมน์เดียวกับแถวอื่น
+    <div className="py-2.5 touch:py-3 sm:flex sm:items-start sm:gap-3">
+      <span className="mb-1 block text-xs text-muted sm:mb-0 sm:w-36 sm:shrink-0 sm:text-sm">{labelNode}</span>
+      <span className="flex min-w-0 items-start gap-2 sm:flex-1">{valueNode}{action}{chevron}</span>
     </div>
   ) : (
     <div className="flex items-center justify-between gap-4 py-2.5 touch:py-3 sm:justify-start sm:gap-3">
