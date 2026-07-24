@@ -57,7 +57,7 @@ export default function CustomerDetailPage() {
         <Avatar name={c.fullName} size={52} />
         <div className="min-w-0">
           <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{c.fullName}</h1>
-          {c.phone && <PhoneLink phone={c.phone} className="mt-0.5 text-sm text-muted" />}
+          {c.phone && <PhoneLink phone={formatPhone(c.phone)} hideIcon className="mt-0.5 text-sm text-muted" />}
         </div>
       </div>
 
@@ -81,10 +81,9 @@ export default function CustomerDetailPage() {
           </div>
         ) : (
           <div className="divide-y divide-border/60">
-            {/* เบอร์อยู่ใต้ชื่อ (hero) แล้ว = glance + แตะโทร → ไม่ซ้ำในกล่องนี้ (T1.2 dedupe) */}
-            <InfoRow label="อีเมล" value={c.email || undefined} hideEmpty />
-            <InfoRow label="ที่อยู่" value={c.address || undefined} stack hideEmpty />
-            {!c.email && !c.address && <p className="py-2.5 text-center text-sm text-muted">ยังไม่มีอีเมล/ที่อยู่ — กด “แก้ไข” เพื่อเพิ่ม</p>}
+            {/* view/edit parity: โชว์ทุกฟิลด์ของ record เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว hero แล้ว */}
+            <InfoRow label="อีเมล" value={c.email || undefined} />
+            <InfoRow label="ที่อยู่" value={c.address || undefined} stack />
           </div>
         )}
       </div>

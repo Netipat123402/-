@@ -119,12 +119,11 @@ export default function OwnerDetailPage() {
           </div>
         ) : (
           <div className="divide-y divide-border/60">
-            {/* เบอร์อยู่ใต้ชื่อ (hero) แล้ว = glance + แตะโทร → ไม่ซ้ำในกล่องนี้ (T1.4 dedupe) */}
-            <InfoRow label="อีเมล" value={o.email || undefined} hideEmpty />
-            <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono hideEmpty />
-            <InfoRow label="ที่อยู่" value={o.address || undefined} stack hideEmpty />
-            <InfoRow label="โน้ต" value={o.note || undefined} stack hideEmpty />
-            {!o.email && !o.idCardNo && !o.address && !o.note && <p className="py-2.5 text-center text-sm text-muted">ยังไม่มีข้อมูลเพิ่มเติม — กด “แก้ไข” เพื่อเพิ่ม</p>}
+            {/* view/edit parity: โชว์ทุกฟิลด์ของ record เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว glance แล้ว */}
+            <InfoRow label="อีเมล" value={o.email || undefined} />
+            <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono />
+            <InfoRow label="ที่อยู่" value={o.address || undefined} stack />
+            <InfoRow label="โน้ต" value={o.note || undefined} stack />
           </div>
         )}
       </div>
