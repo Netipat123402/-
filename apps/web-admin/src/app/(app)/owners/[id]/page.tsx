@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { Avatar, Field, InfoRow, PhoneLink, SectionTabs, StatusBadge } from '@/components/ui';
-import { Icon } from '@/components/Icon';
+import { ActionBar, DetailHeader, Field, InfoGroup, InfoRow, PhoneLink, SectionTabs, StatusBadge } from '@/components/ui';
 import DocumentSection from '@/components/DocumentSection';
 import { PROPERTY_STATUS, CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import { formatPhone } from '@/lib/format';
@@ -63,23 +62,17 @@ export default function OwnerDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl xl:max-w-5xl">
-      <Link href="/owners" className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink"><Icon name="arrow-left" size={16} /> กลับ</Link>
+      {/* HEADER = DetailHeader (แม่แบบเดียวกับทรัพย์/สัญญา) — ชื่อ + เบอร์ + ปุ่มแก้ไข · ไม่มี avatar (ให้ทั้งระบบเหมือนกัน) */}
+      <DetailHeader
+        backHref="/owners"
+        title={o.fullName}
+        subtitle={o.phone ? <PhoneLink phone={o.phone} className="text-sm text-muted" /> : undefined}
+        actions={can('owner', 'update') && !edit
+          ? <ActionBar><button className="btn-ghost btn-sm" onClick={startEdit}>แก้ไขข้อมูล</button></ActionBar>
+          : undefined}
+      />
 
-      {/* HEADER glance identifier — ชื่อ + เบอร์(ไม่มีไอคอน) + action · มือถือ stack / sm+ แนวนอน (action ขวา) */}
-      <div className="mt-4 sm:flex sm:items-start sm:justify-between sm:gap-4">
-        <div className="flex items-center gap-3.5">
-          <Avatar name={o.fullName} size={52} />
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">{o.fullName}</h1>
-            {o.phone && <PhoneLink phone={o.phone} className="mt-0.5 text-sm text-muted" />}
-          </div>
-        </div>
-        {can('owner', 'update') && !edit && (
-          <button className="btn-ghost btn-sm mt-3 w-full sm:mt-0 sm:w-auto" onClick={startEdit}>แก้ไขข้อมูล</button>
-        )}
-      </div>
-
-      {/* พอร์ต = glance stat (landlord: ทรัพย์คือ asset หลัก) — ยกยอดรวมจากท้ายการ์ดขึ้นหัว */}
+      {/* พอร์ต = glance stat (landlord: ทรัพย์คือ asset หลัก) */}
       <div className="mt-4 flex gap-8 border-y border-border/60 py-3">
         <div>
           <div className="text-lg font-semibold tabular-nums text-ink">{props.length}</div>
@@ -93,9 +86,31 @@ export default function OwnerDetailPage() {
 
       {/* per-device: มือถือ accordion · iPad/คอม แท็บ */}
       <SectionTabs className="mt-6" items={[
-        { id: 'info', label: 'ข้อมูลเจ้าของ', content: (
+        // ทรัพย์ในพอร์ต = ของหลักของ landlord → แท็บแรก (redesign ลำดับตาม entity)
+        { id: 'props', label: 'ทรัพย์ในพอร์ต', content: props.length === 0 ? (
+          <p className="py-3 text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
+        ) : (
           <div className="card p-5">
-            {edit ? (
+            <ul className="divide-y divide-border">
+              {props.map((p) => (
+                <li key={p.id}>
+                  <button onClick={() => router.push(`/properties/${p.id}`)}
+                    className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{p.titleTh}</p>
+                      <p className="text-xs text-muted">{p.code}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-medium text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
+                    <StatusBadge map={PROPERTY_STATUS} value={p.status} short outline />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) },
+        { id: 'info', label: 'ข้อมูลเจ้าของ', content: (
+          edit ? (
+            <div className="card p-5">
               <div className="space-y-4">
                 <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
                 <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
@@ -114,37 +129,22 @@ export default function OwnerDetailPage() {
                   <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
                 </div>
               </div>
-            ) : (
-              <div className="divide-y divide-border/60">
-                {/* view/edit parity: โชว์ทุกฟิลด์เท่า edit (ว่าง = "—") — เบอร์/ชื่ออยู่หัว glance แล้ว */}
+            </div>
+          ) : (
+            // แยกกล่องชัด (แม่แบบทรัพย์): ติดต่อ / ระบุตัวตน / โน้ต — เลิกปนหมวด · xl 2 คอลัมน์ · view/edit parity (ว่าง = —)
+            <div className="xl:columns-2 xl:gap-5">
+              <InfoGroup label="ติดต่อ" className="mb-4 break-inside-avoid">
                 <InfoRow label="อีเมล" value={o.email || undefined} />
-                <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono />
                 <InfoRow label="ที่อยู่" value={o.address || undefined} stack />
-                <InfoRow label="โน้ต" value={o.note || undefined} stack />
-              </div>
-            )}
-          </div>
-        ) },
-        { id: 'props', label: 'ทรัพย์', content: props.length === 0 ? (
-          <p className="py-3 text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
-        ) : (
-          <div className="card p-5">
-            <ul className="divide-y divide-border">
-              {props.map((p) => (
-                <li key={p.id}>
-                  <button onClick={() => router.push(`/properties/${p.id}`)}
-                    className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{p.titleTh}</p>
-                      <p className="text-xs text-muted">{p.code}</p>
-                    </div>
-                    <span className="shrink-0 text-sm font-medium text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
-                    <StatusBadge map={PROPERTY_STATUS} value={p.status} short />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+              </InfoGroup>
+              <InfoGroup label="ระบุตัวตน" className="mb-4 break-inside-avoid">
+                <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono />
+              </InfoGroup>
+              <InfoGroup label="โน้ตภายใน" className="mb-4 break-inside-avoid">
+                <div className="py-3 text-sm leading-relaxed text-ink-soft">{o.note || <span className="text-faint">—</span>}</div>
+              </InfoGroup>
+            </div>
+          )
         ) },
         { id: 'contracts', label: 'สัญญา', content: contracts.length === 0 ? (
           <p className="py-3 text-sm text-muted">ยังไม่มีสัญญา</p>
@@ -156,7 +156,7 @@ export default function OwnerDetailPage() {
                   <button onClick={() => router.push(`/contracts/${c.id}`)}
                     className="flex w-full items-center justify-between gap-3 py-3 text-left transition hover:opacity-70">
                     <span className="text-sm font-medium">{c.code}</span>
-                    <StatusBadge map={CONTRACT_STATUS} value={c.status} short />
+                    <StatusBadge map={CONTRACT_STATUS} value={c.status} short outline />
                   </button>
                 </li>
               ))}
