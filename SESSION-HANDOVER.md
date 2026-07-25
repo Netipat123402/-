@@ -32,9 +32,9 @@
 - `91e6b24` **list หัวคอลัมน์ชิดซ้ายตรงเนื้อหา** ทุกหน้า + เอา avatar (profile icon) ออก (เจ้าของ+ลูกค้า)
 - `a109cdb`→`c6809e3` **สัญญา list = แม่แบบ minimal (variant C)** — primary 2 บรรทัด (Col.twoLine) · outline pill (StatusBadge outline) · วันย่อ (fmtDateCompact) · ตัด clutter · **infra พร้อมใช้ซ้ำ**
 
-## 3) 🎯 งานถัดไป (owner สั่งไว้ · ยังไม่ทำ)
-### ⭐ A) ใช้แม่แบบ list minimal (variant C) กับ 5 หน้าที่เหลือ
-เจ้าของ/ทรัพย์/ลีด/ลูกค้า/นัดหมาย → primary 2 บรรทัด + outline pill + วันย่อ + ตัด clutter (ดู [[ros-list-minimal-template]]). **นัดหมาย = ประเมินว่าดีอยู่แล้ว** · **rich cols (เจ้าของในทรัพย์ · ทรัพย์ที่สนใจในลีด · ทรัพย์ที่เช่าในลูกค้า) ติด R2** (ต้องเจ้าของเคาะปลด R2). แต่ละหน้า = รูปเทียบ 3 จอ ก่อน + verify authed 3 จอ.
+## 3) 🎯 งานถัดไป (owner สั่งไว้)
+### ✅ A) ใช้แม่แบบ list minimal (variant C) — เสร็จ (commit `661a450`)
+owner approved batch: ลีด (ตัดรหัส + outline pill) · ทรัพย์ (เก็บรหัส RN-xxxx = คีย์สต็อก + outline) · นัดหมาย (outline pill · คงวันเวลา fmtDateTime) · เจ้าของ/ลูกค้า minimal ตรงแม่แบบอยู่แล้วไม่แตะ. verify authed 3 จอ ผ่าน. **rich cols (เจ้าของในทรัพย์ · ทรัพย์ที่สนใจในลีด · ทรัพย์ที่เช่าในลูกค้า) ยังติด R2** (ต้องเจ้าของเคาะปลด R2). ดู [[ros-list-minimal-template]].
 
 ### ⭐ B) แยกหมวดข้อมูลที่ติดกัน (กฎใหม่ owner)
 ไล่สแกนทุกหน้า หา "ชุดข้อมูลควรแยกแต่ติดกัน" (เช่น **นัดหมาย: วันที่+สถานที่ ติดกัน**) → แยกคนละหมวด. เสนอ before/after + รูป 3 จอ + เหตุผล ก่อนแก้. (ดู [[ros-category-split-and-device-subset]] กฎ A)
