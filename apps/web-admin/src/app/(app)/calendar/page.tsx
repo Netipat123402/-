@@ -181,7 +181,7 @@ export default function CalendarPage() {
               {selectedAppts.map((a) => (
                 <li key={a.id}>
                   {/* กดการ์ด → เปิดรายละเอียดนัดนั้นทันที (deep-link เดียวกับแจ้งเตือน) */}
-                  <button type="button" onClick={() => router.push(`/appointments?focus=${a.id}`)}
+                  <button type="button" onClick={() => router.push(`/appointments/${a.id}`)}
                     className="w-full rounded-xl border border-border p-4 text-left transition hover:border-gold/40 active:scale-[0.99]">
                     <div className="flex items-center justify-between gap-2">
                       <span className="inline-flex items-center gap-1.5 font-semibold"><Icon name="clock" size={15} className="text-faint" />{new Date(a.scheduledAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>

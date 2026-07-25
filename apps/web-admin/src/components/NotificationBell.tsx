@@ -116,7 +116,7 @@ export default function NotificationBell() {
     for (const a of appts) {
       const ts = new Date(a.scheduledAt).getTime();
       const b = bucketOf(ts);
-      if (b) items.push({ id: `a-${a.id}`, bucket: b, icon: 'calendar', title: a.lead?.fullName || a.property?.titleTh || a.title || `นัด ${a.code}`, meta: apptMeta(ts), href: `/appointments?focus=${a.id}`, ts });
+      if (b) items.push({ id: `a-${a.id}`, bucket: b, icon: 'calendar', title: a.lead?.fullName || a.property?.titleTh || a.title || `นัด ${a.code}`, meta: apptMeta(ts), href: `/appointments/${a.id}`, ts });
     }
     for (const c of contracts) {
       if (!c.endDate) continue;

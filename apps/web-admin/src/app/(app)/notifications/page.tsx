@@ -27,7 +27,7 @@ function entityHref(entityType?: string, entityId?: string): string | undefined 
   if (!entityType || !entityId) return undefined;
   switch (entityType) {
     case 'lead': return `/leads/${entityId}`;
-    case 'appointment': return `/appointments?focus=${entityId}`;
+    case 'appointment': return `/appointments/${entityId}`;
     case 'property': return `/properties/${entityId}`;
     case 'contract': return `/contracts/${entityId}`;
     case 'owner': return `/owners/${entityId}`;

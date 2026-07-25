@@ -7,23 +7,15 @@ import { useList } from '@/lib/useList';
 import { useLookup, useSearchLookup } from '@/lib/lookups';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
-import { APPOINTMENT_STATUS, badgeClass } from '@/lib/status';
-import { Col, Combobox, FilterBar, Field, ListView, Modal, MoreMenu, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
+import { APPOINTMENT_STATUS } from '@/lib/status';
+import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
-import { fmtDateTime, fmtUntil, fmtWeekdayDate, fmtTimeRange } from '@/lib/format';
+import { fmtDateTime } from '@/lib/format';
 
 interface Appt {
   id: string; code: string; scheduledAt: string; status: string;
   durationMin: number; location?: string; title?: string;
   lead?: { fullName: string }; property?: { titleTh: string };
-}
-interface ApptDetail {
-  id: string; code: string; scheduledAt: string; status: string;
-  durationMin: number; location?: string; title?: string;
-  lead?: { id: string; fullName: string; phone?: string };
-  property?: { id: string; code: string; titleTh: string };
-  agent?: { fullName: string };
-  cancelReason?: string;
 }
 
 const STATUS_OPTIONS = [
@@ -70,7 +62,7 @@ export default function AppointmentsPage() {
   if (dateFrom) params.set('dateFrom', dateFrom);
   if (dateTo) params.set('dateTo', dateTo);
   if (dq) params.set('q', dq);
-  const { rows, meta, loading, reload, mutate } = useList<Appt>(`/appointments?${params}`);
+  const { rows, meta, loading, reload } = useList<Appt>(`/appointments?${params}`);
   const filtered = !!(q || status || date || dateFrom || dateTo);
   const clearFilters = () => { setQ(''); setStatus(''); setDate(''); setDateFrom(''); setDateTo(''); setPage(1); };
   // เรียงฝั่ง server แล้ว (sort=asc/desc ไป API → ถูกต้องข้ามหน้า) — MR-12
@@ -85,30 +77,7 @@ export default function AppointmentsPage() {
     else { setDate(''); setDateFrom(''); setDateTo(''); }
   }
 
-  const [active, setActive] = useState<Appt | null>(null);
-  const [detail, setDetail] = useState<ApptDetail | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [reFor, setReFor] = useState<Appt | null>(null); // นัดที่กำลังเลื่อน
-  const [reAt, setReAt] = useState('');
-
-  // เปิดนัด → โชว์หัวข้อทันทีจากแถว แล้วดึงรายละเอียด (ลูกค้า/ทรัพย์/พนักงาน) เพิ่ม
-  function openAppt(a: Appt) {
-    setActive(a); setDetail(null);
-    api<ApptDetail>(`/appointments/${a.id}`).then((r) => setDetail(r.data)).catch(() => { /* */ });
-  }
-  function closeAppt() { setActive(null); setDetail(null); }
-
-  // deep-link จากแจ้งเตือน: /appointments?focus={id} → เปิด modal ของนัดนั้นทันที (ไม่ต้องหาในหน้ารวม)
-  const focusId = sp.get('focus');
-  const focusedRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!focusId || focusedRef.current === focusId) return;
-    focusedRef.current = focusId;
-    api<ApptDetail>(`/appointments/${focusId}`)
-      .then((r) => { setActive(r.data as Appt); setDetail(r.data); })
-      .catch(() => toast.error('ไม่พบนัดหมายนี้ (อาจถูกลบหรือหมดสิทธิ์)'));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusId]);
+  // รายละเอียด/การกระทำนัด ย้ายไปหน้า /appointments/[id] แล้ว · list เหลือ นำทาง + create
 
   // --- create ---
   const [open, setOpen] = useState(false);
@@ -153,43 +122,6 @@ export default function AppointmentsPage() {
   }
   function close() { setOpen(false); setFe({}); setErr(''); setSeedLead(null); setSeedProp(null); }
 
-  // optimistic: เปลี่ยนสถานะแถว + ปิด modal "ทันที" ที่กด (รู้สึกไวทันมือ) แล้วค่อยยิง API เบื้องหลัง
-  // สำเร็จ → reload sync ความจริง · ล้มเหลว → reload ดึงสถานะเดิมกลับ (rollback) + แจ้ง error
-  async function run(appt: Appt, action: string, label: string, nextStatus: string) {
-    setBusy(true);
-    mutate((rs) => rs.map((r) => (r.id === appt.id ? { ...r, status: nextStatus } : r)));
-    closeAppt();
-    try {
-      await api(`/appointments/${appt.id}/${action}`, { method: 'POST', body: JSON.stringify({}) });
-      toast.success(`${label}แล้ว`);
-      reload();
-    } catch (e) {
-      toast.error((e as { message?: string }).message || 'ทำรายการไม่สำเร็จ');
-      reload();
-    } finally { setBusy(false); }
-  }
-
-  // เลื่อนนัด — ต้องระบุเวลาใหม่ (เปิด modal เลือกวันเวลา)
-  async function doReschedule() {
-    if (!reFor || !reAt) return;
-    const appt = reFor; const at = reAt;
-    setReFor(null); setReAt(''); setBusy(true);
-    try {
-      await api(`/appointments/${appt.id}/reschedule`, { method: 'POST', body: JSON.stringify({ scheduledAt: new Date(at).toISOString() }) });
-      toast.success('เลื่อนนัดแล้ว'); closeAppt(); reload();
-    } catch (e) { toast.error((e as { message?: string }).message || 'เลื่อนนัดไม่สำเร็จ'); reload(); }
-    finally { setBusy(false); }
-  }
-
-  // นัดใหม่อีกครั้ง (จากนัดที่จบ/ยกเลิก) — prefill lead+ทรัพย์ เปิดฟอร์มสร้าง (Phase 26)
-  function rebook(d: ApptDetail) {
-    if (d.lead) setSeedLead({ value: d.lead.id, label: d.lead.fullName });
-    if (d.property) setSeedProp({ value: d.property.id, label: `${d.property.code} · ${d.property.titleTh}` });
-    setMode(d.lead ? 'viewing' : 'general');
-    setForm({ ...blank, leadId: d.lead?.id ?? '', propertyId: d.property?.id ?? '', title: d.title ?? '' });
-    closeAppt(); setOpen(true);
-  }
-
   async function create(e: React.FormEvent) {
     e.preventDefault();
     const v: FErr = {};
@@ -225,23 +157,8 @@ export default function AppointmentsPage() {
     { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
       ? <span className="hidden sm:inline">{a.property.titleTh}</span>
       : <span className="hidden text-faint sm:inline">—</span> },
-    { header: 'สถานะ', right: true, width: 'w-32', cell: (a) => (
-      // Phase 25: ปรับสถานะจากลิสต์ได้เลย (upcoming) — stopPropagation กันเปิด detail modal
-      // badge ชิดซ้าย (ขอบซ้ายตรงกันทุกแถว ไม่เยื้อง) · ⋯ ชิดขวาสุด (slot ตายตัว) → justify-between + width คงที่
-      <span className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
-        <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline />
-        <span className="flex w-5 shrink-0 justify-center">
-          {a.status === 'upcoming' && can('appointment', 'change_status') && (
-            <MoreMenu items={[
-              { label: 'พบลูกค้าแล้ว', icon: 'check', onClick: () => run(a, 'complete', 'บันทึกว่าพบแล้ว', 'done') },
-              { label: 'เลื่อนนัด', icon: 'clock', onClick: () => { setReAt(''); setReFor(a); } },
-              { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run(a, 'cancel', 'ยกเลิกนัด', 'cancelled') },
-              { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run(a, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled') },
-            ]} />
-          )}
-        </span>
-      </span>
-    ) },
+    // สถานะ = pill outline (action ย้ายไปหน้า detail /appointments/[id] · list สะอาดเหมือน list อื่น)
+    { header: 'สถานะ', right: true, cell: (a) => <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline /> },
   ];
 
   return (
@@ -271,92 +188,9 @@ export default function AppointmentsPage() {
           emptyAction={filtered
             ? <button className="btn-ghost btn-sm" onClick={clearFilters}>ล้างตัวกรอง</button>
             : (can('appointment', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> เพิ่มนัด</button>)}
-          onRow={openAppt} />
+          onRow={(a) => router.push(`/appointments/${a.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
-
-      {/* manage — glance (เมื่อไหร่เด่น) + แถบสถานะพา action (C: status-driven) + กล่องข้อมูล */}
-      <Modal open={!!active} onClose={closeAppt} title={active ? subject(active) : ''}>
-        {active && (() => {
-          const s = APPOINTMENT_STATUS[active.status] ?? { label: active.status, tone: 'neutral' as const };
-          const lead = detail?.lead;
-          const property = detail?.property;
-          const hasInfo = !!(lead || property || active.location || detail?.agent?.fullName);
-          const rebookBtn = active.status !== 'upcoming' && can('appointment', 'create') && detail;
-          const nonUpcomingBlock = rebookBtn || (active.status === 'cancelled' && detail?.cancelReason);
-          return (
-          <div className="space-y-4">
-            {/* glance — แม่แบบ modal (owner lock): สถานะ pill (สี tone จริง) + urgency · วันหัว + ช่วงเวลา · ไม่มีไอคอน
-                per-device: มือถือ/iPad pill บนหัว · คอม pill ไปขวา (row-reverse) */}
-            <div className="flex flex-col gap-1.5 xl:flex-row-reverse xl:items-start xl:justify-between xl:gap-3">
-              <span className={`${badgeClass(s.tone, true)} shrink-0`}>
-                {s.label}{active.status === 'upcoming' && ` · ${fmtUntil(active.scheduledAt)}`}
-              </span>
-              <div className="min-w-0">
-                <div className="text-xl font-semibold tracking-tight text-ink tabular-nums">{fmtWeekdayDate(active.scheduledAt)}</div>
-                <div className="mt-1 text-sm tabular-nums text-muted">{fmtTimeRange(active.scheduledAt, active.durationMin)} · {active.durationMin} นาที</div>
-              </div>
-            </div>
-
-            {/* ข้อมูล — ไม่มีไอคอน/ป้าย · แยกหมวดด้วยสี+น้ำหนัก (ชื่อหนา · ทรัพย์เทา · สถานที่ทอง · ผู้ดูแลจาง) */}
-            {hasInfo && (
-              <div className="space-y-2.5 border-t border-border pt-4">
-                {lead && (
-                  <div className="flex items-baseline justify-between gap-3">
-                    <button onClick={() => router.push(`/leads/${lead.id}`)}
-                      className="truncate text-left font-medium text-ink transition hover:text-gold-dark">{lead.fullName}</button>
-                    {lead.phone && <PhoneLink phone={lead.phone} className="shrink-0 text-sm text-muted" />}
-                  </div>
-                )}
-                {property && (
-                  <button onClick={() => router.push(`/properties/${property.id}`)}
-                    className="block max-w-full truncate text-left text-sm text-ink-soft transition hover:text-gold-dark">{property.titleTh}</button>
-                )}
-                {active.location && <div className="text-sm text-gold-dark">{active.location}</div>}
-                {detail?.agent?.fullName && <div className="text-sm text-faint">{detail.agent.fullName}</div>}
-              </div>
-            )}
-
-            {/* การกระทำ — status-driven: upcoming = พบแล้ว/เลื่อน/ยกเลิก · อื่น = นัดใหม่ (+เหตุผลถ้ายกเลิก) */}
-            {active.status === 'upcoming' ? (
-              can('appointment', 'change_status') && (
-                <div className="space-y-2 border-t border-border pt-4">
-                  {/* action เต็มกว้าง center (Linear/Cal.com) · ทำลาย = text จาง ไม่ตะโกน */}
-                  <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
-                  <button className="btn-ghost w-full" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
-                  <div className="flex items-center justify-center gap-3 pt-1 text-xs">
-                    <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled')}>ยกเลิกนัด</button>
-                    <span className="text-faint">·</span>
-                    <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled')}>ลูกค้าไม่มาตามนัด</button>
-                  </div>
-                </div>
-              )
-            ) : nonUpcomingBlock ? (
-              <div className="space-y-3 border-t border-border pt-4">
-                {active.status === 'cancelled' && detail?.cancelReason && <p className="text-sm text-muted">เหตุผล · {detail.cancelReason}</p>}
-                {rebookBtn && (
-                  <button className="btn-gold w-full" disabled={busy} onClick={() => rebook(detail)}>
-                    <Icon name="calendar" size={16} /> นัดใหม่อีกครั้ง
-                  </button>
-                )}
-              </div>
-            ) : null}
-          </div>
-          );
-        })()}
-      </Modal>
-
-      {/* เลื่อนนัด — เลือกวันเวลาใหม่ (Phase 26) */}
-      <Modal open={!!reFor} onClose={() => { setReFor(null); setReAt(''); }} title="เลื่อนนัด"
-        footer={
-          <div className="flex justify-end gap-2">
-            <button type="button" className="btn-ghost" onClick={() => { setReFor(null); setReAt(''); }}>ยกเลิก</button>
-            <button type="button" className="btn-gold" disabled={busy || !reAt} onClick={doReschedule}>ยืนยันเลื่อนนัด</button>
-          </div>
-        }>
-        <Field label="วันเวลานัดใหม่ *" type="datetime-local"
-          hint={reAt ? fmtDateTime(reAt) : undefined} value={reAt} onChange={(e) => setReAt(e.target.value)} />
-      </Modal>
 
       {/* create */}
       <Modal open={open} onClose={close} title="สร้างนัดหมาย"
