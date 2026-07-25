@@ -97,7 +97,10 @@ export class LeadService {
         : query.sort === 'code' ? { code: 'asc' }
           : { createdAt: 'desc' }; // MR-12
     const [items, total] = await this.prisma.$transaction([
-      this.prisma.lead.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
+      // R2 unlocked (owner): ส่ง "ทรัพย์ที่สนใจล่าสุด 1 อัน" มากับ list เพื่อโชว์ในคอลัมน์ (อันก่อน ๆ ดูใน detail)
+      this.prisma.lead.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit,
+        include: { interests: { orderBy: { createdAt: 'desc' }, take: 1, select: { property: { select: { id: true, code: true, titleTh: true } } } } },
+      }),
       this.prisma.lead.count({ where }),
     ]);
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };

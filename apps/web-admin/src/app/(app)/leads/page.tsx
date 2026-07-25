@@ -7,7 +7,7 @@ import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
 import { LEAD_SOURCE, LEAD_STATUS } from '@/lib/status';
-import { fmtDateCompact, formatPhone, phoneDigits } from '@/lib/format';
+import { fmtDateTime, formatPhone, phoneDigits } from '@/lib/format';
 import { Col, Field, FilterBar, ListView, Modal, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
@@ -15,6 +15,7 @@ interface Lead {
   id: string; code: string; fullName: string; phone: string;
   status: string; source: string; assignedToId?: string; customerId?: string;
   email?: string; message?: string; createdAt?: string; preferredViewAt?: string; lostReason?: string;
+  interests?: { property: { id: string; code: string; titleTh: string } }[]; // R2: ทรัพย์ที่สนใจล่าสุด (list ส่ง 1 อัน)
 }
 
 const STATUS_OPTIONS = [
@@ -87,11 +88,20 @@ export default function LeadsPage() {
         <PhoneLink phone={l.phone} className="text-xs text-muted" />
       </div>
     ) },
-    // ช่องทาง = channel chip → การ์ด: บรรทัดของตัวเอง (sm+) · ตาราง: คอลัมน์แยก
-    { header: 'ช่องทาง', sub: true, cell: (l) => <span className="hidden items-center whitespace-nowrap rounded border border-border bg-raised px-1.5 py-0.5 text-xs text-muted sm:inline-flex">{LEAD_SOURCE[l.source] ?? l.source}</span> },
-    // เข้ามาเมื่อ = คอลัมน์เฉพาะตาราง (กฎ C: คอมมากขึ้น) → เติมความกว้าง ไม่โหว่ + freshness ของ lead
-    { header: 'เข้ามาเมื่อ', cell: (l) => l.createdAt ? <span className="whitespace-nowrap text-muted">{fmtDateCompact(l.createdAt)}</span> : <span className="text-faint">—</span> },
-    { header: 'สถานะ', right: true, cell: (l) => <StatusBadge map={LEAD_STATUS} value={l.status} outline /> },
+    // ทรัพย์ที่สนใจ = ล่าสุด 1 อัน (R2 unlocked · อันก่อน ๆ ดูใน detail) → iPad การ์ด + ตาราง · ซ่อนมือถือ (แก่น)
+    { header: 'ทรัพย์ที่สนใจ', sub: true, cell: (l) => {
+      const p = l.interests?.[0]?.property;
+      return p ? <span className="hidden truncate text-muted sm:inline">{p.titleTh}</span> : <span className="hidden text-faint sm:inline">—</span>;
+    } },
+    // อยากเข้าชม = วัน·เวลา 1 บรรทัด (preferredViewAt · วันก่อนเวลา)
+    { header: 'อยากเข้าชม', sub: true, cell: (l) => l.preferredViewAt ? <span className="whitespace-nowrap text-muted">{fmtDateTime(l.preferredViewAt)}</span> : <span className="text-faint">—</span> },
+    // ขวา = สถานะ (บน · pill) + ช่องทาง (ล่าง · จาง ซ่อนมือถือ)
+    { header: 'สถานะ · ช่องทาง', right: true, cell: (l) => (
+      <div className="flex flex-col items-end gap-1">
+        <StatusBadge map={LEAD_STATUS} value={l.status} outline />
+        <span className="hidden text-xs text-faint sm:block">{LEAD_SOURCE[l.source] ?? l.source}</span>
+      </div>
+    ) },
   ];
 
   return (
