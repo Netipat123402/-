@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
+import { fmtDate, fmtUntil } from '@/lib/format';
 import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, SectionTabs, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
@@ -33,7 +34,8 @@ interface Contract {
 }
 interface Term { id: string; termKey: string; termValue: string; }
 
-function d(s?: string) { return s ? new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
+// มาตรฐานวันที่เดียวทั้งแอป "14 Jul 26" (lib) · ว่าง = —
+function d(s?: string) { return s ? fmtDate(s) : '—'; }
 
 export default function ContractDetailPage() {
   const { api, can } = useAuth();
@@ -206,18 +208,18 @@ export default function ContractDetailPage() {
               {c.agent && <InfoRow label="พนักงาน" value={c.agent.fullName} />}
             </InfoGroup>
 
+            {/* ระยะเวลา — เน้น "เมื่อไหร่-ถึงเมื่อไหร่" (emphasis สัญญา) ขึ้นก่อนการเงิน · active = badge นับถอยหลัง (ช่วยงานต่อ/ปิดสัญญา) */}
+            <InfoGroup label="ระยะเวลา" className="mb-4 break-inside-avoid">
+              <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
+              <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">{fmtUntil(c.endDate)}</span>}</span>} />
+              <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
+            </InfoGroup>
+
             {/* การเงิน — ค่าเช่าอยู่หัว glance แล้ว เหลือ มัดจำ/นายหน้า (T1.3) */}
             <InfoGroup label="การเงิน" className="mb-4 break-inside-avoid">
               <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
               <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
               {!c.depositAmount && !c.commissionAmount && <p className="py-2.5 text-sm text-muted">ยังไม่ระบุมัดจำ/ค่านายหน้า</p>}
-            </InfoGroup>
-
-            {/* ระยะเวลา */}
-            <InfoGroup label="ระยะเวลา" className="mb-4 break-inside-avoid">
-              <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
-              <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">ใกล้ครบกำหนด</span>}</span>} />
-              <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
             </InfoGroup>
           </div>
         ) },
