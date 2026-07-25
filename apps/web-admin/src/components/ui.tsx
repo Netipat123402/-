@@ -290,7 +290,8 @@ export function DetailHeader({
         <div className="min-w-0">
           {(code || badge || meta) && (
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              {code && <span className="font-mono text-xs text-muted">{code}</span>}
+              {/* รหัสของ record = mono ทอง (owner lock · ตรง list variant C) — คีย์อ้างอิงเด่นบนหัว */}
+              {code && <span className="font-mono text-xs text-gold-dark">{code}</span>}
               {badge}
               {meta}
             </div>

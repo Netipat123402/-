@@ -98,7 +98,7 @@ export default function OwnerDetailPage() {
                     className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{p.titleTh}</p>
-                      <p className="text-xs text-muted">{p.code}</p>
+                      <p className="font-mono text-xs text-faint">{p.code}</p>
                     </div>
                     <span className="shrink-0 text-sm font-medium text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
                     <StatusBadge map={PROPERTY_STATUS} value={p.status} short outline />

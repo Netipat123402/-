@@ -63,7 +63,7 @@ export default function AppointmentDetailPage() {
   if (appt.property) tabs.push({ id: 'property', label: 'ทรัพย์ที่นัดดู', content: (
     <InfoGroup label="ทรัพย์ที่นัดดู">
       <InfoRow label="ทรัพย์" href={`/properties/${appt.property.id}`} strong hideChevron
-        value={<span>{appt.property.titleTh} <span className="font-mono text-xs font-normal text-gold-dark">· {appt.property.code}</span></span>} />
+        value={<span><span className="block">{appt.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{appt.property.code}</span></span>} />
     </InfoGroup>
   ) });
   tabs.push({ id: 'detail', label: 'รายละเอียดนัด', content: (

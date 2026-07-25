@@ -210,9 +210,10 @@ export default function ContractDetailPage() {
 
             {/* ระยะเวลา — เน้น "เมื่อไหร่-ถึงเมื่อไหร่" (emphasis สัญญา) ขึ้นก่อนการเงิน · active = badge นับถอยหลัง (ช่วยงานต่อ/ปิดสัญญา) */}
             <InfoGroup label="ระยะเวลา" className="mb-4 break-inside-avoid">
+              {/* ลำดับเวลาจริง: ลงนาม → เริ่ม → สิ้นสุด (owner) */}
+              <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
               <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
               <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">{fmtUntil(c.endDate)}</span>}</span>} />
-              <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
             </InfoGroup>
 
             {/* การเงิน — ค่าเช่าอยู่หัว glance แล้ว เหลือ มัดจำ/นายหน้า (T1.3) */}
