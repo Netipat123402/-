@@ -46,7 +46,8 @@ owner approved batch: ลีด (ตัดรหัส + outline pill) · ทร
 - ✅ **ลีด modal minimal (commit `ced6483`)** — แล้ว owner **กลับลำ**: ไม่เอา modal สีล้วน → สั่งใหม่ (ด้านล่าง)
 - 🔑 **owner mandate ใหม่ (ทับของเดิม):** ทุก 6 sidebar detail ใช้ **layout เดียวกับหน้าทรัพย์** (DetailHeader + SectionTabs accordion/แท็บ + InfoGroup แยกกล่องหัวชัด) · ทำทีละ sidebar · ขั้น1 layout ตามทรัพย์ ขั้น2 redesign ชุดข้อมูลเหมาะ entity · ถามก่อน · แนบรูป 4 จอ ทุก sidebar (ดู [[ros-detail-archetypes-and-date-standard]] §0)
   - ✅ **เจ้าของ (`6d8422a`)** — DetailHeader · เอา avatar ออก · แท็บ ทรัพย์ในพอร์ต(หลัก)/ข้อมูลเจ้าของ(กล่องแยก ติดต่อ·ระบุตัวตน·โน้ต)/สัญญา/เอกสาร · verify 4 จอ
-  - ⏳ **เหลือ 5:** ลูกค้า (มี Tabs · เติม DetailHeader + redesign data) · สัญญา (มี DetailHeader+Tabs · เช็ค/redesign data) · **ลีด + นัด (modal → ต้องเคาะ: แปลงเป็นหน้า [id] เต็ม? ขอรูปก่อน)** · ทรัพย์ = แม่แบบ (อาจ tune data)
+  - ✅ **ลูกค้า (`a05deae`)** — DetailHeader · เอา avatar · ⋯ลบเข้าหัว · แท็บ สัญญา(แก่น)/ข้อมูลติดต่อ(กล่อง)/เอกสาร · verify 4 จอ
+  - ⏳ **เหลือ 3+:** สัญญา (มี DetailHeader+Tabs · redesign data) · **ลีด + นัด (modal → ต้องเคาะ: แปลงเป็นหน้า [id] เต็ม? ขอรูปก่อน)** · ทรัพย์ = แม่แบบ (อาจ tune data)
 - ⏳ อื่น: #3 นัด create form · สแกน fmtDate local ปีเต็มหน้าอื่น
 
 ### ⭐ C) per-device data subset (กฎใหม่ owner)
