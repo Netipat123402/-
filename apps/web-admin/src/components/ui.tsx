@@ -56,10 +56,10 @@ export function PageHeader({
   );
 }
 
-export function StatusBadge({ map, value, short }: { map: Record<string, { label: string; tone: Tone }>; value: string; short?: boolean }) {
+export function StatusBadge({ map, value, short, outline }: { map: Record<string, { label: string; tone: Tone }>; value: string; short?: boolean; outline?: boolean }) {
   const s = map[value] ?? { label: value, tone: 'neutral' as Tone };
   const label = short ? s.label.split(' · ')[0] : s.label; // มือถือ: ตัดส่วนหลัง " · " ออก
-  return <span className={badgeClass(s.tone)}>{label}</span>;
+  return <span className={badgeClass(s.tone, outline)}>{label}</span>;
 }
 
 /** Spinner — "กำลังทำงานอยู่" (รอสั้น ๆ เช่น กดส่ง) */
@@ -869,6 +869,7 @@ export interface Col<T> {
   right?: boolean;   // desktop ชิดขวา + มือถือไปอยู่มุมขวาบน
   width?: string;    // desktop: คุมความกว้างคอลัมน์ (เช่น 'w-48') → คอลัมน์ยาวตัด "…" พอดี ไม่ถ่าง
   grow?: boolean;    // desktop: คอลัมน์ "ดูดพื้นที่เหลือ" เพียงตัวเดียว (default = primary) — กัน 2 คอลัมน์ flex แย่งกันจนห่าง/ตกกรอบ
+  twoLine?: boolean; // primary 2 บรรทัด (เช่น ลูกค้า/ทรัพย์ ซ้อน · minimal template) → grow col ไม่ truncate · การ์ดไม่ห่อ truncate
 }
 
 export function ListView<T>({
@@ -922,7 +923,7 @@ export function ListView<T>({
                   const colCls = c.right
                     ? `whitespace-nowrap ${c.width ?? ''}`
                     : c === growCol
-                    ? 'w-full max-w-0 truncate'
+                    ? (c.twoLine ? 'w-full max-w-0' : 'w-full max-w-0 truncate') // twoLine = ปล่อยให้ cell คุมบรรทัดเอง
                     : c.width
                     ? `${c.width} truncate`
                     : 'whitespace-nowrap';
@@ -945,7 +946,7 @@ export function ListView<T>({
             onClick={onRow ? () => onRow(it) : undefined}>
             {leading && <div className="shrink-0">{leading(it)}</div>}
             <div className="min-w-0 flex-1">
-              {primary && <div className="truncate font-medium">{primary.cell(it)}</div>}
+              {primary && <div className={primary.twoLine ? 'min-w-0' : 'truncate font-medium'}>{primary.cell(it)}</div>}
               {subs.map((c, i) => (
                 <div key={i} className="truncate text-xs text-muted">{c.cell(it)}</div>
               ))}

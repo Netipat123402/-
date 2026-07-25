@@ -70,8 +70,17 @@ export function thaiifyActivity(summary: string): string {
 
 export type { Tone };
 
-export function badgeClass(tone: Tone): string {
-  return `badge ${TONE_CLASS[tone]}`;
+// outline = pill กรอบบางโปร่ง (ไม่ตัน) สำหรับ list ที่ minimal — detail คงแบบ fill (เน้น)
+const TONE_OUTLINE: Record<Tone, string> = {
+  neutral: 'border-border-strong text-muted',
+  active: 'border-success/40 text-success',
+  done: 'border-info/40 text-info',
+  gold: 'border-gold/40 text-gold-dark',
+  danger: 'border-danger/40 text-danger',
+};
+
+export function badgeClass(tone: Tone, outline?: boolean): string {
+  return outline ? `badge border ${TONE_OUTLINE[tone]}` : `badge ${TONE_CLASS[tone]}`;
 }
 
 export function bahtFormat(n: number): string {

@@ -39,6 +39,13 @@ export function fmtDateShort(iso?: string): string {
   return d ? d.toLocaleDateString(LOCALE, DATE_SHORT) : '';
 }
 
+/** วันที่ย่อ ปี 2 หลัก เช่น "14 Jul 26" — สำหรับ list ที่พื้นที่แคบ (Latin §7 แบบกระชับ) */
+const DATE_COMPACT = { day: 'numeric', month: 'short', year: '2-digit' } as const;
+export function fmtDateCompact(iso?: string): string {
+  const d = parse(iso);
+  return d ? d.toLocaleDateString(LOCALE, DATE_COMPACT) : '';
+}
+
 /** เวลา 24 ชม. เช่น "09:00" */
 export function fmtTime(iso?: string): string {
   const d = parse(iso);
