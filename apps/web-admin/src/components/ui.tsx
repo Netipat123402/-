@@ -893,9 +893,8 @@ export function ListView<T>({
   const primary = cols.find((c) => c.primary);
   const subs = cols.filter((c) => c.sub);
   const rights = cols.filter((c) => c.right);
-  // คอลัมน์ที่ "ดูดพื้นที่เหลือ" ตัวเดียว (flex): ระบุ grow เอง ไม่งั้น default = primary (ชื่อ)
-  //   → ตารางมี flex คอลัมน์เดียว ชื่อยาวได้ประโยชน์ · คอลัมน์อื่นชิดกระชับ (ไม่ห่าง/ไม่ตกกรอบ)
-  const growCol = cols.find((c) => c.grow) ?? primary;
+  // owner: ช่องไฟเฉลี่ยเท่ากันทุกหน้า — เลิก "คอลัมน์เดียวยืดกินที่เหลือ" (เดิม gap กระจุกหลังชื่อ, ต่างกันทุก list)
+  //   → ไม่มีคอลัมน์ยืด · primary cap+truncate · table w-full auto = กระจายช่องไฟเต็มกว้าง สม่ำเสมอ
 
   // เปลี่ยนหน้า: คงแถวเดิมไว้ (จางลง) จนข้อมูลใหม่มา → ความสูงไม่หด/กระโดด → ปุ่มลูกศรอยู่จุดเดิม
   return (
@@ -908,7 +907,7 @@ export function ListView<T>({
               {leading && <th className="w-[68px] py-3 pl-5" aria-hidden />}
               {cols.map((c, i) => (
                 // หัวคอลัมน์ชิดซ้ายทุกคอลัมน์ (รวม right cols) → หัวอยู่เหนือจุดเริ่มเนื้อหาตรงกัน (owner: หัวต้องตรงเนื้อหา) · right = ใช้แค่ตอนมือถือ (cluster ขวา)
-                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c === growCol ? '' : c.width ?? ''}`}>{c.header}</th>
+                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c.width ?? ''}`}>{c.header}</th>
               ))}
             </tr>
           </thead>
@@ -919,12 +918,12 @@ export function ListView<T>({
                 onClick={onRow ? () => onRow(it) : undefined}>
                 {leading && <td className="py-3.5 pl-5">{leading(it)}</td>}
                 {cols.map((c, i) => {
-                  // flex คอลัมน์เดียว (grow/primary) = w-full max-w-0 truncate ดูดพื้นที่ + ตัด "…" ถ้ายาว
-                  // คอลัมน์มี width = คุมกว้าง + ตัด "…" (เช่น ทรัพย์ชื่อยาว) · ที่เหลือ nowrap เห็นครบ → 1 บรรทัดเสมอ
+                  // primary = cap กว้าง + ตัด "…" (ชื่อยาวไม่ดันเพี้ยน · twoLine ให้ cell คุมบรรทัด/ตัดเอง)
+                  // คอลัมน์มี width = คุมกว้าง+ตัด · ที่เหลือ nowrap · ไม่มีคอลัมน์ยืด → w-full auto เฉลี่ยช่องไฟเต็มกว้าง
                   const colCls = c.right
                     ? `whitespace-nowrap ${c.width ?? ''}`
-                    : c === growCol
-                    ? (c.twoLine ? 'w-full max-w-0' : 'w-full max-w-0 truncate') // twoLine = ปล่อยให้ cell คุมบรรทัดเอง
+                    : c === primary
+                    ? (c.twoLine ? 'max-w-[22rem]' : 'max-w-[22rem] truncate')
                     : c.width
                     ? `${c.width} truncate`
                     : 'whitespace-nowrap';
