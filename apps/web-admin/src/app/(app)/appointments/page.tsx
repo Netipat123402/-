@@ -7,10 +7,10 @@ import { useList } from '@/lib/useList';
 import { useLookup, useSearchLookup } from '@/lib/lookups';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
-import { APPOINTMENT_STATUS } from '@/lib/status';
-import { Col, Combobox, FilterBar, Field, InfoGroup, InfoRow, ListView, Modal, MoreMenu, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
+import { APPOINTMENT_STATUS, badgeClass } from '@/lib/status';
+import { Col, Combobox, FilterBar, Field, ListView, Modal, MoreMenu, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
-import { fmtDateTime, fmtUntil } from '@/lib/format';
+import { fmtDateTime, fmtUntil, fmtWeekdayDate, fmtTimeRange } from '@/lib/format';
 
 interface Appt {
   id: string; code: string; scheduledAt: string; status: string;
@@ -277,83 +277,73 @@ export default function AppointmentsPage() {
 
       {/* manage — glance (เมื่อไหร่เด่น) + แถบสถานะพา action (C: status-driven) + กล่องข้อมูล */}
       <Modal open={!!active} onClose={closeAppt} title={active ? subject(active) : ''}>
-        {active && (
+        {active && (() => {
+          const s = APPOINTMENT_STATUS[active.status] ?? { label: active.status, tone: 'neutral' as const };
+          const lead = detail?.lead;
+          const property = detail?.property;
+          const hasInfo = !!(lead || property || active.location || detail?.agent?.fullName);
+          const rebookBtn = active.status !== 'upcoming' && can('appointment', 'create') && detail;
+          const nonUpcomingBlock = rebookBtn || (active.status === 'cancelled' && detail?.cancelReason);
+          return (
           <div className="space-y-4">
-            {/* glance identifier: รหัส + วันเวลาเด่น → เปิดมารู้ "เมื่อไหร่" ทันตา */}
-            <div>
-              <div className="font-mono text-xs text-muted">{active.code}</div>
-              <div className="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
-                <span className="text-lg font-semibold tracking-tight text-ink">{fmt(active.scheduledAt)}</span>
-                <span className="text-sm text-faint">{active.durationMin} นาที</span>
+            {/* glance — แม่แบบ modal (owner lock): สถานะ pill (สี tone จริง) + urgency · วันหัว + ช่วงเวลา · ไม่มีไอคอน
+                per-device: มือถือ/iPad pill บนหัว · คอม pill ไปขวา (row-reverse) */}
+            <div className="flex flex-col gap-1.5 xl:flex-row-reverse xl:items-start xl:justify-between xl:gap-3">
+              <span className={`${badgeClass(s.tone, true)} shrink-0`}>
+                {s.label}{active.status === 'upcoming' && ` · ${fmtUntil(active.scheduledAt)}`}
+              </span>
+              <div className="min-w-0">
+                <div className="text-xl font-semibold tracking-tight text-ink tabular-nums">{fmtWeekdayDate(active.scheduledAt)}</div>
+                <div className="mt-1 text-sm tabular-nums text-muted">{fmtTimeRange(active.scheduledAt, active.durationMin)} · {active.durationMin} นาที</div>
               </div>
             </div>
 
-            {/* แถบสถานะพา action — เปลี่ยนตามสถานะ (upcoming = CTA พบแล้ว + urgency · done/cancelled = สรุปผล + นัดใหม่) */}
-            {active.status === 'upcoming' ? (
-              <div className="space-y-3 rounded-xl border border-gold/30 bg-gold/5 p-4">
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gold-dark">
-                  <Icon name="clock" size={14} className="shrink-0" /> รอพบ · {fmtUntil(active.scheduledAt)}
-                </span>
-                {can('appointment', 'change_status') && (
-                  <div className="space-y-2">
-                    {/* action เรียงเต็มกว้าง center ตรงแนวเดียวกัน (Linear/Cal.com) · ทำลาย = text จาง ไม่ตะโกน */}
-                    <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
-                    <button className="btn-ghost w-full" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
-                    <div className="flex items-center justify-center gap-3 pt-1 text-xs">
-                      <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled')}>ยกเลิกนัด</button>
-                      <span className="text-faint">·</span>
-                      <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled')}>ลูกค้าไม่มาตามนัด</button>
-                    </div>
+            {/* ข้อมูล — ไม่มีไอคอน/ป้าย · แยกหมวดด้วยสี+น้ำหนัก (ชื่อหนา · ทรัพย์เทา · สถานที่ทอง · ผู้ดูแลจาง) */}
+            {hasInfo && (
+              <div className="space-y-2.5 border-t border-border pt-4">
+                {lead && (
+                  <div className="flex items-baseline justify-between gap-3">
+                    <button onClick={() => router.push(`/leads?focus=${lead.id}`)}
+                      className="truncate text-left font-medium text-ink transition hover:text-gold-dark">{lead.fullName}</button>
+                    {lead.phone && <PhoneLink phone={lead.phone} className="shrink-0 text-sm text-muted" />}
                   </div>
                 )}
+                {property && (
+                  <button onClick={() => router.push(`/properties/${property.id}`)}
+                    className="block max-w-full truncate text-left text-sm text-ink-soft transition hover:text-gold-dark">{property.titleTh}</button>
+                )}
+                {active.location && <div className="text-sm text-gold-dark">{active.location}</div>}
+                {detail?.agent?.fullName && <div className="text-sm text-faint">{detail.agent.fullName}</div>}
               </div>
-            ) : (
-              <div className="space-y-3 rounded-xl border border-border bg-surface p-4">
-                {active.status === 'done' ? (
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
-                    <Icon name="check" size={15} className="shrink-0" /> พบลูกค้าแล้ว
-                  </span>
-                ) : (
-                  <div className="space-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-danger">
-                      <Icon name="x" size={15} className="shrink-0" /> ยกเลิก
-                    </span>
-                    {detail?.cancelReason && <p className="text-sm text-muted">{detail.cancelReason}</p>}
+            )}
+
+            {/* การกระทำ — status-driven: upcoming = พบแล้ว/เลื่อน/ยกเลิก · อื่น = นัดใหม่ (+เหตุผลถ้ายกเลิก) */}
+            {active.status === 'upcoming' ? (
+              can('appointment', 'change_status') && (
+                <div className="space-y-2 border-t border-border pt-4">
+                  {/* action เต็มกว้าง center (Linear/Cal.com) · ทำลาย = text จาง ไม่ตะโกน */}
+                  <button className="btn-gold w-full" disabled={busy} onClick={() => run(active, 'complete', 'บันทึกว่าพบแล้ว', 'done')}>พบลูกค้าแล้ว</button>
+                  <button className="btn-ghost w-full" disabled={busy} onClick={() => { setReAt(''); setReFor(active); }}>เลื่อนนัด</button>
+                  <div className="flex items-center justify-center gap-3 pt-1 text-xs">
+                    <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'cancel', 'ยกเลิกนัด', 'cancelled')}>ยกเลิกนัด</button>
+                    <span className="text-faint">·</span>
+                    <button type="button" className="text-muted transition hover:text-danger disabled:opacity-50" disabled={busy} onClick={() => run(active, 'no-show', 'บันทึกว่าไม่มาตามนัด', 'cancelled')}>ลูกค้าไม่มาตามนัด</button>
                   </div>
-                )}
-                {can('appointment', 'create') && detail && (
+                </div>
+              )
+            ) : nonUpcomingBlock ? (
+              <div className="space-y-3 border-t border-border pt-4">
+                {active.status === 'cancelled' && detail?.cancelReason && <p className="text-sm text-muted">เหตุผล · {detail.cancelReason}</p>}
+                {rebookBtn && (
                   <button className="btn-gold w-full" disabled={busy} onClick={() => rebook(detail)}>
                     <Icon name="calendar" size={16} /> นัดใหม่อีกครั้ง
                   </button>
                 )}
               </div>
-            )}
-
-            {/* ลูกค้า (แตะโทร + กดเข้า lead) */}
-            {detail?.lead && (
-              <InfoGroup label="ลูกค้า">
-                <InfoRow label="ชื่อ" value={detail.lead.fullName} href={`/leads?focus=${detail.lead.id}`} strong hideChevron />
-                <InfoRow label="เบอร์โทร" value={detail.lead.phone ? <PhoneLink phone={detail.lead.phone} /> : undefined} hideEmpty />
-              </InfoGroup>
-            )}
-
-            {/* ทรัพย์ (กดเข้าได้) — meeting-center */}
-            {detail?.property && (
-              <InfoGroup label="ทรัพย์ที่นัดดู">
-                <InfoRow label="ทรัพย์" href={`/properties/${detail.property.id}`} strong hideChevron
-                  value={<span>{detail.property.titleTh} <span className="font-mono text-xs font-normal text-gold-dark">· {detail.property.code}</span></span>} />
-              </InfoGroup>
-            )}
-
-            {/* รายละเอียด — ซ่อนทั้งกล่องเมื่อไม่มีพนักงาน/สถานที่ (เลิกกรอบ "—" หลอก) */}
-            {(detail?.agent?.fullName || active.location) && (
-              <InfoGroup label="รายละเอียด">
-                <InfoRow label="พนักงาน" value={detail?.agent?.fullName || undefined} hideEmpty />
-                <InfoRow label="สถานที่" value={active.location || undefined} stack hideEmpty />
-              </InfoGroup>
-            )}
+            ) : null}
           </div>
-        )}
+          );
+        })()}
       </Modal>
 
       {/* เลื่อนนัด — เลือกวันเวลาใหม่ (Phase 26) */}

@@ -16,7 +16,8 @@ export function phoneDigits(input: string): string {
 //   เลิกใช้ พ.ศ./เดือนไทย (ดูรก/local) → "14 Jul 2026 · 09:00" แบบ Linear/Stripe
 //   locale en-GB = วัน-เดือน-ปี (ไม่ใช่ US เดือน-วัน) · hour12:false = 24 ชม.
 // ---------------------------------------------------------------------------
-const DATE = { day: 'numeric', month: 'short', year: 'numeric' } as const;      // 14 Jul 2026
+// มาตรฐานวันที่เดียวทั้งแอป (owner lock): "14 Jul 26" — ปี 2 หลัก สากล กระชับ (Linear/Stripe) · §7
+const DATE = { day: 'numeric', month: 'short', year: '2-digit' } as const;      // 14 Jul 26
 const DATE_SHORT = { day: 'numeric', month: 'short' } as const;                 // 14 Jul
 const TIME = { hour: '2-digit', minute: '2-digit', hour12: false } as const;    // 09:00
 const LOCALE = 'en-GB';
@@ -39,11 +40,28 @@ export function fmtDateShort(iso?: string): string {
   return d ? d.toLocaleDateString(LOCALE, DATE_SHORT) : '';
 }
 
-/** วันที่ย่อ ปี 2 หลัก เช่น "14 Jul 26" — สำหรับ list ที่พื้นที่แคบ (Latin §7 แบบกระชับ) */
+/** วันที่ย่อ ปี 2 หลัก เช่น "14 Jul 26" — alias ของ fmtDate หลัง lock มาตรฐาน (คงชื่อไว้ให้ list ที่อ้างถึง) */
 const DATE_COMPACT = { day: 'numeric', month: 'short', year: '2-digit' } as const;
 export function fmtDateCompact(iso?: string): string {
   const d = parse(iso);
   return d ? d.toLocaleDateString(LOCALE, DATE_COMPACT) : '';
+}
+
+/** วัน+วันที่ เช่น "Mon 14 Jul 26" — หัวนัดหมาย (วันในสัปดาห์สำคัญต่อการนัด) */
+export function fmtWeekdayDate(iso?: string): string {
+  const d = parse(iso);
+  if (!d) return '';
+  return `${d.toLocaleDateString(LOCALE, { weekday: 'short' })} ${d.toLocaleDateString(LOCALE, DATE_COMPACT)}`;
+}
+
+/** ช่วงเวลา เช่น "09:00–09:30" (จาก start + ระยะเวลานาที) — ถ้าไม่มี duration คืนเวลาเริ่มอย่างเดียว */
+export function fmtTimeRange(iso?: string, durationMin?: number): string {
+  const d = parse(iso);
+  if (!d) return '';
+  const start = d.toLocaleTimeString(LOCALE, TIME);
+  if (!durationMin) return start;
+  const end = new Date(d.getTime() + durationMin * 60000).toLocaleTimeString(LOCALE, TIME);
+  return `${start}–${end}`;
 }
 
 /** เวลา 24 ชม. เช่น "09:00" */
