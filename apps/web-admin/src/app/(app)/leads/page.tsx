@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
-import { useLookup } from '@/lib/lookups';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
-import { LEAD_SOURCE, LEAD_STATUS, PROPERTY_STATUS, bahtFormat } from '@/lib/status';
-import { fmtDate, formatPhone, phoneDigits } from '@/lib/format';
-import { Col, Combobox, ConfirmDialog, FilterBar, Field, ListView, Modal, MoreMenu, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
+import { LEAD_SOURCE, LEAD_STATUS } from '@/lib/status';
+import { formatPhone, phoneDigits } from '@/lib/format';
+import { Col, Field, FilterBar, ListView, Modal, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 interface Lead {
@@ -17,8 +16,6 @@ interface Lead {
   status: string; source: string; assignedToId?: string; customerId?: string;
   email?: string; message?: string; createdAt?: string; preferredViewAt?: string; lostReason?: string;
 }
-interface PropLite { id: string; code: string; titleTh: string; status: string; monthlyRent: string; }
-interface LeadDetail extends Lead { assignedTo?: { fullName: string }; interests?: { property: PropLite }[]; }
 
 const STATUS_OPTIONS = [
   { value: '', label: 'ทั้งหมด' },
@@ -33,7 +30,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function LeadsPage() {
-  const { api, user, can } = useAuth();
+  const { api, can } = useAuth();
   const toast = useToast();
   const router = useRouter();
   const sp = useSearchParams();
@@ -47,41 +44,13 @@ export default function LeadsPage() {
   if (status) params.set('status', status);
   if (source) params.set('source', source);
   if (dq) params.set('q', dq);
-  const { rows, meta, loading, reload, mutate } = useList<Lead>(`/leads?${params}`);
+  const { rows, meta, loading, reload } = useList<Lead>(`/leads?${params}`);
   const filtered = !!(q || status || source);
   const clearFilters = () => { setQ(''); setStatus(''); setSource(''); setPage(1); };
-  // เรียงฝั่ง server แล้ว (sort ไป API → ถูกต้องข้ามหน้า) — MR-12
-
-  const [active, setActive] = useState<Lead | null>(null);
-  const [detail, setDetail] = useState<LeadDetail | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  // เปิด Lead → โชว์หัวข้อทันทีจากแถว แล้วดึงรายละเอียด (ผู้ดูแล + ทรัพย์ที่สนใจ) เพิ่ม
-  function openLead(l: Lead) {
-    setActive(l); setDetail(null);
-    api<LeadDetail>(`/leads/${l.id}`).then((r) => setDetail(r.data)).catch(() => { /* */ });
-  }
-  function closeLead() { setActive(null); setDetail(null); }
-
-  // deep-link จากแจ้งเตือน: /leads?focus={id} → เปิด modal ของ Lead นั้นทันที
-  const focusId = sp.get('focus');
-  const focusedRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!focusId || focusedRef.current === focusId) return;
-    focusedRef.current = focusId;
-    api<LeadDetail>(`/leads/${focusId}`)
-      .then((r) => { setActive(r.data); setDetail(r.data); })
-      .catch(() => toast.error('ไม่พบ Lead นี้ (อาจถูกลบหรือหมดสิทธิ์)'));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusId]);
+  // เรียงฝั่ง server แล้ว (sort ไป API → ถูกต้องข้ามหน้า) — MR-12 · รายละเอียด/การกระทำย้ายไปหน้า /leads/[id]
 
   // create walk-in lead
   const [open, setOpen] = useState(false);
-  const [closeOpen, setCloseOpen] = useState(false);
-  const [delOpen, setDelOpen] = useState(false);
-  const [transferOpen, setTransferOpen] = useState(false);
-  const [transferTo, setTransferTo] = useState('');
-  const assignable = useLookup<{ id: string; fullName: string }>('/users/assignable', (u) => ({ value: u.id, label: u.fullName }), transferOpen);
   const [form, setForm] = useState({ fullName: '', phone: '', email: '', message: '' });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
@@ -110,51 +79,12 @@ export default function LeadsPage() {
     finally { setSaving(false); }
   }
 
-  // optimisticStatus: ถ้าใส่ → อัปเดตสถานะแถว + ปิด modal ทันที (รู้สึกไวทันมือ) แล้วยิง API เบื้องหลัง
-  //   สำเร็จ → reload sync · ล้มเหลว → reload ดึงสถานะเดิมกลับ (rollback) + แจ้ง error
-  // ไม่ใส่ (เช่น convert/delete ที่มี side-effect หนัก) → ปิด modal หลังสำเร็จเหมือนเดิม
-  async function act(fn: () => Promise<unknown>, successMsg: string, optimisticStatus?: string) {
-    setBusy(true);
-    const id = active?.id;
-    if (optimisticStatus && id) {
-      mutate((rs) => rs.map((r) => (r.id === id ? { ...r, status: optimisticStatus } : r)));
-      closeLead();
-    }
-    try {
-      await fn();
-      if (!optimisticStatus) closeLead();
-      reload();
-      toast.success(successMsg);
-    } catch (e) {
-      toast.error((e as { message?: string }).message || 'ทำรายการไม่สำเร็จ');
-      reload();
-    } finally { setBusy(false); }
-  }
-
-  function changeStatus(lead: Lead, to: string, label: string, reason?: string) {
-    return act(
-      () => api(`/leads/${lead.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: to, lostReason: reason }) }),
-      `${label}แล้ว`,
-      to, // optimistic: สถานะปลายทาง
-    );
-  }
-
-  // Phase 16: "รับดูแล Lead นี้" คลิกเดียว — assign ตัวเอง + new→working ใน request เดียว (backend atomic)
-  function takeOwnership(lead: Lead) {
-    return act(
-      () => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }),
-      'รับ Lead มาดูแลแล้ว',
-      'working', // optimistic: กระโดดเป็นกำลังดูแลทันที
-    );
-  }
-
   const cols: Col<Lead>[] = [
     { header: 'ลูกค้า', primary: true, cell: (l) => l.fullName },
     { header: 'เบอร์โทร', sub: true, cell: (l) => <PhoneLink phone={l.phone} /> },
-    // ช่องทาง = sub-col ที่ 2 (channel chip · neutral ไม่แข่ง status badge) → เดสก์ท็อป: คอลัมน์แยก · การ์ด: บรรทัดของตัวเอง
-    // hidden sm:inline-flex → ซ่อนมือถือ (การ์ด minimal เน้นโทร) · โผล่ตั้งแต่ iPad ขึ้นไป (การ์ด+ตาราง)
+    // ช่องทาง = sub-col ที่ 2 (channel chip) → เดสก์ท็อป: คอลัมน์แยก · การ์ด: บรรทัดของตัวเอง · hidden sm:inline-flex → ซ่อนมือถือ
     { header: 'ช่องทาง', sub: true, cell: (l) => <span className="hidden items-center whitespace-nowrap rounded border border-border bg-raised px-1.5 py-0.5 text-xs text-muted sm:inline-flex">{LEAD_SOURCE[l.source] ?? l.source}</span> },
-    // แม่แบบ minimal (variant C): ตัดคอลัมน์ "รหัส" ออกจาก list (→ detail) — รหัสลีดไม่ใช่คีย์ scan · เหลือแก่น workflow ขาย (ใคร·เบอร์·ช่องทาง·สถานะ)
+    // แม่แบบ minimal (variant C): ตัดรหัส · เหลือแก่น (ใคร·เบอร์·ช่องทาง·สถานะ) · pill outline
     { header: 'สถานะ', right: true, cell: (l) => <StatusBadge map={LEAD_STATUS} value={l.status} outline /> },
   ];
 
@@ -181,112 +111,9 @@ export default function LeadsPage() {
           emptyAction={filtered
             ? <button className="btn-ghost btn-sm" onClick={clearFilters}>ล้างตัวกรอง</button>
             : (can('lead', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> เพิ่ม Lead</button>)}
-          onRow={openLead} />
+          onRow={(l) => router.push(`/leads/${l.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
-
-      {/* รายละเอียด + การกระทำ — หัว modal = ชื่อคน (Phase 17), เนื้อ = InfoGroup (Phase 18) */}
-      <Modal open={!!active} onClose={closeLead} title={active ? active.fullName : ''}>
-        {active && (() => {
-          const closeItems = active.status !== 'closed'
-            ? [{ label: 'ปิด Lead (ไม่สำเร็จ)', icon: 'x' as const, danger: true, onClick: () => setCloseOpen(true) }]
-            : [];
-          const transferItems = active.status === 'working' && can('lead', 'assign')
-            ? [{ label: 'โอนให้คนอื่น', icon: 'users' as const, onClick: () => setTransferOpen(true) }]
-            : [];
-          const delItems = can('lead', 'delete') && !active.customerId
-            ? [{ label: 'ลบ Lead นี้', icon: 'trash' as const, danger: true, onClick: () => setDelOpen(true) }]
-            : [];
-          const moreItems = [...transferItems, ...closeItems, ...delItems];
-          return (
-          <div className="space-y-4">
-            {/* glance — สถานะ pill (tone จริง · outline) + ช่องทาง + เข้ามาเมื่อ · ตัดรหัส (แม่แบบ modal minimal) */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-              <StatusBadge map={LEAD_STATUS} value={active.status} outline />
-              <span>{LEAD_SOURCE[active.source] ?? active.source} · เข้ามา {fmtDate(active.createdAt)}</span>
-            </div>
-
-            {/* การกระทำ (action-first · lead เน้น pipeline: ปุ่มถัดไปมาก่อน) */}
-            <div className="space-y-2">
-              {active.status === 'new' && (
-                <div className="flex gap-2">
-                  {can('lead', 'assign') ? (
-                    <button className="btn-gold flex-1" disabled={busy} onClick={() => takeOwnership(active)}>รับดูแล Lead นี้</button>
-                  ) : <span className="flex-1" />}
-                  {moreItems.length > 0 && <MoreMenu items={moreItems} />}
-                </div>
-              )}
-
-              {active.status === 'working' && (
-                <>
-                  {can('appointment', 'create') && (
-                    <button className="btn-gold w-full" disabled={busy}
-                      onClick={() => router.push(`/appointments?newLead=${active.id}`)}>
-                      <Icon name="calendar" size={16} /> สร้างนัดดูทรัพย์
-                    </button>
-                  )}
-                  <div className="flex gap-2">
-                    {can('lead', 'convert') && !active.customerId ? (
-                      <button className="btn-ghost flex-1" disabled={busy}
-                        onClick={() => act(() => api(`/leads/${active.id}/convert`, { method: 'POST' }), 'แปลงเป็นลูกค้าแล้ว')}>
-                        แปลงเป็นลูกค้า
-                      </button>
-                    ) : <span className="flex-1" />}
-                    {moreItems.length > 0 && <MoreMenu items={moreItems} />}
-                  </div>
-                </>
-              )}
-
-              {active.status === 'closed' && (
-                <div className="flex items-center gap-2">
-                  <p className="inline-flex flex-1 items-center justify-center gap-1 text-center text-sm text-success">
-                    {active.customerId ? <><Icon name="check" size={15} /> ปิดสำเร็จ — แปลงเป็นลูกค้าแล้ว</> : 'ปิด Lead แล้ว'}
-                  </p>
-                  {moreItems.length > 0 && <MoreMenu items={moreItems} />}
-                </div>
-              )}
-            </div>
-
-            {/* ติดต่อ + ความต้องการ — ไม่มีป้าย/ไอคอน · แยกด้วยสี+น้ำหนัก (เบอร์เด่น=โทรตาม · ความต้องการเทา) */}
-            {(active.phone || active.email || active.message || active.preferredViewAt) && (
-              <div className="space-y-2.5 border-t border-border pt-4">
-                {(active.phone || active.email) && (
-                  <div className="flex items-baseline justify-between gap-3">
-                    {active.phone
-                      ? <PhoneLink phone={active.phone} className="font-medium text-ink" />
-                      : <span className="text-sm text-faint">ไม่มีเบอร์</span>}
-                    {active.email && <span className="shrink-0 text-sm text-muted">{active.email}</span>}
-                  </div>
-                )}
-                {active.message && <div className="whitespace-pre-line text-sm leading-relaxed text-ink-soft">{active.message}</div>}
-                {active.preferredViewAt && <div className="text-sm text-muted">อยากเข้าชม · {fmtDate(active.preferredViewAt)}</div>}
-              </div>
-            )}
-
-            {/* ทรัพย์ที่สนใจ — คงป้ายเล็ก (เป็นลิสต์กดได้) */}
-            {detail?.interests && detail.interests.length > 0 && (
-              <div className="border-t border-border pt-4">
-                <div className="mb-1 text-2xs uppercase tracking-wide text-muted">ทรัพย์ที่สนใจ · {detail.interests.length}</div>
-                {detail.interests.map((it) => (
-                  <button key={it.property.id} onClick={() => router.push(`/properties/${it.property.id}`)}
-                    className="flex w-full items-center gap-2 py-2 text-left transition hover:opacity-70">
-                    <span className="min-w-0 flex-1 truncate text-sm text-ink">{it.property.titleTh}</span>
-                    <span className="shrink-0 text-sm tabular-nums text-gold-dark">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
-                    <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short outline />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* ผู้ดูแล + เหตุผลปิด — footer จาง (ข้อมูลรอง) */}
-            <div className="border-t border-border pt-4 text-xs text-faint">
-              ผู้ดูแล · {detail?.assignedTo?.fullName ?? (active.assignedToId ? '—' : 'ยังไม่มอบหมาย')}
-              {active.status === 'closed' && active.lostReason && <div className="mt-1">เหตุผลที่ปิด · {active.lostReason}</div>}
-            </div>
-          </div>
-          );
-        })()}
-      </Modal>
 
       {/* สร้าง Lead */}
       <Modal open={open} onClose={() => setOpen(false)} title="สร้าง Lead (walk-in / โทรศัพท์)"
@@ -305,35 +132,6 @@ export default function LeadsPage() {
           </div>
         </form>
       </Modal>
-
-      {/* โอนให้คนอื่น (Phase 16) — เลือกผู้ดูแลใหม่ */}
-      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferTo(''); }} title="โอน Lead ให้คนอื่น"
-        footer={
-          <div className="flex justify-end gap-2">
-            <button type="button" className="btn-ghost" onClick={() => { setTransferOpen(false); setTransferTo(''); }}>ยกเลิก</button>
-            <button type="button" className="btn-gold" disabled={busy || !transferTo}
-              onClick={() => { if (active && transferTo) { setTransferOpen(false); act(() => api(`/leads/${active.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: transferTo }) }), 'โอน Lead ให้ผู้ดูแลใหม่แล้ว'); setTransferTo(''); } }}>
-              โอน Lead
-            </button>
-          </div>
-        }>
-        <Combobox label="ผู้ดูแลใหม่" value={transferTo} onChange={setTransferTo}
-          options={assignable.options} loading={assignable.loading} loadError={assignable.error} onRetry={assignable.reload}
-          placeholder="— เลือกผู้ดูแล —" />
-      </Modal>
-
-      {/* ปิด Lead (ไม่สำเร็จ) — ขอเหตุผล */}
-      <ConfirmDialog open={closeOpen} onClose={() => setCloseOpen(false)} busy={busy}
-        title="ปิด Lead (ไม่สำเร็จ)" tone="danger" confirmLabel="ปิด Lead" withReason
-        message={active ? <>ปิด Lead <b>{active.fullName}</b>? จะนับเป็นไม่สำเร็จ</> : ''}
-        reasonPlaceholder="เหตุผลที่ปิด (ถ้ามี)"
-        onConfirm={(reason) => { if (active) changeStatus(active, 'closed', 'ปิด Lead', reason); setCloseOpen(false); }} />
-
-      {/* ลบ Lead — สร้างผิด/สแปม (ที่แปลงเป็นลูกค้าแล้ว/มีนัด จะลบไม่ได้) */}
-      <ConfirmDialog open={delOpen} onClose={() => setDelOpen(false)} busy={busy}
-        title="ลบ Lead" tone="danger" confirmLabel="ลบ Lead"
-        message={active ? <>ลบ Lead <b>{active.fullName}</b> ทิ้ง? ใช้กรณีสร้างผิด/สแปม — ถ้าแค่ติดต่อไม่ได้ ใช้ “ปิด Lead” แทน</> : ''}
-        onConfirm={() => { if (active) act(() => api(`/leads/${active.id}`, { method: 'DELETE' }), 'ลบ Lead แล้ว'); setDelOpen(false); }} />
     </div>
   );
 }

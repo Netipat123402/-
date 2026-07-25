@@ -303,7 +303,7 @@ export default function AppointmentsPage() {
               <div className="space-y-2.5 border-t border-border pt-4">
                 {lead && (
                   <div className="flex items-baseline justify-between gap-3">
-                    <button onClick={() => router.push(`/leads?focus=${lead.id}`)}
+                    <button onClick={() => router.push(`/leads/${lead.id}`)}
                       className="truncate text-left font-medium text-ink transition hover:text-gold-dark">{lead.fullName}</button>
                     {lead.phone && <PhoneLink phone={lead.phone} className="shrink-0 text-sm text-muted" />}
                   </div>

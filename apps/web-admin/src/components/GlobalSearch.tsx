@@ -92,7 +92,7 @@ export default function GlobalSearch({ variant }: {
     const out: { title: string; items: Item[] }[] = [];
     if (actions.length) out.push({ title: ql ? 'คำสั่ง' : 'ไปยัง', items: actions });
     if (res.properties.length) out.push({ title: 'ทรัพย์', items: res.properties.map((p) => ({ id: p.id, label: p.titleTh, sub: p.code, href: `/properties/${p.id}` })) });
-    if (res.leads.length) out.push({ title: 'Lead', items: res.leads.map((l) => ({ id: l.id, label: l.fullName, sub: l.phone, href: `/leads?focus=${l.id}` })) });
+    if (res.leads.length) out.push({ title: 'Lead', items: res.leads.map((l) => ({ id: l.id, label: l.fullName, sub: l.phone, href: `/leads/${l.id}` })) });
     if (res.customers.length) out.push({ title: 'ลูกค้า', items: res.customers.map((c) => ({ id: c.id, label: c.fullName, sub: c.phone, href: `/customers/${c.id}` })) });
     if (res.owners.length) out.push({ title: 'เจ้าของ', items: res.owners.map((o) => ({ id: o.id, label: o.fullName, sub: o.phone, href: `/owners/${o.id}` })) });
     return out;
