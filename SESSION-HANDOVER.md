@@ -42,7 +42,8 @@ owner approved batch: ลีด (ตัดรหัส + outline pill) · ทร
 - **2 แม่แบบ detail:** Record page = SectionTabs (ทรัพย์/ลูกค้า/เจ้าของ/สัญญา) · Quick modal = สั้น action-first ไม่มีไอคอน (นัด/ลีด) — แก้ "ระบบสะเปะสะปะ"
 - **วันที่มาตรฐานเดียว "14 Jul 26"** ทั้งแอป (sweep แล้วที่ format.ts) + helper fmtWeekdayDate/fmtTimeRange
 - ✅ **#1 นัดหมาย detail = แม่แบบ modal minimal** (pill สี tone จริง + วันหัว + แยกหมวดด้วยสี ไม่มีไอคอน · per-device pill บน↔ขวา) — verify authed 3 จอ ผ่าน
-- ⏳ **ยังเหลือ:** #2 เจ้าของ detail (split ติดต่อ/ระบุตัวตน/โน้ต) · #3 create form · **ลีด modal ใช้แม่แบบ minimal เดียวกับนัด** · ตรวจเจ้าของ/สัญญาเข้า Record archetype ครบ · ไล่ minimal+วันที่ใหม่ทุก sidebar detail (owner สั่ง "ยกระดับทุก sidebar")
+- ✅ **Shell width เดียว (commit `58b2817`)** — แก้ owner "สลับ sidebar แล้วงง": คุมกว้างที่ layout เดียว (max-w-5xl) · ลบ max-w ทุกหน้า list · settings/search คงแคบ · verify ทุก list = 1024px ตรงกัน. **กฎ: หน้าใหม่ห้ามตั้ง max-w เอง**
+- ⏳ **ยังเหลือ:** ลีด modal (ออกแบบแล้ว owner "ขอปรับ" = จริง ๆ คือปัญหา shell ซึ่งแก้แล้ว → รอ re-confirm) · #2 เจ้าของ detail (split ติดต่อ/ระบุตัวตน/โน้ต) · #3 create form · ตรวจเจ้าของ/สัญญาเข้า Record archetype ครบ · ไล่ minimal+วันที่ใหม่ทุก sidebar detail
 
 ### ⭐ C) per-device data subset (กฎใหม่ owner)
 หัวข้อ/คอลัมน์ **ไม่ต้องโชว์ครบทุก device** — เลือกตามความสำคัญ (มือถือแก่น · iPad ตั้ง/นอน กลาง · คอมมากขึ้นแต่ไม่ครบ) เพราะคลิกเข้า detail ดูเชิงลึกอยู่ดี. เสนอ subset ต่ออุปกรณ์ + ถามก่อน + เหตุผล. (กฎ B ในไฟล์เดียวกัน)
