@@ -36,15 +36,20 @@
 ### ✅ A) ใช้แม่แบบ list minimal (variant C) — เสร็จ (commit `661a450`)
 owner approved batch: ลีด (ตัดรหัส + outline pill) · ทรัพย์ (เก็บรหัส RN-xxxx = คีย์สต็อก + outline) · นัดหมาย (outline pill · คงวันเวลา fmtDateTime) · เจ้าของ/ลูกค้า minimal ตรงแม่แบบอยู่แล้วไม่แตะ. verify authed 3 จอ ผ่าน. **rich cols (เจ้าของในทรัพย์ · ทรัพย์ที่สนใจในลีด · ทรัพย์ที่เช่าในลูกค้า) ยังติด R2** (ต้องเจ้าของเคาะปลด R2). ดู [[ros-list-minimal-template]].
 
-### ⭐ B) แยกหมวดข้อมูลที่ติดกัน (กฎใหม่ owner)
-ไล่สแกนทุกหน้า หา "ชุดข้อมูลควรแยกแต่ติดกัน" (เช่น **นัดหมาย: วันที่+สถานที่ ติดกัน**) → แยกคนละหมวด. เสนอ before/after + รูป 3 จอ + เหตุผล ก่อนแก้. (ดู [[ros-category-split-and-device-subset]] กฎ A)
+### 🔄 B) แยกหมวด + design language (กำลังทำ · commit `8c31859`)
+สแกนครบ เจอ 3 จุดปนหมวด: #1 นัดหมาย detail (พนักงาน+สถานที่) · #2 เจ้าของ detail (ติดต่อ+ระบุตัวตน+โน้ต) · #3 นัดหมาย create form (แบน).
+**owner ยกระดับเป็นกติการะบบ (lock · ดู [[ros-detail-archetypes-and-date-standard]]):**
+- **2 แม่แบบ detail:** Record page = SectionTabs (ทรัพย์/ลูกค้า/เจ้าของ/สัญญา) · Quick modal = สั้น action-first ไม่มีไอคอน (นัด/ลีด) — แก้ "ระบบสะเปะสะปะ"
+- **วันที่มาตรฐานเดียว "14 Jul 26"** ทั้งแอป (sweep แล้วที่ format.ts) + helper fmtWeekdayDate/fmtTimeRange
+- ✅ **#1 นัดหมาย detail = แม่แบบ modal minimal** (pill สี tone จริง + วันหัว + แยกหมวดด้วยสี ไม่มีไอคอน · per-device pill บน↔ขวา) — verify authed 3 จอ ผ่าน
+- ⏳ **ยังเหลือ:** #2 เจ้าของ detail (split ติดต่อ/ระบุตัวตน/โน้ต) · #3 create form · **ลีด modal ใช้แม่แบบ minimal เดียวกับนัด** · ตรวจเจ้าของ/สัญญาเข้า Record archetype ครบ · ไล่ minimal+วันที่ใหม่ทุก sidebar detail (owner สั่ง "ยกระดับทุก sidebar")
 
 ### ⭐ C) per-device data subset (กฎใหม่ owner)
 หัวข้อ/คอลัมน์ **ไม่ต้องโชว์ครบทุก device** — เลือกตามความสำคัญ (มือถือแก่น · iPad ตั้ง/นอน กลาง · คอมมากขึ้นแต่ไม่ครบ) เพราะคลิกเข้า detail ดูเชิงลึกอยู่ดี. เสนอ subset ต่ออุปกรณ์ + ถามก่อน + เหตุผล. (กฎ B ในไฟล์เดียวกัน)
 
 ## 4) กฎ (source of truth)
 - **`DESIGN-SYSTEM.md`** (locked §1–11): type · spacing · radius A · shadow · icon · color · **§7 วันสากล · §8 label-value rail · §9 วิจารณ์ตรง · §10 แยกหมวด · §11 field ต่อ device**
-- **auto-memory (operating manual — โหลดเอง):** `ros-master-workflow`(⭐อ่านก่อน) · `ros-comparison-responsive-protocol`(รูปเทียบ show_widget เสมอ · per-device) · `ros-critique-and-proactive`(⭐ติตรง ห้ามอวย) · `ros-sidebar-entity-audit`(⭐per-entity · per-device distinct · **แนบรูปทุกครั้ง**) · `ros-clean-detail-rows`(plain value · no ☎ · hover-nav) · `ros-view-edit-field-parity` · `ros-list-minimal-template`(variant C) · `ros-category-split-and-device-subset`(⭐กฎใหม่ 2 ข้อ) · `ros-inter-look-date-and-labelvalue` · `admin-listview-single-flex-column` · `tailwind-mouse-variant-order` · `ros-reseed-and-contract-side-effects` · `ros-radius-and-mock-images`
+- **auto-memory (operating manual — โหลดเอง):** `ros-master-workflow`(⭐อ่านก่อน) · `ros-comparison-responsive-protocol`(รูปเทียบ show_widget เสมอ · per-device) · `ros-critique-and-proactive`(⭐ติตรง ห้ามอวย) · `ros-sidebar-entity-audit`(⭐per-entity · per-device distinct · **แนบรูปทุกครั้ง**) · `ros-clean-detail-rows`(plain value · no ☎ · hover-nav) · `ros-view-edit-field-parity` · `ros-list-minimal-template`(variant C) · `ros-detail-archetypes-and-date-standard`(⭐2 แม่แบบ detail + วันที่ 14 Jul 26) · `ros-category-split-and-device-subset`(⭐กฎใหม่ 2 ข้อ) · `ros-inter-look-date-and-labelvalue` · `admin-listview-single-flex-column` · `tailwind-mouse-variant-order` · `ros-reseed-and-contract-side-effects` · `ros-radius-and-mock-images`
 
 ## 5) 🛠 เครื่องมือ/วิธี (สำคัญ)
 - **owner ดู preview_screenshot ไม่ได้** → รูปเทียบ owner-facing = `mcp__visualize__show_widget` เสมอ (ธีมมืด ROS · hex: ink#ECEAE4 gold#C8A96A surface#1B1A18 border#302E2A muted#9C978E faint#6A655D page#131210)
