@@ -60,8 +60,13 @@ export default function OwnersPage() {
 
   // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = เบอร์แตะโทร · อีเมล = คอลัมน์เฉพาะตาราง (การ์ด touch แคบ → phone-only; ตรงกับ customers) · ขวา = จำนวนทรัพย์
   const cols: Col<Owner>[] = [
-    { header: 'ชื่อ', primary: true, cell: (o) => o.fullName },
-    { header: 'เบอร์โทร', sub: true, cell: (o) => <PhoneLink phone={o.phone} className="text-muted" /> },
+    // primary 2 บรรทัด = ชื่อ + เบอร์ใต้ชื่อ (เกาะเป็นชุด · muted กดโทรได้)
+    { header: 'เจ้าของ', primary: true, twoLine: true, cell: (o) => (
+      <div className="min-w-0">
+        <div className="truncate font-medium text-ink">{o.fullName}</div>
+        <PhoneLink phone={o.phone} className="text-xs text-muted" />
+      </div>
+    ) },
     { header: 'อีเมล', cell: (o) => (o.email ? <span className="text-muted">{o.email}</span> : <span className="text-faint">—</span>) },
     { header: 'ทรัพย์', right: true, width: 'w-28', cell: (o) => <span className="text-muted">{o.propertyCount ?? 0} ทรัพย์</span> },
   ];

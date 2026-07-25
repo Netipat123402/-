@@ -26,8 +26,13 @@ export default function CustomersPage() {
 
   // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = เบอร์แตะโทร · อีเมล = คอลัมน์เฉพาะตาราง (การ์ด touch แคบ → อีเมลตัดเป็นขยะ "mocl"; ตรงกับ owners ที่โชว์เบอร์อย่างเดียว) · ขวา = จำนวนสัญญา
   const cols: Col<Customer>[] = [
-    { header: 'ชื่อ', primary: true, cell: (c) => c.fullName },
-    { header: 'เบอร์โทร', sub: true, cell: (c) => <PhoneLink phone={c.phone} /> },
+    // primary 2 บรรทัด = ชื่อ + เบอร์ใต้ชื่อ (เกาะเป็นชุด · muted กดโทรได้)
+    { header: 'ลูกค้า', primary: true, twoLine: true, cell: (c) => (
+      <div className="min-w-0">
+        <div className="truncate font-medium text-ink">{c.fullName}</div>
+        <PhoneLink phone={c.phone} className="text-xs text-muted" />
+      </div>
+    ) },
     { header: 'อีเมล', cell: (c) => (c.email ? <span className="text-muted">{c.email}</span> : <span className="text-faint">—</span>) },
     { header: 'สัญญา', right: true, width: 'w-28', cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
   ];

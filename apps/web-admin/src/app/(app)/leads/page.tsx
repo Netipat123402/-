@@ -7,7 +7,7 @@ import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
 import { LEAD_SOURCE, LEAD_STATUS } from '@/lib/status';
-import { formatPhone, phoneDigits } from '@/lib/format';
+import { fmtDateCompact, formatPhone, phoneDigits } from '@/lib/format';
 import { Col, Field, FilterBar, ListView, Modal, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
@@ -80,11 +80,17 @@ export default function LeadsPage() {
   }
 
   const cols: Col<Lead>[] = [
-    { header: 'ลูกค้า', primary: true, cell: (l) => l.fullName },
-    { header: 'เบอร์โทร', sub: true, cell: (l) => <PhoneLink phone={l.phone} /> },
-    // ช่องทาง = sub-col ที่ 2 (channel chip) → เดสก์ท็อป: คอลัมน์แยก · การ์ด: บรรทัดของตัวเอง · hidden sm:inline-flex → ซ่อนมือถือ
+    // primary 2 บรรทัด = ชื่อ + เบอร์ใต้ชื่อ (เกาะเป็นชุด · เบอร์ muted กดโทรได้ · แก้ "เบอร์ลอยไกล/ห่าง")
+    { header: 'ลูกค้า', primary: true, twoLine: true, cell: (l) => (
+      <div className="min-w-0">
+        <div className="truncate font-medium text-ink">{l.fullName}</div>
+        <PhoneLink phone={l.phone} className="text-xs text-muted" />
+      </div>
+    ) },
+    // ช่องทาง = channel chip → การ์ด: บรรทัดของตัวเอง (sm+) · ตาราง: คอลัมน์แยก
     { header: 'ช่องทาง', sub: true, cell: (l) => <span className="hidden items-center whitespace-nowrap rounded border border-border bg-raised px-1.5 py-0.5 text-xs text-muted sm:inline-flex">{LEAD_SOURCE[l.source] ?? l.source}</span> },
-    // แม่แบบ minimal (variant C): ตัดรหัส · เหลือแก่น (ใคร·เบอร์·ช่องทาง·สถานะ) · pill outline
+    // เข้ามาเมื่อ = คอลัมน์เฉพาะตาราง (กฎ C: คอมมากขึ้น) → เติมความกว้าง ไม่โหว่ + freshness ของ lead
+    { header: 'เข้ามาเมื่อ', cell: (l) => l.createdAt ? <span className="whitespace-nowrap text-muted">{fmtDateCompact(l.createdAt)}</span> : <span className="text-faint">—</span> },
     { header: 'สถานะ', right: true, cell: (l) => <StatusBadge map={LEAD_STATUS} value={l.status} outline /> },
   ];
 
