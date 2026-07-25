@@ -50,7 +50,8 @@ owner approved batch: ลีด (ตัดรหัส + outline pill) · ทร
   - ✅ **ลีด (`54220d1`)** — แปลง modal→หน้า [id] เต็ม · DetailHeader + ปุ่ม status-driven · แท็บ ภาพรวม(กล่อง ความต้องการ/ติดต่อ/การดูแล)/ทรัพย์ที่สนใจ · ย้าย logic ครบ + dialog · list navigate · แก้ deep-link focus= · verify 4 จอ
   - ✅ **นัดหมาย (`4d78fb1`)** — แปลง modal→หน้า [id] เต็ม · 3 แท็บ (ทรัพย์/รายละเอียด/ลูกค้า) · glance "เมื่อไหร่" เด่น · ย้าย logic + reschedule modal · list เอา MoreMenu inline ออก · แก้ deep-link focus= · verify 4 จอ
   - ✅ **สัญญา (`471c895`)** — ตรงแม่แบบอยู่แล้ว · step-2: แก้ date d()→lib "15 Feb 26" · เรียง คู่สัญญา→ระยะเวลา→การเงิน · badge "อีก X วัน" (active ใกล้ครบ) · verify
-  - 🎉 **ครบ 6 sidebar detail = แม่แบบ Record เดียวกันทั้งระบบ** (ทรัพย์แม่แบบ + เจ้าของ/ลูกค้า/ลีด/นัด/สัญญา) — ทั้งระบบเป็นภาษาเดียวกันแล้ว
+  - 🎉 **ครบ 6 sidebar detail = แม่แบบ Record เดียวกันทั้งระบบ** (ทรัพย์แม่แบบ + เจ้าของ/ลูกค้า/ลีด/นัด/สัญญา)
+  - ✅ **Code pass (`2522593`)** — รหัสของ record บนหัว = mono **ทอง** ทุกหน้า (DetailHeader ที่เดียว · ตรง list variant C) · รหัสอ้างอิงในกล่อง = จางสม่ำเสมอ (นัด ทอง→faint · เจ้าของ list faint) · สัญญาเรียง ลงนาม→เริ่ม→สิ้นสุด · วันสิ้นสุด badge นับถอยหลังเฉพาะใกล้ครบ (ไม่ซ้ำวัน)
 - ⏳ อื่น: #3 นัด create form · สแกน fmtDate local ปีเต็มหน้าอื่น
 
 ### ⭐ C) per-device data subset (กฎใหม่ owner)
