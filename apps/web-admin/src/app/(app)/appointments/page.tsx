@@ -245,7 +245,7 @@ export default function AppointmentsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageHeader title="นัดหมาย" count={`${meta.total ?? 0} รายการ`}
         action={can('appointment', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> นัด</button>} />
       {/* P11: สถานะ = quick-filter เห็นชัด แตะเดียว (ของใช้บ่อยสุด) — ไม่ต้องเปิดแผ่นตัวกรอง */}

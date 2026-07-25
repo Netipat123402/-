@@ -135,7 +135,7 @@ export default function UsersPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <PageHeader title="ผู้ใช้งาน" count={`${meta.total ?? rows.length} บัญชี`}
         action={can('user', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> บัญชี</button>} />
       <FilterBar search={{ value: q, onChange: setQ, placeholder: 'ค้นหาชื่อ/อีเมล…' }} />

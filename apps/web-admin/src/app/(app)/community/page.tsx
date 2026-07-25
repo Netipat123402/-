@@ -48,7 +48,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <PageHeader title="ชุมชน" subtitle="กระดานประกาศจากผู้ใช้ — อนุมัติก่อนแสดงบนเว็บ" count={`${meta.total ?? 0} โพสต์`} />
 
       <div className="mt-4">

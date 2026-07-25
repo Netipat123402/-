@@ -87,7 +87,7 @@ export default function NotificationsPage() {
   const visible = cat ? rows.filter((r) => r.category === cat) : rows;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <PageHeader title="การแจ้งเตือน" count={`${rows.length} รายการ`}
         action={totalUnread > 0 && <button className="btn-ghost h-10" onClick={markAll}>อ่านทั้งหมด</button>} />
 

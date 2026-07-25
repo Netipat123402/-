@@ -124,7 +124,7 @@ export default function PropertiesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageHeader title="ทรัพย์" count={`${meta.total ?? 0} รายการ`}
         action={can('property', 'create') && <button className="btn-gold btn-sm" onClick={() => setShowNew(true)}><Icon name="plus" size={16} /> เพิ่มทรัพย์</button>} />
 

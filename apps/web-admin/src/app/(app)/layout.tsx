@@ -296,8 +296,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* Option B (iPad): คง shell มือถือ แต่ให้จอแท็บเล็ตโปร่งขึ้น — เพิ่ม padding ข้างเฉพาะ "อุปกรณ์สัมผัส ≥640" (sm:touch)
             ใช้ touch เพื่อไม่ให้ทับ mouse:px-8 ของเดสก์ท็อป (mouse กับ touch แยกกันชัด → ไม่ชนกัน) */}
         <main id="main-content" tabIndex={-1} className="flex-1 px-4 pb-24 pt-6 outline-none sm:touch:px-6 mouse:px-8 mouse:pb-10 mouse:pt-8">
-          {/* A2: key=pathname → เนื้อหา fade เข้าใหม่ทุกครั้งที่เปลี่ยนหน้า (ลื่น/พรีเมียม) */}
-          <PullToRefresh><div key={pathname} className="animate-fade-rise">{children}</div></PullToRefresh>
+          {/* A2: key=pathname → เนื้อหา fade เข้าใหม่ทุกครั้งที่เปลี่ยนหน้า (ลื่น/พรีเมียม)
+              ความกว้างเนื้อหา = คุมที่ shell เดียว (owner lock: ทุกหน้า list เท่ากัน max-w-5xl → สลับ sidebar แล้วขอบนิ่ง)
+              หน้าที่ต้องแคบจริง (settings/search = ฟอร์ม/อ่าน) ใส่ max-w ของตัวเองที่แคบกว่า = override ได้ */}
+          <PullToRefresh><div key={pathname} className="mx-auto w-full max-w-5xl animate-fade-rise">{children}</div></PullToRefresh>
         </main>
       </div>
 

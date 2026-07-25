@@ -33,7 +33,7 @@ export default function CustomersPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <PageHeader title="ลูกค้า" count={`${meta.total ?? 0} ราย`} />
       <FilterBar
         search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/เบอร์…' }}

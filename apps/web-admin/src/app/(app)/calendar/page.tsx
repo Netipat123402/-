@@ -97,7 +97,7 @@ export default function CalendarPage() {
   const selectedAppts = (byDay.get(selected) ?? []).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageHeader title="ปฏิทินนัดหมาย" count={`${appts.length} นัดเดือนนี้`}
         action={(
           <div className="flex items-center gap-2">

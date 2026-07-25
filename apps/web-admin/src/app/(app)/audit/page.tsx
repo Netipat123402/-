@@ -113,7 +113,7 @@ export default function AuditPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <PageHeader title="บันทึกกิจกรรม" subtitle={`${meta.total ?? 0} รายการ · อัปเดตเรียลไทม์`} />
 
       <FilterBar

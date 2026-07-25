@@ -163,7 +163,7 @@ export default function LeadsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <PageHeader title="Lead" count={`${meta.total ?? 0} รายการ`}
         action={can('lead', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> Lead</button>} />
       {/* P11: สถานะ Lead = quick-filter แตะเดียว (ใช้บ่อยสุดใน flow งานขาย) */}

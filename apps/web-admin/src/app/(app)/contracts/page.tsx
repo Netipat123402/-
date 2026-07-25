@@ -152,7 +152,7 @@ export default function ContractsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div>
       <PageHeader title="สัญญา" count={`${meta.total ?? 0} ฉบับ`}
         action={can('contract', 'create') && <button className="btn-gold btn-sm" onClick={openCreate}><Icon name="plus" size={16} /> สัญญา</button>} />
       {/* P11: สถานะสัญญา = quick-filter แตะเดียว (ร่าง/มีผล/สิ้นสุด) */}

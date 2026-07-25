@@ -67,7 +67,7 @@ export default function OwnersPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <PageHeader title="เจ้าของทรัพย์" count={`${meta.total ?? 0} ราย`}
         action={can('owner', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> เจ้าของ</button>} />
       <FilterBar
