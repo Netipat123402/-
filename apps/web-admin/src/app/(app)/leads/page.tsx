@@ -158,8 +158,8 @@ export default function LeadsPage() {
     // ช่องทาง = sub-col ที่ 2 (channel chip · neutral ไม่แข่ง status badge) → เดสก์ท็อป: คอลัมน์แยก · การ์ด: บรรทัดของตัวเอง
     // hidden sm:inline-flex → ซ่อนมือถือ (การ์ด minimal เน้นโทร) · โผล่ตั้งแต่ iPad ขึ้นไป (การ์ด+ตาราง)
     { header: 'ช่องทาง', sub: true, cell: (l) => <span className="hidden items-center whitespace-nowrap rounded border border-border bg-raised px-1.5 py-0.5 text-xs text-muted sm:inline-flex">{LEAD_SOURCE[l.source] ?? l.source}</span> },
-    { header: 'รหัส', cell: (l) => <span className="font-mono text-xs text-muted">{l.code}</span> },
-    { header: 'สถานะ', right: true, cell: (l) => <StatusBadge map={LEAD_STATUS} value={l.status} /> },
+    // แม่แบบ minimal (variant C): ตัดคอลัมน์ "รหัส" ออกจาก list (→ detail) — รหัสลีดไม่ใช่คีย์ scan · เหลือแก่น workflow ขาย (ใคร·เบอร์·ช่องทาง·สถานะ)
+    { header: 'สถานะ', right: true, cell: (l) => <StatusBadge map={LEAD_STATUS} value={l.status} outline /> },
   ];
 
   return (

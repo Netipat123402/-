@@ -115,8 +115,8 @@ export default function PropertiesPage() {
       // สถานะ + ค่าเช่า รวมคอลัมน์เดียว: สถานะอยู่บน · ราคาอยู่ล่าง · จัดกึ่งกลางเข้าหากัน
       header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (p) => (
         <div className="flex flex-col items-center gap-1">
-          <span className="md:hidden"><StatusBadge map={PROPERTY_STATUS} value={p.status} short /></span>
-          <span className="hidden md:inline"><StatusBadge map={PROPERTY_STATUS} value={p.status} /></span>
+          <span className="md:hidden"><StatusBadge map={PROPERTY_STATUS} value={p.status} short outline /></span>
+          <span className="hidden md:inline"><StatusBadge map={PROPERTY_STATUS} value={p.status} outline /></span>
           <span className="font-semibold tabular-nums">฿{bahtFormat(Number(p.monthlyRent))}</span>
         </div>
       ),

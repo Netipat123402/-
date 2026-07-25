@@ -229,7 +229,7 @@ export default function AppointmentsPage() {
       // Phase 25: ปรับสถานะจากลิสต์ได้เลย (upcoming) — stopPropagation กันเปิด detail modal
       // badge ชิดซ้าย (ขอบซ้ายตรงกันทุกแถว ไม่เยื้อง) · ⋯ ชิดขวาสุด (slot ตายตัว) → justify-between + width คงที่
       <span className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
-        <StatusBadge map={APPOINTMENT_STATUS} value={a.status} />
+        <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline />
         <span className="flex w-5 shrink-0 justify-center">
           {a.status === 'upcoming' && can('appointment', 'change_status') && (
             <MoreMenu items={[
