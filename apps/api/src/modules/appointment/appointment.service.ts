@@ -195,7 +195,7 @@ export class AppointmentService {
       query.sort === 'desc' ? { scheduledAt: 'desc' } : { scheduledAt: 'asc' }; // MR-12
     const [items, total] = await this.prisma.$transaction([
       this.prisma.appointment.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit,
-        include: { lead: { select: { fullName: true } }, property: { select: { titleTh: true } } } }),
+        include: { lead: { select: { fullName: true, phone: true } }, property: { select: { titleTh: true, monthlyRent: true } } } }),
       this.prisma.appointment.count({ where }),
     ]);
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };

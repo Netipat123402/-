@@ -7,15 +7,16 @@ import { useList } from '@/lib/useList';
 import { useLookup, useSearchLookup } from '@/lib/lookups';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
-import { APPOINTMENT_STATUS } from '@/lib/status';
-import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
+import { APPOINTMENT_STATUS, bahtFormat } from '@/lib/status';
+import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { fmtDateTime } from '@/lib/format';
 
 interface Appt {
   id: string; code: string; scheduledAt: string; status: string;
   durationMin: number; location?: string; title?: string;
-  lead?: { fullName: string }; property?: { titleTh: string };
+  lead?: { fullName: string; phone?: string }; // R2: list ส่ง phone → ชื่อ+เบอร์
+  property?: { titleTh: string; monthlyRent?: string }; // R2: list ส่งค่าเช่า → สถานะ·ค่าเช่า แบบหน้าทรัพย์
 }
 
 const STATUS_OPTIONS = [
@@ -150,22 +151,28 @@ export default function AppointmentsPage() {
   // Phase 24 (ข้อ 5): "นัดกับ" = ชื่อคนก่อน (lead) → title (นัดนอกรอบ) → รหัส · ทรัพย์อยู่คอลัมน์รองแล้ว ไม่ซ้ำ
   const subject = (a: Appt) => a.lead?.fullName || a.title || `นัด ${a.code}`;
   const cols: Col<Appt>[] = [
-    // primary 2 บรรทัด = นัดกับ (ชื่อ) + วันเวลาใต้ชื่อ (เกาะเป็นชุด who+when · minimal template เหมือน lead ชื่อ+เบอร์)
+    // 1) นัดกับ = ชื่อ + เบอร์ (two-line เกาะชุด · เบอร์ muted กดโทรได้ เหมือน lead list) · นัดนอกรอบไม่มี lead → title + —
     { header: 'นัดกับ', primary: true, twoLine: true, cell: (a) => (
       <div className="min-w-0">
         <div className="truncate font-medium text-ink">{subject(a)}</div>
-        <div className="text-xs tabular-nums text-muted">{fmt(a.scheduledAt)}</div>
+        {a.lead?.phone
+          ? <PhoneLink phone={a.lead.phone} className="text-xs text-muted" />
+          : <span className="text-xs text-faint">—</span>}
       </div>
     ) },
-    // ทรัพย์ = คอลัมน์ sub → เดสก์ท็อป: คอลัมน์ตารางแยก (ตัด …) · การ์ด: บรรทัดของตัวเอง
-    // hidden sm:inline → ซ่อนบนมือถือ (การ์ด minimal ไม่มีทรัพย์) · โผล่ตั้งแต่ iPad ขึ้นไป (การ์ด+ตาราง)
+    // 2) วันที่·เวลา (คอลัมน์แยก · tabular-nums)
+    { header: 'วันที่-เวลา', sub: true, cell: (a) => <span className="whitespace-nowrap tabular-nums text-muted">{fmt(a.scheduledAt)}</span> },
+    // 3) ทรัพย์ → เดสก์ท็อป/iPad คอลัมน์ตาราง+การ์ด · ซ่อนมือถือ (การ์ด minimal · แก่น=ใคร/เมื่อไร/สถานะ)
     { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
-      ? <span className="hidden sm:inline">{a.property.titleTh}</span>
+      ? <span className="hidden truncate text-muted sm:inline">{a.property.titleTh}</span>
       : <span className="hidden text-faint sm:inline">—</span> },
-    // สถานะ = pill outline (right:true = มือถือ cluster ขวา · คอม ชิดซ้ายใต้หัวข้อ) · action ย้ายไปหน้า detail
-    { header: 'สถานะ', right: true, cell: (a) => (
-      <div className="flex flex-col items-start">
+    // 4) สถานะ · ค่าเช่า (แบบหน้าทรัพย์: สถานะบน · ค่าเช่าล่าง · จัดกึ่งกลางเข้าหากัน) · นัดนอกรอบไม่มีทรัพย์ → ไม่มีค่าเช่า
+    { header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (a) => (
+      <div className="flex flex-col items-center gap-1">
         <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline />
+        {a.property?.monthlyRent != null && (
+          <span className="font-semibold tabular-nums">฿{bahtFormat(Number(a.property.monthlyRent))}</span>
+        )}
       </div>
     ) },
   ];
