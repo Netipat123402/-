@@ -59,15 +59,18 @@
 `ink`/`ink-soft` (ตัวอักษร) · `gold`/`gold-dark`/`gold-light` (accent เดียว) · `surface`/`raised`/`canvas` (พื้น) · `border`/`border-strong` · `muted`/`faint` (จาง) · `success`/`warning`/`danger`/`info`
 - **Accent เดียว = gold** · ❌ ห้าม hardcode hex ในคอมโพเนนต์ (ยกเว้น brand LINE #06C755, overlay ภาพ ink/xx)
 
-## 7) วันที่ = สากล (inter look) · [ใหม่ 2026-07-18 เจ้าของสั่ง]
-UI ทุกที่ใช้รูปแบบสากล — **ห้าม พ.ศ. / เดือนไทย / "น."** (ดูรก/local) · แบบ Linear/Stripe/Vercel
+## 7) วันที่ = สากล ปี 2 หลัก (inter look) · [อัปเดต 2026-07-25 เจ้าของล็อก "14 Jul 26"]
+UI ทุกที่ใช้รูปแบบสากล **ปี 2 หลัก** — **ห้าม พ.ศ. / เดือนไทย / "น." / เลขล้วน DD/MM/YY (กำกวม)** · แบบ Linear/Stripe/Vercel
 | ใช้ | ผล | ฟังก์ชัน (`lib/format.ts` = source เดียว) |
 |---|---|---|
-| วันที่ | `14 Jul 2026` | `fmtDate` |
+| วันที่ | `14 Jul 26` | `fmtDate` (DATE year=2-digit) |
 | วันที่สั้น | `14 Jul` | `fmtDateShort` |
 | เวลา | `09:00` (24 ชม.) | `fmtTime` |
-| วันที่+เวลา | `14 Jul 2026 · 09:00` | `fmtDateTime` |
-| feed/แจ้งเตือน/audit | `3 ชม.ที่แล้ว` → เกิน 7 วันเป็นวันที่ | `fmtRelative` |
+| วันที่+เวลา | `14 Jul 26 · 09:00` (วัน→เวลา) | `fmtDateTime` |
+| วัน+วันที่ | `Tue 14 Jul 26` (หัวนัด) | `fmtWeekdayDate` |
+| ช่วงเวลา | `09:00–09:30` | `fmtTimeRange(iso,min)` |
+| feed/urgency | `3 ชม.ที่แล้ว` / `อีก 2 วัน` | `fmtRelative` / `fmtUntil` |
+- ⚠️ **ห้ามมี local `fmtDate` ปีเต็มในหน้า** (เคยแอบซ่อนใน leads/contracts บายพาสมาตรฐาน → แก้เป็น lib แล้ว)
 - locale = `en-GB` (วัน-เดือน-ปี) · `hour12:false` · ❌ ห้าม `th-TH` กับ **วันที่/เวลา** (แต่ **เลข/บาท** ใช้ `Intl.NumberFormat('th-TH')` ได้ = คอมมา)
 - ยกเว้น: **ใบเสร็จ PDF** คงไทย/พ.ศ. (เอกสารทางการ) · **relative words** (นาที/ชม.ที่แล้ว) ไทยได้
 - ⚠️ body แจ้งเตือน/เตือนกำหนด มาจาก **backend** (`apps/api common/util/thai-datetime.ts`) → ยังเป็นไทย ต้องแก้ที่ API แยก (นอกรอบ frontend)
@@ -108,6 +111,17 @@ field คนละความหมายที่ยัดติดกัน =
 - **มือถือ:** field สำคัญสุด N ตัว (เช่น การ์ดทรัพย์ = รูป+ราคา+ทำเล) · **iPad-ตั้ง/นอน:** เพิ่มตามพื้นที่ · **คอม:** มากสุด (แต่ก็ไม่ต้องครบ)
 - **ต้องเสนอชุด field ที่เหมาะต่อแต่ละ device (ยกตัวอย่างมือถือโชว์อะไร/iPad อะไร/คอมอะไร) + widget 3 จอ + ถามก่อน + เหตุผล** ตาม §2
 - ใช้คู่กับ §10: แยกก่อน แล้วเลือกโชว์ต่อ device
+
+## 12) โครง Detail + List (master · ล็อก 2026-07-25) · [[ros-detail-archetypes-and-date-standard]]
+แก้ปัญหา "ระบบสะเปะสะปะ" — ทั้ง 6 sidebar (เจ้าของ/ทรัพย์/ลีด/นัด/ลูกค้า/สัญญา) ใช้แม่แบบเดียว:
+- **Detail archetype:** Record page = `DetailHeader` + `SectionTabs` (มือถือ accordion · iPad/คอม แท็บ) + `InfoGroup` แยกกล่องหัวชัด (xl 2 คอลัมน์) · ทุกหน้าแปลงเป็นหน้า `[id]` เต็ม (ลีด/นัดแปลงจาก modal แล้ว · list กด→navigate) · ออกแบบชุดข้อมูล **เหมาะ entity** (เน้นอะไรก่อน-หลัง · ห้ามซ้ำ) · ✅ ครบ 6
+- **รหัส record = mono ทอง บนหัว** (DetailHeader `code`) ทุกหน้า · รหัสอ้างอิงในกล่อง = จาง (รอง)
+- **List master:** primary 2 บรรทัด (ระบุหลัก + secondary จาง) · หน้ามีชื่อคน = **เบอร์ใต้ชื่อ** (muted กดโทรได้ PhoneLink) · สถานะ = pill outline · **ช่องไฟเฉลี่ยเท่ากันเต็มกว้าง** (ListView เลิก grow-column → primary cap · ไม่มีคอลัมน์ยืดกินที่) · คอลัมน์ขวา (สถานะ/นับ) **ชิดซ้ายใต้หัวข้อ** (items-start · ไม่ตกขอบ)
+- **shell width เดียว** = `(app)/layout.tsx` `max-w-5xl` (หน้าใหม่ห้ามตั้ง max-w เอง)
+- **Quick modal เหลือ:** สร้าง/แก้ (create/edit) = modal สั้น · detail = หน้าเต็ม
+
+## 13) วิธีทำงาน = ทีละหน้า จบแล้วหยุด · [ใหม่ 2026-07-25] · [[ros-one-page-at-a-time]]
+**ทำทีละหน้า/ทีละอย่าง · จบแล้วหยุดรอสั่งทุกครั้ง · ห้ามเดินหน้า/ทำรวบเอง** — ทุกหน้าต้องแนบรูป show_widget (มือถือ/iPad ตั้ง/iPad นอน/คอม) + เจ้าของเคาะก่อน · ระวัง shared component (ListView/DetailHeader) กระทบหลายหน้า = บอกก่อน · **R2 = ปลดแล้ว** (2026-07-25 เจ้าของอนุญาตแก้ backend สำหรับ list rich cols เช่น ทรัพย์ที่สนใจในลีด)
 
 ## 🎯 หลักการหลัก (Core Principle — ทุกการตัดสินใจยึดอันนี้)
 **minimal · เรียบง่าย · ไม่รก · clean · หรูดูแพง** — ตัดของไม่จำเป็นออกก่อนเสมอ · น้อยแต่ดี · 1 บรรทัด 1 ข้อมูล · gold accent เดียว · whitespace หายใจ · จบมือเดียวบนมือถือ · เพิ่ม/ลด/ไม่แตะ ได้หมด — ไม่จำเป็นต้องเพิ่ม การลบก็คือการปรับปรุง

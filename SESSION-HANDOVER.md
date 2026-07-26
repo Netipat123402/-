@@ -1,89 +1,62 @@
 # ROS — SESSION HANDOVER (อ่านไฟล์เดียวจบ)
 
 > **ไฟล์ handover ถาวร (ไม่มีวันที่ · เขียนทับทุกครั้ง ไม่สะสมไฟล์ใหม่).**
-> สรุปทุกอย่าง: โครงสร้าง · ทำอะไรไปแล้ว · เหลือ/ขาดอะไร · เสนออะไร · ทำอะไรต่อ · กฎ · เครื่องมือ.
-> คู่กับ: `DESIGN-SYSTEM.md` (กฎดีไซน์ locked §1–11) · `docs/ADMIN-DESIGN-PHASES.md` (แผนเฟส admin) · `PAGE-QA-SWEEP.md` (QA tracker) · auto-memory (operating rules — โหลดเข้า context เอง) · `docs/reference/` (SYSTEM-KNOWLEDGE + RELATIONSHIP-MAP — ความรู้ระบบ).
-> **git:** branch `recover/redesign-v2` · **commit local ถาวรในเครื่อง · ยังไม่ push GitHub** (ต้อง token เจ้าของ) — commit ค้างเยอะ
+> สรุปทุกอย่าง: โครงสร้าง · ทำอะไรไปแล้ว · เหลือ/ขาดอะไร · กฎ · เครื่องมือ · จุดค้าง.
+> คู่กับ: `DESIGN-SYSTEM.md` (กฎดีไซน์ locked §1–13) · `docs/ADMIN-DESIGN-PHASES.md` · `PAGE-QA-SWEEP.md` · auto-memory (operating rules) · `docs/reference/` (SYSTEM-KNOWLEDGE + RELATIONSHIP-MAP).
+> **git:** branch `recover/redesign-v2` · **commit local ถาวรในเครื่อง · ยังไม่ push GitHub** (ต้อง token เจ้าของ) — commit ค้างเยอะ (~50+)
 
 ---
 
 ## 0) โครงสร้างโปรเจกต์ (monorepo)
-- `apps/web-admin` — Next.js 14 admin (ธีมมืด-ทอง · authed) · **โฟกัสงานตอนนี้** · หน้า: dashboard·properties·leads·appointments·contracts·customers·owners·calendar·audit·users·community·notifications·settings·search (+detail/wizard)
-- `apps/web-public` — Next.js เว็บลูกค้า (สว่าง · ไม่ล็อกอิน) · home·properties·detail·saved·privacy — **เสร็จ redesign แล้ว (session ก่อน)**
-- `apps/api` — NestJS + Prisma (Postgres) · **R2 = frontend-only ห้ามแตะ backend**
-- `db/` — Prisma schema + seed (`seed/mock-bulk.ts` · ระวัง FK landmine)
-- `tailwind.preset.cjs` — design tokens ร่วม 2 แอป
-- **creds admin:** `admin@ros.local` / `ChangeMe!2026` · API :4000 · web-admin :3001 (เจ้าของรันเอง) · web-public :3000
+- `apps/web-admin` — Next.js 14 admin (ธีมมืด-ทอง · authed) · **โฟกัสงาน** · sidebar: dashboard·เจ้าของ·ทรัพย์·ลีด·นัดหมาย·ปฏิทิน·ลูกค้า·สัญญา (+ audit·users·settings ใน ProfileMenu)
+- `apps/web-public` — Next.js เว็บลูกค้า (สว่าง) — เสร็จ redesign แล้ว
+- `apps/api` — NestJS + Prisma (Postgres) · **🔓 R2 ปลดแล้ว** (เจ้าของอนุญาตแก้ backend สำหรับ list rich cols)
+- `db/` — Prisma schema + seed · `tailwind.preset.cjs` — token ร่วม 2 แอป
+- **creds admin:** `admin@ros.local` / `ChangeMe!2026` · API :4000 (192.168.1.2) · web-admin :3001 (เจ้าของรันเอง) · web-public :3000
 
 ## 1) สถานะรวม
-โปรเจกต์ **~functional 100%** (admin 21 หน้า CRUD จริง · public เสร็จ) · งานตอนนี้ = **design polish + world-class UX per-device** (ไม่ทำ feature ใหม่). ⚠️ **owner ทดสอบบน localhost:3001 (dev server ตัวเอง) — ค้างบ่อย ต้อง hard refresh (Cmd+Shift+R) หรือรีสตาร์ท server ถึงจะเห็นโค้ดใหม่.**
+โปรเจกต์ **~functional 100%** · งานตอนนี้ = **design polish world-class per-device** (ไม่ทำ feature ใหม่). ⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
 
-## 2) ทำอะไรไปแล้ว session นี้ (`5861a2c` → `c6809e3` · 17 commit)
-**Phase 1 — Detail/Modal (T1.1–T1.5):**
-- `5861a2c`+`46358aa` **นัดหมาย modal = status-driven bar (C)** — glance วันเวลา + แถบสถานะพา CTA + urgency (fmtUntil) · ปุ่ม stack เต็มกว้าง · ตัด ☎/chevron
-- `bf49711` T1.2/1.3/1.4 dedupe (ลูกค้า/สัญญา/เจ้าของ) · `08e62ed` Phase 1 done (T1.5 wizard = ดีอยู่แล้ว)
+## 2) ทำอะไรไปแล้ว session นี้ (เยอะมาก · ล่าสุด `cf747c5`)
+**A · List minimal (variant C) ครบทุก list** (`661a450`) — outline pill · ตัด clutter
+**B · Detail = 2 แม่แบบ + วันที่มาตรฐาน** (`8c31859`) — Record page (tabs/accordion) vs Quick modal · วันที่ "14 Jul 26" (2 หลัก · sweep)
+**C · Shell width เดียว** (`58b2817`) — `(app)/layout.tsx` max-w-5xl · แก้ "สลับ sidebar แล้วขอบเต้น"
+**D · ครบ 6 sidebar detail = Record master (เหมือนหน้าทรัพย์):**
+- เจ้าของ (`6d8422a`) · ลูกค้า (`a05deae`) · **ลีด modal→หน้า [id]** (`54220d1`) · **นัด modal→หน้า [id] 3 แท็บ** (`4d78fb1`) · สัญญา (`471c895`) · ทรัพย์ = แม่แบบเดิม
+- ทุกหน้า: DetailHeader + SectionTabs (มือถือ accordion/iPad·คอม แท็บ) + InfoGroup แยกกล่อง · เอา avatar ออก · ชุดข้อมูลเหมาะ entity
+**E · Code pass** (`2522593`) — รหัส record บนหัว = **mono ทอง** ทุกหน้า · รหัสในกล่อง = จาง · สัญญาเรียง ลงนาม→เริ่ม→สิ้นสุด
+**F · List pass (หน้า sidebar) — เริ่มแล้ว:**
+- person list เบอร์ใต้ชื่อ (`5389b97`) · **เฉลี่ยช่องไฟเต็มกว้าง** (`4609148` · ListView shared) · **ลีด list ชุดคอลัมน์ใหม่ + 🔓 R2** (`edd7d14`) · ลีด สถานะ·ช่องทาง ชิดซ้าย (`cf747c5`)
+- **ลีด list = จบ:** ลูกค้า(ชื่อ/เบอร์) · ทรัพย์ที่สนใจ(ล่าสุด · R2 backend) · อยากเข้าชม(วัน·เวลา 1 บรรทัด) · สถานะ·ช่องทาง(stacked ชิดซ้าย)
+**bug ที่เจอ+แก้:** local `fmtDate` ปีเต็มแอบซ่อนใน leads/contracts → แก้เป็น lib
 
-**Owner-review batch (per-device redesign):**
-- `1b2378a` **เจ้าของ** glance header + portfolio stat + list ตัด ☎
-- `2ad1438` **view/edit parity** (ลูกค้า+เจ้าของ view โชว์ทุกฟิลด์เท่า edit · ว่าง=—)
-- `84fa318` **PhoneLink ตัด ☎ ทั้งระบบ** (แก้ component เดียว) + จัดรูปเบอร์
-- `606add1`·`985f61b`·`9a641fe`·`37c794a` **tabs↔accordion ครบ 4 record detail** (ทรัพย์/สัญญา/ลูกค้า/เจ้าของ) — มือถือ accordion · iPad tabs 1col · คอม tabs+2col · glance header ทุกหน้า · สัญญาแก้แถวทรัพย์/รหัส (ข้อ5) · sign-flow เก็บไว้ (pattern ถูก)
-- `1726282` **InfoRow stack responsive** (ที่อยู่/โน้ต/รายละเอียด align ราง คอม · stack มือถือ)
-- `91e6b24` **list หัวคอลัมน์ชิดซ้ายตรงเนื้อหา** ทุกหน้า + เอา avatar (profile icon) ออก (เจ้าของ+ลูกค้า)
-- `a109cdb`→`c6809e3` **สัญญา list = แม่แบบ minimal (variant C)** — primary 2 บรรทัด (Col.twoLine) · outline pill (StatusBadge outline) · วันย่อ (fmtDateCompact) · ตัด clutter · **infra พร้อมใช้ซ้ำ**
-
-## 3) 🎯 งานถัดไป (owner สั่งไว้)
-### ✅ A) ใช้แม่แบบ list minimal (variant C) — เสร็จ (commit `661a450`)
-owner approved batch: ลีด (ตัดรหัส + outline pill) · ทรัพย์ (เก็บรหัส RN-xxxx = คีย์สต็อก + outline) · นัดหมาย (outline pill · คงวันเวลา fmtDateTime) · เจ้าของ/ลูกค้า minimal ตรงแม่แบบอยู่แล้วไม่แตะ. verify authed 3 จอ ผ่าน. **rich cols (เจ้าของในทรัพย์ · ทรัพย์ที่สนใจในลีด · ทรัพย์ที่เช่าในลูกค้า) ยังติด R2** (ต้องเจ้าของเคาะปลด R2). ดู [[ros-list-minimal-template]].
-
-### 🔄 B) แยกหมวด + design language (กำลังทำ · commit `8c31859`)
-สแกนครบ เจอ 3 จุดปนหมวด: #1 นัดหมาย detail (พนักงาน+สถานที่) · #2 เจ้าของ detail (ติดต่อ+ระบุตัวตน+โน้ต) · #3 นัดหมาย create form (แบน).
-**owner ยกระดับเป็นกติการะบบ (lock · ดู [[ros-detail-archetypes-and-date-standard]]):**
-- **2 แม่แบบ detail:** Record page = SectionTabs (ทรัพย์/ลูกค้า/เจ้าของ/สัญญา) · Quick modal = สั้น action-first ไม่มีไอคอน (นัด/ลีด) — แก้ "ระบบสะเปะสะปะ"
-- **วันที่มาตรฐานเดียว "14 Jul 26"** ทั้งแอป (sweep แล้วที่ format.ts) + helper fmtWeekdayDate/fmtTimeRange
-- ✅ **#1 นัดหมาย detail = แม่แบบ modal minimal** (pill สี tone จริง + วันหัว + แยกหมวดด้วยสี ไม่มีไอคอน · per-device pill บน↔ขวา) — verify authed 3 จอ ผ่าน
-- ✅ **Shell width เดียว (commit `58b2817`)** — แก้ owner "สลับ sidebar แล้วงง": คุมกว้างที่ layout เดียว (max-w-5xl) · ลบ max-w ทุกหน้า list · settings/search คงแคบ · verify ทุก list = 1024px ตรงกัน. **กฎ: หน้าใหม่ห้ามตั้ง max-w เอง**
-- ✅ **ลีด modal minimal (commit `ced6483`)** — แล้ว owner **กลับลำ**: ไม่เอา modal สีล้วน → สั่งใหม่ (ด้านล่าง)
-- 🔑 **owner mandate ใหม่ (ทับของเดิม):** ทุก 6 sidebar detail ใช้ **layout เดียวกับหน้าทรัพย์** (DetailHeader + SectionTabs accordion/แท็บ + InfoGroup แยกกล่องหัวชัด) · ทำทีละ sidebar · ขั้น1 layout ตามทรัพย์ ขั้น2 redesign ชุดข้อมูลเหมาะ entity · ถามก่อน · แนบรูป 4 จอ ทุก sidebar (ดู [[ros-detail-archetypes-and-date-standard]] §0)
-  - ✅ **เจ้าของ (`6d8422a`)** — DetailHeader · เอา avatar ออก · แท็บ ทรัพย์ในพอร์ต(หลัก)/ข้อมูลเจ้าของ(กล่องแยก ติดต่อ·ระบุตัวตน·โน้ต)/สัญญา/เอกสาร · verify 4 จอ
-  - ✅ **ลูกค้า (`a05deae`)** — DetailHeader · เอา avatar · ⋯ลบเข้าหัว · แท็บ สัญญา(แก่น)/ข้อมูลติดต่อ(กล่อง)/เอกสาร · verify 4 จอ
-  - ✅ **ลีด (`54220d1`)** — แปลง modal→หน้า [id] เต็ม · DetailHeader + ปุ่ม status-driven · แท็บ ภาพรวม(กล่อง ความต้องการ/ติดต่อ/การดูแล)/ทรัพย์ที่สนใจ · ย้าย logic ครบ + dialog · list navigate · แก้ deep-link focus= · verify 4 จอ
-  - ✅ **นัดหมาย (`4d78fb1`)** — แปลง modal→หน้า [id] เต็ม · 3 แท็บ (ทรัพย์/รายละเอียด/ลูกค้า) · glance "เมื่อไหร่" เด่น · ย้าย logic + reschedule modal · list เอา MoreMenu inline ออก · แก้ deep-link focus= · verify 4 จอ
-  - ✅ **สัญญา (`471c895`)** — ตรงแม่แบบอยู่แล้ว · step-2: แก้ date d()→lib "15 Feb 26" · เรียง คู่สัญญา→ระยะเวลา→การเงิน · badge "อีก X วัน" (active ใกล้ครบ) · verify
-  - 🎉 **ครบ 6 sidebar detail = แม่แบบ Record เดียวกันทั้งระบบ** (ทรัพย์แม่แบบ + เจ้าของ/ลูกค้า/ลีด/นัด/สัญญา)
-  - ✅ **Code pass (`2522593`)** — รหัสของ record บนหัว = mono **ทอง** ทุกหน้า (DetailHeader ที่เดียว · ตรง list variant C) · รหัสอ้างอิงในกล่อง = จางสม่ำเสมอ (นัด ทอง→faint · เจ้าของ list faint) · สัญญาเรียง ลงนาม→เริ่ม→สิ้นสุด · วันสิ้นสุด badge นับถอยหลังเฉพาะใกล้ครบ (ไม่ซ้ำวัน)
-
-### 🔄 D) List pass (หน้า sidebar) — ทำทีละหน้า จบแล้วหยุด (⭐ [[ros-one-page-at-a-time]])
-owner: หน้า list ทำแบบเดียวกับ detail — ชุดข้อมูลเหมาะแต่ละ sidebar · เฉลี่ยช่องไฟ · ทีละหน้า+รูป 4 จอ+ถามก่อน · **จบหน้าแล้วหยุดรอสั่ง ห้ามเดินหน้าเอง**
-- ✅ **person list เบอร์ใต้ชื่อ (`5389b97`)** — ลีด/ลูกค้า/เจ้าของ: primary 2 บรรทัด ชื่อ+เบอร์(muted กดโทรได้) · ลีดเติม "เข้ามาเมื่อ" (กฎ C)
-- ✅ **เฉลี่ยช่องไฟ (`4609148`)** — ListView เลิก grow-column → primary cap + auto กระจายเต็มกว้าง (shared · ทุก list)
-- ✅ **ลีด list = จบ (ชุดคอลัมน์ใหม่ · `edd7d14`)** — 🔓 **owner ปลด R2 แล้ว (อนุญาตแก้ backend)**: /leads list include ทรัพย์ที่สนใจล่าสุด 1 อัน · cols = ลูกค้า(ชื่อ/เบอร์) · ทรัพย์ที่สนใจ · อยากเข้าชม(preferredViewAt วัน·เวลา 1 บรรทัด) · สถานะ·ช่องทาง(ขวา stacked สถานะบน/ช่องทางล่าง) · verify 4 จอ · API :4000 hot-reload
-- ⏳ **ยังไม่ทำ (รอสั่งทีละหน้า):** นัดหมาย list (นัดกับ → 2 บรรทัด ชื่อ+วันเวลา) · ยืนยัน/จูน เจ้าของ·ลูกค้า·ทรัพย์·สัญญา list ทีละหน้า · **R2 ปลดแล้ว** → เจ้าของเพิ่มมูลค่าพอร์ต · ลูกค้าเพิ่มค่าเช่าปัจจุบัน ได้ (ทำ backend list ด้วย)
-- ⏳ ค้างเดิม: §3 นัด create form · per-device subset · fine-tune
-- ⏳ อื่น: #3 นัด create form · สแกน fmtDate local ปีเต็มหน้าอื่น
-
-### ⭐ C) per-device data subset (กฎใหม่ owner)
-หัวข้อ/คอลัมน์ **ไม่ต้องโชว์ครบทุก device** — เลือกตามความสำคัญ (มือถือแก่น · iPad ตั้ง/นอน กลาง · คอมมากขึ้นแต่ไม่ครบ) เพราะคลิกเข้า detail ดูเชิงลึกอยู่ดี. เสนอ subset ต่ออุปกรณ์ + ถามก่อน + เหตุผล. (กฎ B ในไฟล์เดียวกัน)
+## 3) 🎯 งานถัดไป (ทีละหน้า · จบแล้วหยุด — [[ros-one-page-at-a-time]])
+### ⭐ A) List pass ที่เหลือ (ทีละหน้า + รูป 4 จอ + ถาม)
+- **นัดหมาย list** — นัดกับ → 2 บรรทัด (ชื่อ + วันเวลา) · เช็คคอลัมน์ขวาชิดซ้าย
+- **เจ้าของ list** — เพิ่ม "มูลค่าพอร์ต" (🔓 R2 ทำได้แล้ว · แก้ backend list ให้ส่ง sum ค่าเช่า)
+- **ลูกค้า list** — เพิ่ม "ค่าเช่าปัจจุบัน" (🔓 R2 · backend list ส่ง active rent)
+- **ทรัพย์/สัญญา list** — ยืนยัน/จูนชุดคอลัมน์ + คอลัมน์ขวาชิดซ้ายใต้หัว
+- ทุก list: ช่องไฟเฉลี่ย (มีแล้ว) · คอลัมน์ขวา items-start (ตรวจทุกหน้า)
+### ⭐ B) §10 แยกหมวด (category split) — ไล่สแกน **ทุก detail/create form** หาชุดติดกันที่ควรแยก (เช่น **นัด create form: วันเวลา+สถานที่ ติดกัน**) → เสนอ before/after + รูป 3 จอ + เหตุผล ก่อนแก้
+### ⭐ C) §11 per-device subset — เสนอ field เหมาะต่อ device (มือถือแก่น/iPad กลาง/คอมมากขึ้นไม่ครบ) + ถามก่อน + เหตุผล
+### D) #3 นัด create form จัดหมวด · fine-tune ทรัพย์
 
 ## 4) กฎ (source of truth)
-- **`DESIGN-SYSTEM.md`** (locked §1–11): type · spacing · radius A · shadow · icon · color · **§7 วันสากล · §8 label-value rail · §9 วิจารณ์ตรง · §10 แยกหมวด · §11 field ต่อ device**
-- **auto-memory (operating manual — โหลดเอง):** `ros-master-workflow`(⭐อ่านก่อน) · `ros-comparison-responsive-protocol`(รูปเทียบ show_widget เสมอ · per-device) · `ros-critique-and-proactive`(⭐ติตรง ห้ามอวย) · `ros-sidebar-entity-audit`(⭐per-entity · per-device distinct · **แนบรูปทุกครั้ง**) · `ros-clean-detail-rows`(plain value · no ☎ · hover-nav) · `ros-view-edit-field-parity` · `ros-list-minimal-template`(variant C) · `ros-detail-archetypes-and-date-standard`(⭐2 แม่แบบ detail + วันที่ 14 Jul 26) · `ros-category-split-and-device-subset`(⭐กฎใหม่ 2 ข้อ) · `ros-inter-look-date-and-labelvalue` · `admin-listview-single-flex-column` · `tailwind-mouse-variant-order` · `ros-reseed-and-contract-side-effects` · `ros-radius-and-mock-images`
+- **`DESIGN-SYSTEM.md`** locked §1–13: type·spacing·radius A·shadow·icon·color · **§7 วันที่ "14 Jul 26" (2 หลัก)** · §8 label-value rail · §8b no hard-cut · §9 วิจารณ์ตรง · **§10 แยกหมวด** · **§11 per-device subset** · **§12 โครง detail/list master** · **§13 ทีละหน้า+R2 ปลด**
+- **auto-memory (operating manual):** `ros-master-workflow`(⭐อ่านก่อน) · `ros-one-page-at-a-time`(⭐ทีละหน้า จบแล้วหยุด) · `ros-detail-archetypes-and-date-standard`(⭐2 แม่แบบ+วันที่+shell+code ทอง+เฉลี่ยช่องไฟ) · `ros-comparison-responsive-protocol`(รูป show_widget 4 จอ เสมอ) · `ros-critique-and-proactive`(⭐ติตรง) · `ros-sidebar-entity-audit` · `ros-list-minimal-template` · `ros-category-split-and-device-subset` · `ros-clean-detail-rows` · `ros-view-edit-field-parity` · `ros-inter-look-date-and-labelvalue` · `admin-listview-single-flex-column`(⚠️ล้าสมัยบางส่วน—เปลี่ยนเป็นเฉลี่ยช่องไฟแล้ว) · `tailwind-mouse-variant-order` · `ros-reseed-and-contract-side-effects` · `ros-radius-and-mock-images`
 
 ## 5) 🛠 เครื่องมือ/วิธี (สำคัญ)
-- **owner ดู preview_screenshot ไม่ได้** → รูปเทียบ owner-facing = `mcp__visualize__show_widget` เสมอ (ธีมมืด ROS · hex: ink#ECEAE4 gold#C8A96A surface#1B1A18 border#302E2A muted#9C978E faint#6A655D page#131210)
-- **verify authed admin (กันชน :3001 ของเจ้าของ):** worktree แยกพอร์ต — `git worktree add --detach <scratch> HEAD` → `ln -s <repo>/node_modules` → cp `.env.local`+ไฟล์ที่แก้ → เพิ่ม launch.json config `bash -c 'cd <wt>/apps/web-admin && exec npx next dev'` autoPort → `preview_start` → เสร็จ: `preview_stop` + `git worktree remove --force` + `git checkout .claude/launch.json`
-- **preview :3050 หลุดบ่อย** → เช็ค preview_list / restart · **eval นำทางแล้ว screenshot อาจได้หน้าเก่า** → `location.replace()` + screenshot ใหม่
-- verify per-device: resize มือถือ375 / iPad768(tablet) / คอม1360(width) · list touch=card (iPad preview เป็น pointer:fine โชว์ตาราง แต่ iPad จริง touch=card)
-- typecheck ทุกครั้งก่อน verify: `cd apps/web-admin && npx tsc --noEmit -p tsconfig.json`
+- **owner ดู preview_screenshot ไม่ได้** → รูป owner-facing = `mcp__visualize__show_widget` เสมอ (ธีมมืด: ink#ECEAE4 gold#C8A96A goldDark#D6B980 surface#1B1A18 border#302E2A muted#9C978E faint#6A655D canvas#141312 · info#7BA3C9 success#6FB58A danger#E27563)
+- **verify authed (กันชน :3001):** worktree แยกพอร์ต — `git worktree add --detach <scratch> HEAD` → `ln -s <repo>/node_modules` → cp `.env.local`+ไฟล์ที่แก้ → เพิ่ม launch.json `bash -c 'cd <wt>/apps/web-admin && exec npx next dev'` autoPort → `preview_start` → เสร็จ: `preview_stop` + `git worktree remove --force` + `git checkout .claude/launch.json`
+- **backend change (R2):** แก้ไฟล์ใน main repo (apps/api/...) → API :4000 ของเจ้าของ **hot-reload เอง** (nest watch) → worktree web-admin เห็นผลทันที
+- typecheck ก่อน verify: `cd apps/web-admin && npx tsc --noEmit` + (ถ้าแตะ backend) `cd apps/api && npx tsc --noEmit`
+- verify per-device: resize มือถือ375 / iPad768(tablet) / คอม1360 · **iPad preview เป็น pointer:fine โชว์ตาราง** (iPad จริง touch=การ์ด) — eval เช็ค DOM การ์ดเสริม
 
-## 6) 🗂 MD files — จัดระเบียบแล้ว (session นี้)
-- **root ใช้จริง:** `SESSION-HANDOVER.md`(นี้ · undated เขียนทับ) · `DESIGN-SYSTEM.md` · `PAGE-QA-SWEEP.md` · `README.md`
-- **docs/ ใช้จริง:** `ADMIN-DESIGN-PHASES.md` · `reference/SYSTEM-KNOWLEDGE.md` · `reference/RELATIONSHIP-MAP.md`
-- **ลบแล้ว:** `docs/archive/` (~43 ไฟล์ audit/handover เก่า มิ.ย.–ก.ค. · git เก็บประวัติไว้แล้ว) + `SESSION-HANDOVER-2026-07-19.md` (แทนด้วยไฟล์ undated)
-- **กฎไปข้างหน้า:** handover = ไฟล์เดียว `SESSION-HANDOVER.md` เขียนทับเสมอ **ไม่สร้าง MD ใหม่ทุก session** · อัปเดต ADMIN-DESIGN-PHASES + PAGE-QA-SWEEP เท่านั้น
+## 6) 🗂 MD files — สะอาดแล้ว (สแกน session นี้)
+**เก็บทั้งหมด 12 ไฟล์ · ไม่มีขยะ** (session ก่อนลบ docs/archive ~43 ไฟล์): root(SESSION-HANDOVER·DESIGN-SYSTEM·PAGE-QA-SWEEP·README) · docs(ADMIN-DESIGN-PHASES·reference/×2) · component README(apps/api·db·infra/×3). **กฎ:** handover = ไฟล์เดียวนี้ เขียนทับเสมอ ไม่สร้าง MD ใหม่ทุก session
 
 ## 7) เหลือฝั่งเจ้าของ (ไม่บล็อก)
-- 🔑 push commit ค้างทั้งหมด (ต้อง token) · 🖼 วาง `apps/web-public/public/hero.jpg` (ถ้ายัง) · เคาะปลด R2 ถ้าอยากได้ rich list cols
+- 🔑 push commit ค้างทั้งหมด (ต้อง token) · 🖼 วาง `apps/web-public/public/hero.jpg` (ถ้ายัง)
 
 ---
-**เริ่ม session ใหม่:** อ่าน `SESSION-HANDOVER.md` → ทำงานต่อ = §3 (A ใช้แม่แบบ list 5 หน้า / B แยกหมวด / C per-device subset) · ทุกงาน = แนบรูป 3 จอ + ติตรง + verify authed ก่อน commit
+**เริ่ม session ใหม่:** อ่านไฟล์นี้ → ทำงานต่อ §3 (A List pass ทีละหน้า / B แยกหมวด / C per-device) · **ทีละหน้า จบแล้วหยุด · รูป 4 จอ · ติตรง · verify authed ก่อน commit**
