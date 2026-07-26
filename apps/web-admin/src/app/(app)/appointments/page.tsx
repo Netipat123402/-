@@ -150,15 +150,24 @@ export default function AppointmentsPage() {
   // Phase 24 (ข้อ 5): "นัดกับ" = ชื่อคนก่อน (lead) → title (นัดนอกรอบ) → รหัส · ทรัพย์อยู่คอลัมน์รองแล้ว ไม่ซ้ำ
   const subject = (a: Appt) => a.lead?.fullName || a.title || `นัด ${a.code}`;
   const cols: Col<Appt>[] = [
-    { header: 'นัดกับ', primary: true, cell: (a) => subject(a) },
-    { header: 'วันที่-เวลา', sub: true, cell: (a) => <span className="tabular-nums">{fmt(a.scheduledAt)}</span> },
-    // ทรัพย์ = คอลัมน์ sub ตัวที่ 2 → เดสก์ท็อป: คอลัมน์ตารางแยก (ตัด …) · การ์ด: บรรทัดของตัวเอง
+    // primary 2 บรรทัด = นัดกับ (ชื่อ) + วันเวลาใต้ชื่อ (เกาะเป็นชุด who+when · minimal template เหมือน lead ชื่อ+เบอร์)
+    { header: 'นัดกับ', primary: true, twoLine: true, cell: (a) => (
+      <div className="min-w-0">
+        <div className="truncate font-medium text-ink">{subject(a)}</div>
+        <div className="text-xs tabular-nums text-muted">{fmt(a.scheduledAt)}</div>
+      </div>
+    ) },
+    // ทรัพย์ = คอลัมน์ sub → เดสก์ท็อป: คอลัมน์ตารางแยก (ตัด …) · การ์ด: บรรทัดของตัวเอง
     // hidden sm:inline → ซ่อนบนมือถือ (การ์ด minimal ไม่มีทรัพย์) · โผล่ตั้งแต่ iPad ขึ้นไป (การ์ด+ตาราง)
     { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
       ? <span className="hidden sm:inline">{a.property.titleTh}</span>
       : <span className="hidden text-faint sm:inline">—</span> },
-    // สถานะ = pill outline (action ย้ายไปหน้า detail /appointments/[id] · list สะอาดเหมือน list อื่น)
-    { header: 'สถานะ', right: true, cell: (a) => <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline /> },
+    // สถานะ = pill outline (right:true = มือถือ cluster ขวา · คอม ชิดซ้ายใต้หัวข้อ) · action ย้ายไปหน้า detail
+    { header: 'สถานะ', right: true, cell: (a) => (
+      <div className="flex flex-col items-start">
+        <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline />
+      </div>
+    ) },
   ];
 
   return (
