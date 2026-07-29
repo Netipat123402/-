@@ -36,22 +36,23 @@ export default function CustomersPage() {
         <PhoneLink phone={c.phone} className="text-xs text-muted" />
       </div>
     ) },
-    // 2) ทรัพย์ที่เช่า = รหัส(mono ทอง) + ชื่อทรัพย์ แบบหน้าทรัพย์ (ไม่มีรูป) · จากสัญญา active ล่าสุด
-    { header: 'ทรัพย์ที่เช่า', sub: true, width: 'w-56', cell: (c) => c.rentedProperty ? (
-      <span className="min-w-0">
+    // 2) ทรัพย์ที่เช่า = รหัส(mono ทอง) + ชื่อทรัพย์ แบบหน้าทรัพย์ (ไม่มีรูป) · จากสัญญา active/ล่าสุด
+    //    ไม่ใส่ width → auto เฉลี่ยช่องไฟเท่าหน้าอื่น · title ตัด … ด้วย max-w
+    { header: 'ทรัพย์ที่เช่า', sub: true, cell: (c) => c.rentedProperty ? (
+      <span className="block min-w-0 max-w-[16rem]">
         <span className="block font-mono text-xs text-gold-dark">{c.rentedProperty.code}</span>
         <span className="block truncate text-muted">{c.rentedProperty.titleTh}</span>
       </span>
     ) : <span className="text-faint">—</span> },
     // 3) เจ้าของ = ชื่อ + เบอร์ · ซ่อนมือถือ (แก่นลูกค้า = ผู้เช่า/ทรัพย์/สัญญา · เจ้าของเป็นบริบท → iPad/คอม)
-    { header: 'เจ้าของ', sub: true, width: 'w-44', cell: (c) => c.rentedOwner ? (
-      <span className="hidden min-w-0 sm:block">
+    { header: 'เจ้าของ', sub: true, cell: (c) => c.rentedOwner ? (
+      <span className="hidden min-w-0 max-w-[12rem] sm:block">
         <span className="block truncate text-ink-soft">{c.rentedOwner.fullName}</span>
         {c.rentedOwner.phone && <PhoneLink phone={c.rentedOwner.phone} className="text-xs text-muted" />}
       </span>
     ) : <span className="hidden text-faint sm:block">—</span> },
     // 4) สัญญา = จำนวนสัญญาทั้งหมดของลูกค้า
-    { header: 'สัญญา', right: true, width: 'w-24', cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
+    { header: 'สัญญา', right: true, cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
   ];
 
   return (

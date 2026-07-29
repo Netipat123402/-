@@ -51,16 +51,20 @@ export class CustomerService {
       ? await this.prisma.contract.groupBy({ by: ['customerId'], where: { customerId: { in: ids }, deletedAt: null }, _count: true })
       : [];
     const countBy = new Map(grouped.map((g) => [g.customerId, g._count]));
-    // R2: ทรัพย์+เจ้าของที่ลูกค้าเช่าอยู่ = สัญญา active ล่าสุด (startDate ล่าสุด) · ไม่มี active → null
-    const active = ids.length
+    // R2: ทรัพย์+เจ้าของที่ลูกค้าเช่า = สัญญา active ล่าสุด · ถ้าไม่มี active → สัญญาล่าสุด (ทุกสถานะ) · ไม่มีเลย → null
+    const contracts = ids.length
       ? await this.prisma.contract.findMany({
-          where: { customerId: { in: ids }, deletedAt: null, status: 'active' },
+          where: { customerId: { in: ids }, deletedAt: null },
           orderBy: [{ startDate: 'desc' }, { createdAt: 'desc' }],
-          select: { customerId: true, property: { select: { code: true, titleTh: true } }, owner: { select: { fullName: true, phone: true } } },
+          select: { customerId: true, status: true, property: { select: { code: true, titleTh: true } }, owner: { select: { fullName: true, phone: true } } },
         })
       : [];
-    const rentBy = new Map<string, (typeof active)[number]>();
-    for (const a of active) if (!rentBy.has(a.customerId)) rentBy.set(a.customerId, a); // ตัวแรก = active ล่าสุด
+    const rentBy = new Map<string, (typeof contracts)[number]>();
+    for (const c of contracts) {
+      const cur = rentBy.get(c.customerId);
+      // เลือก active ก่อน (ถ้ามี) · ไม่งั้นตัวแรกที่เจอ = ล่าสุด (เรียง startDate desc แล้ว)
+      if (!cur || (c.status === 'active' && cur.status !== 'active')) rentBy.set(c.customerId, c);
+    }
     return {
       items: items.map((c) => {
         const r = rentBy.get(c.id);
