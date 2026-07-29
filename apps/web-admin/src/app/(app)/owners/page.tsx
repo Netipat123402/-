@@ -10,7 +10,11 @@ import { Col, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLi
 import { Icon } from '@/components/Icon';
 import { formatPhone, phoneDigits } from '@/lib/format';
 
-interface Owner { id: string; fullName: string; phone?: string; email?: string; propertyCount?: number; }
+interface Owner {
+  id: string; fullName: string; phone?: string; email?: string; propertyCount?: number;
+  availableCount?: number; // R2: ทรัพย์ว่างอยู่ (status available)
+  latestRented?: { code: string; titleTh: string } | null; // R2: ปล่อยเช่าล่าสุด (สัญญาล่าสุด)
+}
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'ชื่อ (ก–ฮ)' },
@@ -58,17 +62,26 @@ export default function OwnersPage() {
     finally { setSaving(false); }
   }
 
-  // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = เบอร์แตะโทร · อีเมล = คอลัมน์เฉพาะตาราง (การ์ด touch แคบ → phone-only; ตรงกับ customers) · ขวา = จำนวนทรัพย์
+  // แม่แบบ list มาตรฐาน sidebar: เจ้าของ ชื่อ+เบอร์ · ทรัพย์ทั้งหมด · ปล่อยเช่าล่าสุด (รหัส+ชื่อ แบบหน้าทรัพย์) · ว่างอยู่
   const cols: Col<Owner>[] = [
-    // primary 2 บรรทัด = ชื่อ + เบอร์ใต้ชื่อ (เกาะเป็นชุด · muted กดโทรได้)
+    // 1) เจ้าของ = ชื่อ + เบอร์ (twoLine · PhoneLink)
     { header: 'เจ้าของ', primary: true, twoLine: true, cell: (o) => (
       <div className="min-w-0">
         <div className="truncate font-medium text-ink">{o.fullName}</div>
         <PhoneLink phone={o.phone} className="text-xs text-muted" />
       </div>
     ) },
-    { header: 'อีเมล', cell: (o) => (o.email ? <span className="text-muted">{o.email}</span> : <span className="text-faint">—</span>) },
-    { header: 'ทรัพย์', right: true, width: 'w-28', cell: (o) => <span className="text-muted">{o.propertyCount ?? 0} ทรัพย์</span> },
+    // 2) ทรัพย์ทั้งหมด = จำนวนทรัพย์ทั้งหมดของเจ้าของ (มือถือ = คลัสเตอร์ขวา)
+    { header: 'ทรัพย์ทั้งหมด', right: true, cell: (o) => <span className="tabular-nums text-muted">{o.propertyCount ?? 0} ทรัพย์</span> },
+    // 3) ปล่อยเช่าล่าสุด = ทรัพย์จากสัญญาล่าสุด (รหัส mono ทอง + ชื่อ แบบหน้าทรัพย์ ไม่มีรูป)
+    { header: 'ปล่อยเช่าล่าสุด', sub: true, cell: (o) => o.latestRented ? (
+      <span className="block min-w-0 max-w-[16rem]">
+        <span className="block font-mono text-xs text-gold-dark">{o.latestRented.code}</span>
+        <span className="block truncate text-muted">{o.latestRented.titleTh}</span>
+      </span>
+    ) : <span className="text-faint">—</span> },
+    // 4) ว่างอยู่ = จำนวนทรัพย์สถานะ available (คลังที่ยังปล่อยได้ · เน้นเมื่อ >0)
+    { header: 'ว่างอยู่', right: true, cell: (o) => <span className={`tabular-nums ${(o.availableCount ?? 0) > 0 ? 'text-ink' : 'text-faint'}`}>{o.availableCount ?? 0} ว่าง</span> },
   ];
 
   return (
