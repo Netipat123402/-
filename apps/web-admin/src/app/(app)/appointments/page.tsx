@@ -162,10 +162,10 @@ export default function AppointmentsPage() {
     ) },
     // 2) วันที่·เวลา (คอลัมน์แยก · tabular-nums)
     { header: 'วันที่-เวลา', sub: true, cell: (a) => <span className="whitespace-nowrap tabular-nums text-muted">{fmt(a.scheduledAt)}</span> },
-    // 3) ทรัพย์ → เดสก์ท็อป/iPad คอลัมน์ตาราง+การ์ด · ซ่อนมือถือ (การ์ด minimal · แก่น=ใคร/เมื่อไร/สถานะ)
+    // 3) ทรัพย์ → โชว์ทุกจอรวมมือถือ (owner เคาะ: นัดดูทรัพย์ต้องรู้ว่าดูตัวไหน) · นัดนอกรอบไม่มีทรัพย์ → —
     { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
-      ? <span className="hidden truncate text-muted sm:inline">{a.property.titleTh}</span>
-      : <span className="hidden text-faint sm:inline">—</span> },
+      ? <span className="truncate text-muted">{a.property.titleTh}</span>
+      : <span className="text-faint">—</span> },
     // 4) สถานะ · ค่าเช่า (แบบหน้าทรัพย์: สถานะบน · ค่าเช่าล่าง · จัดกึ่งกลางเข้าหากัน) · นัดนอกรอบไม่มีทรัพย์ → ไม่มีค่าเช่า
     { header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (a) => (
       <div className="flex flex-col items-center gap-1">
