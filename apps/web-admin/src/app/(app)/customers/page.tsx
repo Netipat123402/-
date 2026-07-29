@@ -6,7 +6,11 @@ import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { Col, FilterBar, ListView, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
 
-interface Customer { id: string; fullName: string; phone?: string; email?: string; contractCount?: number; }
+interface Customer {
+  id: string; fullName: string; phone?: string; email?: string; contractCount?: number;
+  rentedProperty?: { code: string; titleTh: string } | null; // R2: ทรัพย์ที่เช่า (สัญญา active ล่าสุด)
+  rentedOwner?: { fullName: string; phone?: string } | null;  // R2: เจ้าของทรัพย์นั้น
+}
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'ชื่อ (ก–ฮ)' },
@@ -24,17 +28,30 @@ export default function CustomersPage() {
   const { rows, meta, loading } = useList<Customer>(`/customers?${params}`);
   // เรียงฝั่ง server แล้ว (sort ไป API → ถูกต้องข้ามหน้า) — MR-12
 
-  // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = เบอร์แตะโทร · อีเมล = คอลัมน์เฉพาะตาราง (การ์ด touch แคบ → อีเมลตัดเป็นขยะ "mocl"; ตรงกับ owners ที่โชว์เบอร์อย่างเดียว) · ขวา = จำนวนสัญญา
   const cols: Col<Customer>[] = [
-    // primary 2 บรรทัด = ชื่อ + เบอร์ใต้ชื่อ (เกาะเป็นชุด · muted กดโทรได้)
-    { header: 'ลูกค้า', primary: true, twoLine: true, cell: (c) => (
+    // 1) ผู้เช่า = ชื่อ + เบอร์ (twoLine เกาะชุด · muted กดโทรได้)
+    { header: 'ผู้เช่า', primary: true, twoLine: true, cell: (c) => (
       <div className="min-w-0">
         <div className="truncate font-medium text-ink">{c.fullName}</div>
         <PhoneLink phone={c.phone} className="text-xs text-muted" />
       </div>
     ) },
-    { header: 'อีเมล', cell: (c) => (c.email ? <span className="text-muted">{c.email}</span> : <span className="text-faint">—</span>) },
-    { header: 'สัญญา', right: true, width: 'w-28', cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
+    // 2) ทรัพย์ที่เช่า = รหัส(mono ทอง) + ชื่อทรัพย์ แบบหน้าทรัพย์ (ไม่มีรูป) · จากสัญญา active ล่าสุด
+    { header: 'ทรัพย์ที่เช่า', sub: true, width: 'w-56', cell: (c) => c.rentedProperty ? (
+      <span className="min-w-0">
+        <span className="block font-mono text-xs text-gold-dark">{c.rentedProperty.code}</span>
+        <span className="block truncate text-muted">{c.rentedProperty.titleTh}</span>
+      </span>
+    ) : <span className="text-faint">—</span> },
+    // 3) เจ้าของ = ชื่อ + เบอร์ · ซ่อนมือถือ (แก่นลูกค้า = ผู้เช่า/ทรัพย์/สัญญา · เจ้าของเป็นบริบท → iPad/คอม)
+    { header: 'เจ้าของ', sub: true, width: 'w-44', cell: (c) => c.rentedOwner ? (
+      <span className="hidden min-w-0 sm:block">
+        <span className="block truncate text-ink-soft">{c.rentedOwner.fullName}</span>
+        {c.rentedOwner.phone && <PhoneLink phone={c.rentedOwner.phone} className="text-xs text-muted" />}
+      </span>
+    ) : <span className="hidden text-faint sm:block">—</span> },
+    // 4) สัญญา = จำนวนสัญญาทั้งหมดของลูกค้า
+    { header: 'สัญญา', right: true, width: 'w-24', cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
   ];
 
   return (

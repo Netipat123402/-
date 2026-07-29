@@ -51,8 +51,21 @@ export class CustomerService {
       ? await this.prisma.contract.groupBy({ by: ['customerId'], where: { customerId: { in: ids }, deletedAt: null }, _count: true })
       : [];
     const countBy = new Map(grouped.map((g) => [g.customerId, g._count]));
+    // R2: ทรัพย์+เจ้าของที่ลูกค้าเช่าอยู่ = สัญญา active ล่าสุด (startDate ล่าสุด) · ไม่มี active → null
+    const active = ids.length
+      ? await this.prisma.contract.findMany({
+          where: { customerId: { in: ids }, deletedAt: null, status: 'active' },
+          orderBy: [{ startDate: 'desc' }, { createdAt: 'desc' }],
+          select: { customerId: true, property: { select: { code: true, titleTh: true } }, owner: { select: { fullName: true, phone: true } } },
+        })
+      : [];
+    const rentBy = new Map<string, (typeof active)[number]>();
+    for (const a of active) if (!rentBy.has(a.customerId)) rentBy.set(a.customerId, a); // ตัวแรก = active ล่าสุด
     return {
-      items: items.map((c) => ({ ...this.mask(c), contractCount: countBy.get(c.id) ?? 0 })),
+      items: items.map((c) => {
+        const r = rentBy.get(c.id);
+        return { ...this.mask(c), contractCount: countBy.get(c.id) ?? 0, rentedProperty: r?.property ?? null, rentedOwner: r?.owner ?? null };
+      }),
       total, page: p, limit, totalPages: Math.ceil(total / limit),
     };
   }
