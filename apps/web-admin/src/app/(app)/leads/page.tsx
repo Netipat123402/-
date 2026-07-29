@@ -97,7 +97,7 @@ export default function LeadsPage() {
     { header: 'อยากเข้าชม', sub: true, cell: (l) => l.preferredViewAt ? <span className="whitespace-nowrap text-muted">{fmtDateTime(l.preferredViewAt)}</span> : <span className="text-faint">—</span> },
     // สถานะ (บน · pill) + ช่องทาง (ล่าง · จาง ซ่อนมือถือ) — คอม ชิดซ้ายใต้หัวข้อ (items-start ไม่ตกขอบ) · right:true = มือถือ cluster ขวา
     { header: 'สถานะ · ช่องทาง', right: true, cell: (l) => (
-      <div className="flex flex-col items-start gap-1">
+      <div className="flex flex-col items-center gap-1">
         <StatusBadge map={LEAD_STATUS} value={l.status} outline />
         <span className="hidden text-xs text-faint sm:block">{LEAD_SOURCE[l.source] ?? l.source}</span>
       </div>

@@ -906,8 +906,8 @@ export function ListView<T>({
             <tr className="border-b border-border">
               {leading && <th className="w-[68px] py-3 pl-5" aria-hidden />}
               {cols.map((c, i) => (
-                // หัวคอลัมน์ชิดซ้ายทุกคอลัมน์ (รวม right cols) → หัวอยู่เหนือจุดเริ่มเนื้อหาตรงกัน (owner: หัวต้องตรงเนื้อหา) · right = ใช้แค่ตอนมือถือ (cluster ขวา)
-                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c.width ?? ''}`}>{c.header}</th>
+                // หัวคอลัมน์ชิดซ้าย · ยกเว้น right cols (status/metric) = กึ่งกลาง ให้หัวตรงกับเนื้อหาที่กึ่งกลาง (uniform ทุกหน้า แบบหน้าทรัพย์)
+                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c.right ? 'text-center ' : ''}${c.width ?? ''}`}>{c.header}</th>
               ))}
             </tr>
           </thead>
@@ -921,7 +921,7 @@ export function ListView<T>({
                   // primary = cap กว้าง + ตัด "…" (ชื่อยาวไม่ดันเพี้ยน · twoLine ให้ cell คุมบรรทัด/ตัดเอง)
                   // คอลัมน์มี width = คุมกว้าง+ตัด · ที่เหลือ nowrap · ไม่มีคอลัมน์ยืด → w-full auto เฉลี่ยช่องไฟเต็มกว้าง
                   const colCls = c.right
-                    ? `whitespace-nowrap ${c.width ?? ''}`
+                    ? `whitespace-nowrap text-center ${c.width ?? ''}`
                     : c === primary
                     ? (c.twoLine ? 'max-w-[22rem]' : 'max-w-[22rem] truncate')
                     : c.width
