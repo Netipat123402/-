@@ -174,7 +174,7 @@ export class ContractService {
         where, orderBy, skip: (page - 1) * limit, take: limit,
         // include ข้อมูลที่ผูกไว้ (ลูกค้า/ทรัพย์) เพื่อให้ลิสต์เห็นว่าเป็นสัญญาของใคร/ทรัพย์ไหน
         include: {
-          customer: { select: { fullName: true } },
+          customer: { select: { fullName: true, phone: true } }, // R2: phone → ผู้เช่า ชื่อ+เบอร์
           property: { select: { titleTh: true, code: true } },
         },
       }),

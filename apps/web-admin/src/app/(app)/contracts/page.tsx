@@ -8,14 +8,14 @@ import { useToast } from '@/components/Toast';
 import { useLookup, useSearchLookup } from '@/lib/lookups';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { bahtFormat, CONTRACT_STATUS } from '@/lib/status';
-import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, SectionLabel, Segmented, StatusBadge , PAGE_SIZE} from '@/components/ui';
+import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink, SectionLabel, Segmented, StatusBadge , PAGE_SIZE} from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { fmtDate, fmtDateCompact } from '@/lib/format';
 
 interface Contract {
   id: string; code: string; status: string; monthlyRent: string;
   startDate?: string; endDate?: string;
-  customer?: { fullName: string };
+  customer?: { fullName: string; phone?: string };
   property?: { titleTh: string; code: string };
 }
 
@@ -134,21 +134,33 @@ export default function ContractsPage() {
     finally { setSaving(false); }
   }
 
-  // หลัก = ลูกค้า · การ์ด(touch) รอง = ทรัพย์ (สัญญาของใคร/ทรัพย์ไหน — 1 บรรทัดไม่ตัด) · รหัส+สิ้นสุด = คอลัมน์เฉพาะตาราง (คอมกว้าง scan ง่าย) · ตรง pattern customers/users
-  // แม่แบบ minimal (variant C): primary 2 บรรทัด (ลูกค้า/ทรัพย์) · ครบกำหนด · ค่าเช่า · สถานะ (pill outline)
-  //  · ตัดรหัส/ช่วงวันเต็ม (→ detail) เหลือแก่น · วันที่ย่อ (fmtDateCompact) · การ์ดมือถือ/iPad สไตล์เดียวกัน
+  // แม่แบบ list มาตรฐาน sidebar (เหมือนลูกค้า/นัดหมาย): ผู้เช่า ชื่อ+เบอร์ · ทรัพย์ รหัส+ชื่อ แบบหน้าทรัพย์ · ครบกำหนด · สถานะ·ค่าเช่า stacked
   const cols: Col<Contract>[] = [
-    { header: 'ลูกค้า / ทรัพย์', primary: true, twoLine: true, cell: (c) => (
+    // 1) ผู้เช่า = ชื่อ + เบอร์ (twoLine · PhoneLink)
+    { header: 'ผู้เช่า', primary: true, twoLine: true, cell: (c) => (
       <div className="min-w-0">
         <div className="truncate font-medium text-ink">{c.customer?.fullName || `สัญญา ${c.code}`}</div>
-        <div className="truncate text-xs text-faint">{c.property?.titleTh ?? '—'}</div>
+        {c.customer?.phone ? <PhoneLink phone={c.customer.phone} className="text-xs text-muted" /> : <span className="text-xs text-faint">—</span>}
       </div>
     ) },
+    // 2) ทรัพย์ = รหัส(mono ทอง) + ชื่อทรัพย์ แบบหน้าทรัพย์ (ไม่มีรูป) · ไม่ใส่ width (เฉลี่ยช่องไฟ)
+    { header: 'ทรัพย์', sub: true, cell: (c) => c.property ? (
+      <span className="block min-w-0 max-w-[16rem]">
+        <span className="block font-mono text-xs text-gold-dark">{c.property.code}</span>
+        <span className="block truncate text-muted">{c.property.titleTh}</span>
+      </span>
+    ) : <span className="text-faint">—</span> },
+    // 3) ครบกำหนด = วันสิ้นสุด (วันที่มาตรฐาน "15 Jan 27") — คีย์สแกนต่ออายุ
     { header: 'ครบกำหนด', sub: true, cell: (c) => c.endDate
-      ? <span className="whitespace-nowrap text-muted">ครบ <span className="text-gold-dark">{fmtDateCompact(c.endDate)}</span></span>
+      ? <span className="whitespace-nowrap text-muted">{fmtDateCompact(c.endDate)}</span>
       : <span className="text-faint">—</span> },
-    { header: 'ค่าเช่า', right: true, cell: (c) => <span className="font-medium tabular-nums">฿{bahtFormat(Number(c.monthlyRent))}</span> },
-    { header: 'สถานะ', right: true, cell: (c) => <StatusBadge map={CONTRACT_STATUS} value={c.status} outline /> },
+    // 4) สถานะ · ค่าเช่า = stacked แบบหน้าทรัพย์ (สถานะบน · ค่าเช่าล่าง · กึ่งกลาง)
+    { header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (c) => (
+      <div className="flex flex-col items-center gap-1">
+        <StatusBadge map={CONTRACT_STATUS} value={c.status} outline />
+        <span className="font-semibold tabular-nums">฿{bahtFormat(Number(c.monthlyRent))}</span>
+      </div>
+    ) },
   ];
 
   return (
