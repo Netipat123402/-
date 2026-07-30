@@ -8,7 +8,7 @@ import { useToast } from '@/components/Toast';
 import { useLookup } from '@/lib/lookups';
 import { LEAD_SOURCE, LEAD_STATUS, PROPERTY_STATUS, bahtFormat } from '@/lib/status';
 import { fmtDate } from '@/lib/format';
-import { ActionBar, Combobox, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, SectionTabs, StatusBadge } from '@/components/ui';
+import { Combobox, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 interface PropLite { id: string; code: string; titleTh: string; status: string; monthlyRent: string; }
@@ -57,98 +57,94 @@ export default function LeadDetailPage() {
 
   const interests = lead.interests ?? [];
 
-  // MoreMenu (รอง/อันตราย) — เข้าชุดแม่แบบทรัพย์ (⋯ ในหัว)
-  const moreItems = [
-    ...(lead.status === 'working' && can('lead', 'assign') ? [{ label: 'โอนให้คนอื่น', icon: 'users' as const, onClick: () => setTransferOpen(true) }] : []),
-    ...(lead.status !== 'closed' ? [{ label: 'ปิด Lead (ไม่สำเร็จ)', icon: 'x' as const, danger: true, onClick: () => setCloseOpen(true) }] : []),
-    ...(can('lead', 'delete') && !lead.customerId ? [{ label: 'ลบ Lead นี้', icon: 'trash' as const, danger: true, onClick: () => setDelOpen(true) }] : []),
-  ];
-
   return (
     <div className="mx-auto max-w-3xl xl:max-w-5xl">
-      {/* HEADER = DetailHeader (แม่แบบทรัพย์) — รหัส+สถานะ+ช่องทาง · ชื่อ · เบอร์ · ปุ่ม status-driven (pipeline) ขวา/ใต้หัว */}
       <DetailHeader
         backHref="/leads"
         code={lead.code}
         badge={<StatusBadge map={LEAD_STATUS} value={lead.status} />}
-        meta={<span className="text-xs text-muted">{LEAD_SOURCE[lead.source] ?? lead.source}</span>}
         title={lead.fullName}
         subtitle={lead.phone ? <PhoneLink phone={lead.phone} className="text-sm text-muted" /> : undefined}
-        actions={
-          <ActionBar>
-            {lead.status === 'new' && can('lead', 'assign') && (
-              <button className="btn-gold btn-sm" disabled={busy}
-                onClick={() => act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }), 'รับ Lead มาดูแลแล้ว')}>
-                รับดูแล Lead นี้
-              </button>
-            )}
-            {lead.status === 'working' && can('appointment', 'create') && (
-              <button className="btn-gold btn-sm" disabled={busy} onClick={() => router.push(`/appointments?newLead=${lead.id}`)}>
-                <Icon name="calendar" size={15} /> สร้างนัดดูทรัพย์
-              </button>
-            )}
-            {lead.status === 'working' && can('lead', 'convert') && !lead.customerId && (
-              <button className="btn-ghost btn-sm" disabled={busy}
-                onClick={() => act(() => api(`/leads/${lead.id}/convert`, { method: 'POST' }), 'แปลงเป็นลูกค้าแล้ว')}>
-                แปลงเป็นลูกค้า
-              </button>
-            )}
-            {moreItems.length > 0 && <MoreMenu items={moreItems} />}
-          </ActionBar>
-        }
       />
 
-      {/* hint ตามสถานะ — แถบบาง (เข้าชุดทรัพย์) */}
-      {lead.status === 'new' && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-gold-dark">
-          <Icon name="user-plus" size={14} className="shrink-0" /> <span><b>Lead ใหม่</b> — รีบรับดูแลเพื่อเริ่มติดตาม</span>
+      {/* A = เนื้อหา (ความต้องการ/ทรัพย์สนใจ/ติดต่อ/การดูแล) + ราง pipeline (สถานะ+ขั้นถัดไป) — โครงเดียวกับสัญญา/ลูกค้า/นัด */}
+      <div className="mt-5 xl:grid xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8">
+        {/* ราง = สถานะ pipeline + ปุ่มขั้นถัดไป (คอม=ขวา sticky · iPad=แถบบน · มือถือ=การ์ดบน) */}
+        <div className="xl:order-2">
+          <div className="rounded-card border border-border bg-surface p-4 xl:sticky xl:top-20">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
+              <div className="shrink-0 text-center sm:text-left xl:text-center">
+                <StatusBadge map={LEAD_STATUS} value={lead.status} />
+                <div className="mt-1 text-xs text-faint">ช่องทาง {LEAD_SOURCE[lead.source] ?? lead.source}</div>
+              </div>
+              {lead.status === 'new' && can('lead', 'assign') ? (
+                <button className="btn-gold btn-sm sm:ml-auto sm:shrink-0" disabled={busy}
+                  onClick={() => act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }), 'รับ Lead มาดูแลแล้ว')}>
+                  รับดูแล Lead นี้
+                </button>
+              ) : lead.status === 'working' ? (
+                <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+                  {can('appointment', 'create') && (
+                    <button className="btn-gold btn-sm" disabled={busy} onClick={() => router.push(`/appointments?newLead=${lead.id}`)}>
+                      <Icon name="calendar" size={15} /> สร้างนัดดูทรัพย์
+                    </button>
+                  )}
+                  {can('lead', 'convert') && !lead.customerId && (
+                    <button className="btn-ghost btn-sm" disabled={busy}
+                      onClick={() => act(() => api(`/leads/${lead.id}/convert`, { method: 'POST' }), 'แปลงเป็นลูกค้าแล้ว')}>
+                      แปลงเป็นลูกค้า
+                    </button>
+                  )}
+                </div>
+              ) : lead.status === 'closed' ? (
+                <div className="rounded-lg border border-border bg-canvas px-3 py-2 text-center text-xs text-muted sm:ml-auto sm:shrink-0">
+                  {lead.customerId ? 'ปิดสำเร็จ — แปลงเป็นลูกค้าแล้ว' : 'ปิด Lead แล้ว (ไม่สำเร็จ)'}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          {/* action รอง — quiet */}
+          {(lead.status !== 'closed' || (can('lead', 'delete') && !lead.customerId)) && (
+            <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+              {lead.status === 'working' && can('lead', 'assign') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => setTransferOpen(true)}>โอนให้คนอื่น</button>}
+              {lead.status !== 'closed' && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setCloseOpen(true)}>ปิด Lead</button>}
+              {can('lead', 'delete') && !lead.customerId && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setDelOpen(true)}>ลบ Lead</button>}
+            </div>
+          )}
         </div>
-      )}
-      {lead.status === 'closed' && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-canvas px-3 py-2 text-xs text-muted">
-          <Icon name={lead.customerId ? 'check' : 'x'} size={14} className={`shrink-0 ${lead.customerId ? 'text-success' : 'text-muted'}`} />
-          <span>{lead.customerId ? 'ปิดสำเร็จ — แปลงเป็นลูกค้าแล้ว' : 'ปิด Lead แล้ว (ไม่สำเร็จ)'}</span>
-        </div>
-      )}
 
-      {/* per-device: มือถือ accordion · iPad/คอม แท็บ */}
-      <SectionTabs className="mt-6" items={[
-        { id: 'overview', label: 'ภาพรวม', content: (
-          <div className="xl:columns-2 xl:gap-5">
-            <InfoGroup label="ความต้องการ" className="mb-4 break-inside-avoid">
-              <InfoRow label="รายละเอียด" value={lead.message || undefined} stack hideEmpty />
-              <InfoRow label="อยากเข้าชม" value={lead.preferredViewAt ? fmtDate(lead.preferredViewAt) : undefined} hideEmpty />
-              {!lead.message && !lead.preferredViewAt && <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุ</p>}
-            </InfoGroup>
-            <InfoGroup label="ติดต่อ" className="mb-4 break-inside-avoid">
-              <InfoRow label="อีเมล" value={lead.email || undefined} />
-            </InfoGroup>
-            <InfoGroup label="การดูแล" className="mb-4 break-inside-avoid">
-              <InfoRow label="ผู้ดูแล" value={lead.assignedTo?.fullName ?? (lead.assignedToId ? '—' : 'ยังไม่มอบหมาย')} />
-              <InfoRow label="เข้ามาเมื่อ" value={lead.createdAt ? fmtDate(lead.createdAt) : undefined} />
-              {lead.status === 'closed' && lead.lostReason && <InfoRow label="เหตุผลที่ปิด" value={lead.lostReason} stack />}
-            </InfoGroup>
-          </div>
-        ) },
-        { id: 'interests', label: 'ทรัพย์ที่สนใจ', content: interests.length === 0 ? (
-          <p className="py-3 text-sm text-muted">ยังไม่ได้ระบุทรัพย์ที่สนใจ</p>
-        ) : (
-          <div className="card p-5">
-            <ul className="divide-y divide-border">
-              {interests.map((it) => (
-                <li key={it.property.id}>
-                  <button onClick={() => router.push(`/properties/${it.property.id}`)}
-                    className="flex w-full items-center gap-3 py-3 text-left transition hover:opacity-70">
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{it.property.titleTh}</span>
-                    <span className="shrink-0 text-sm font-medium tabular-nums text-gold-dark">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
-                    <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short outline />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) },
-      ]} />
+        {/* เนื้อหา — label-value ราง (กฎ 1) */}
+        <div className="mt-6 xl:order-1 xl:mt-0">
+          <InfoGroup label="ความต้องการ" className="mb-4">
+            <InfoRow label="โจทย์" value={lead.message || undefined} stack hideEmpty />
+            <InfoRow label="อยากเข้าชม" value={lead.preferredViewAt ? fmtDate(lead.preferredViewAt) : undefined} hideEmpty />
+            {!lead.message && !lead.preferredViewAt && <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุ</p>}
+          </InfoGroup>
+
+          <InfoGroup label="ทรัพย์ที่สนใจ" className="mb-4">
+            {interests.length === 0 ? <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุทรัพย์ที่สนใจ</p> : (
+              interests.map((it) => (
+                <button key={it.property.id} onClick={() => router.push(`/properties/${it.property.id}`)}
+                  className="group flex w-full items-center gap-3 py-3 text-left transition">
+                  <span className="min-w-0 flex-1 truncate text-ink transition group-hover:text-gold-dark">{it.property.titleTh}</span>
+                  <span className="shrink-0 tabular-nums text-muted">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
+                  <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short outline />
+                </button>
+              ))
+            )}
+          </InfoGroup>
+
+          <InfoGroup label="ติดต่อ" className="mb-4">
+            <InfoRow label="อีเมล" value={lead.email || undefined} />
+          </InfoGroup>
+
+          <InfoGroup label="การดูแล" className="mb-4">
+            <InfoRow label="ผู้ดูแล" value={lead.assignedTo?.fullName ?? (lead.assignedToId ? '—' : 'ยังไม่มอบหมาย')} />
+            <InfoRow label="เข้ามาเมื่อ" value={lead.createdAt ? fmtDate(lead.createdAt) : undefined} />
+            {lead.status === 'closed' && lead.lostReason && <InfoRow label="เหตุผลที่ปิด" value={lead.lostReason} stack />}
+          </InfoGroup>
+        </div>
+      </div>
 
       {/* โอนให้คนอื่น */}
       <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferTo(''); }} title="โอน Lead ให้คนอื่น"
