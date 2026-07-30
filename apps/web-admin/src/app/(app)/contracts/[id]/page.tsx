@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { bahtFormat, CONTRACT_STATUS, isExpiringSoon } from '@/lib/status';
-import { fmtDate, fmtUntil } from '@/lib/format';
-import { ActionBar, ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, SectionLabel, SectionTabs, StatusBadge } from '@/components/ui';
+import { bahtFormat, CONTRACT_STATUS } from '@/lib/status';
+import { fmtDate } from '@/lib/format';
+import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
 
@@ -126,6 +126,12 @@ export default function ContractDetailPage() {
   if (loading) return <div className="mx-auto max-w-3xl"><div className="h-48 animate-pulse rounded-card bg-canvas" /></div>;
   if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบสัญญา <Link href="/contracts" className="text-gold-dark underline">กลับ</Link></div>;
 
+  // แถบความคืบหน้าอายุสัญญา + เหลือกี่วัน (รางสถานะ A+)
+  const startMs = c.startDate ? new Date(c.startDate).getTime() : null;
+  const endMs = c.endDate ? new Date(c.endDate).getTime() : null;
+  const progress = startMs && endMs && endMs > startMs ? Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100)) : 0;
+  const daysLeft = endMs ? Math.ceil((endMs - Date.now()) / 86400000) : null;
+
   return (
     <div className="mx-auto max-w-3xl xl:max-w-5xl">
       <DetailHeader
@@ -138,66 +144,73 @@ export default function ContractDetailPage() {
         priceSuffix="/เดือน"
       />
 
-      {/* ข้อ 12 — Sign flow: checklist ก่อนลงนาม (แทน toast แดง×3) + ปุ่ม disabled พร้อมเหตุผลจนกว่าจะครบ */}
-      {c.status === 'draft' && (
-        <div className="mt-4 space-y-3">
-          <div className="rounded-xl border border-border bg-surface p-4">
-            <SectionLabel>ขั้นตอนก่อนลงนาม</SectionLabel>
-            <ul className="mt-3 space-y-2.5">
-              <SignStep done={lease.attached} text="แนบเอกสารสัญญาเช่า (lease)" />
-              <SignStep done={lease.verified} text="เอกสารผ่านการตรวจสอบ (verify)" />
-            </ul>
-            {!lease.verified && (
-              <p className="mt-3 text-xs text-muted">
-                {lease.attached
-                  ? <>กด <b>“ตรวจสอบแล้ว”</b> ที่เอกสาร lease ในส่วน <b>เอกสารสัญญา</b> ด้านล่าง</>
-                  : <>แนบเอกสาร <b>สัญญาเช่า (lease)</b> ในส่วน <b>เอกสารสัญญา</b> ด้านล่าง แล้วกดตรวจสอบ</>}
-              </p>
+      {/* A+ = เอกสาร (ซ้าย/ล่าง) + รางสถานะ (คอม=ขวา sticky · iPad=แถบบน · มือถือ=การ์ดบน) */}
+      <div className="mt-5 xl:grid xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8">
+        {/* รางสถานะ */}
+        <div className="xl:order-2">
+          <div className="rounded-card border border-border bg-surface p-4 xl:sticky xl:top-20">
+            {c.status === 'draft' ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-sm font-medium"><span className="h-2 w-2 shrink-0 rounded-full bg-faint" />ฉบับร่าง — รอลงนาม</div>
+                <div>
+                  <SectionLabel>ขั้นตอนก่อนลงนาม</SectionLabel>
+                  <ul className="mt-2.5 space-y-2">
+                    <SignStep done={lease.attached} text="แนบเอกสารสัญญาเช่า (lease)" />
+                    <SignStep done={lease.verified} text="เอกสารผ่านการตรวจสอบ (verify)" />
+                  </ul>
+                  {!lease.verified && (
+                    <p className="mt-2.5 text-xs text-muted">
+                      {lease.attached
+                        ? <>กด <b>“ตรวจสอบแล้ว”</b> ที่เอกสาร lease ในส่วน <b>เอกสารสัญญา</b> ด้านล่าง</>
+                        : <>แนบเอกสาร <b>สัญญาเช่า (lease)</b> ในส่วน <b>เอกสารสัญญา</b> ด้านล่าง แล้วกดตรวจสอบ</>}
+                    </p>
+                  )}
+                </div>
+                {can('contract', 'sign') && (
+                  <button className="btn-gold w-full" disabled={busy || !lease.verified}
+                    onClick={() => run(() => api(`/contracts/${c.id}/sign`, { method: 'POST', body: '{}' }), 'ลงนามสัญญาแล้ว — มีผลบังคับ · ทรัพย์เปลี่ยนเป็นไม่ว่าง')}>
+                    ลงนามสัญญา (มีผล)
+                  </button>
+                )}
+                {can('contract', 'delete') && (
+                  <button className="text-xs text-muted transition hover:text-danger" onClick={() => setDelOpen(true)}>ลบสัญญาร่าง</button>
+                )}
+              </div>
+            ) : c.status === 'active' ? (
+              <>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
+                  <div className="flex shrink-0 items-center gap-2 text-sm font-medium"><span className="h-2 w-2 shrink-0 rounded-full bg-success" />มีผลบังคับ</div>
+                  {startMs && endMs && (
+                    <div className="min-w-0 sm:flex-1 xl:flex-initial">
+                      <div className="h-1 overflow-hidden rounded-full bg-border"><div className="h-full rounded-full bg-gold-dark" style={{ width: `${progress}%` }} /></div>
+                      <div className="mt-1 flex justify-between text-xs text-faint"><span>{d(c.startDate)}</span><span>{d(c.endDate)}</span></div>
+                    </div>
+                  )}
+                  {daysLeft != null && <span className="shrink-0 whitespace-nowrap text-xs text-gold-dark xl:text-center">เหลือ {daysLeft} วัน</span>}
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+                    {can('contract', 'update') && <button className="btn-gold btn-sm" disabled={busy} onClick={openReceipt}>ออกใบเสร็จ</button>}
+                    {can('contract', 'create') && <button className="btn-ghost btn-sm" disabled={busy} onClick={openRenew}>ต่อสัญญา</button>}
+                  </div>
+                </div>
+                {can('contract', 'change_status') && (
+                  <div className="mt-3 text-center"><button className="text-xs text-muted transition hover:text-danger" onClick={() => setCloseOpen(true)}>ปิดสัญญา</button></div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-sm font-medium"><span className="h-2 w-2 shrink-0 rounded-full bg-faint" />สิ้นสุดแล้ว{c.endDate && <span className="font-normal text-muted"> · {d(c.endDate)}</span>}</div>
             )}
           </div>
-          <ActionBar>
-            {can('contract', 'sign') && (
-              <button className="btn-gold btn-sm" disabled={busy || !lease.verified}
-                onClick={() => run(() => api(`/contracts/${c.id}/sign`, { method: 'POST', body: '{}' }), 'ลงนามสัญญาแล้ว — มีผลบังคับ · ทรัพย์เปลี่ยนเป็นไม่ว่าง')}>
-                ลงนามสัญญา (มีผล)
-              </button>
-            )}
-            <MoreMenu items={can('contract', 'delete') ? [{ label: 'ลบสัญญาร่าง', icon: 'trash' as const, danger: true, onClick: () => setDelOpen(true) }] : []} />
-          </ActionBar>
-          {can('contract', 'sign') && !lease.verified && (
-            <p className="text-xs text-muted">ยังลงนามไม่ได้ — ต้องแนบและตรวจสอบเอกสาร lease ให้ครบก่อน</p>
-          )}
         </div>
-      )}
 
-      {c.status === 'active' && (
-        <>
-          <ActionBar className="mt-4">
-            {can('contract', 'update') && <button className="btn-gold btn-sm" disabled={busy} onClick={openReceipt}>ออกใบเสร็จ</button>}
-            {can('contract', 'create') && <button className="btn-ghost btn-sm" disabled={busy} onClick={openRenew}>ต่อสัญญา</button>}
-            <MoreMenu items={can('contract', 'change_status') ? [{ label: 'ปิดสัญญา', icon: 'x' as const, danger: true, onClick: () => setCloseOpen(true) }] : []} />
-          </ActionBar>
-          {isExpiringSoon(c.endDate) && (
-            <div className="mt-4 flex items-center gap-2 rounded-lg border border-gold/30 bg-gold/5 px-3 py-2 text-xs text-gold-dark">
-              <Icon name="clock" size={14} className="shrink-0" />
-              <span>สัญญาใกล้ครบกำหนด (สิ้นสุด {d(c.endDate)}) — พิจารณาต่อสัญญา/ปิดสัญญา</span>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* per-device (owner mandate): มือถือ accordion · iPad/คอม แท็บ · sign-flow/action คงเหนือแท็บ (จัดการก่อน) */}
-      <SectionTabs className="mt-6" items={[
-        { id: 'detail', label: 'รายละเอียด', content: (
-          <div className="xl:columns-2 xl:gap-5">
-            {/* คู่สัญญา */}
+        {/* เอกสารสัญญา (อ่านไล่เป็นชุด ไม่มีแท็บ) */}
+        <div className="mt-6 xl:order-1 xl:mt-0">
+          <div className="md:columns-2 md:gap-5 xl:columns-1">
             <InfoGroup label="คู่สัญญา" className="mb-4 break-inside-avoid">
               {c.customer && (
-                <InfoRow label="ลูกค้า" href={`/customers/${c.customer.id}`} strong hideChevron
+                <InfoRow label="ผู้เช่า" href={`/customers/${c.customer.id}`} strong hideChevron
                   value={<span>{c.customer.fullName}{c.customer.phone && <span className="font-normal text-muted"> · {c.customer.phone}</span>}</span>} />
               )}
               {c.property && (
-                // ข้อ 5: ชื่อทรัพย์เต็มบรรทัดบน · เลขทรัพย์บรรทัดล่างจาง (เลิกชื่อโดนตัด/เลขลอย)
                 <InfoRow label="ทรัพย์" href={`/properties/${c.property.id}`} strong hideChevron
                   value={<span><span className="block">{c.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{c.property.code}</span></span>} />
               )}
@@ -208,49 +221,42 @@ export default function ContractDetailPage() {
               {c.agent && <InfoRow label="พนักงาน" value={c.agent.fullName} />}
             </InfoGroup>
 
-            {/* ระยะเวลา — เน้น "เมื่อไหร่-ถึงเมื่อไหร่" (emphasis สัญญา) ขึ้นก่อนการเงิน · active = badge นับถอยหลัง (ช่วยงานต่อ/ปิดสัญญา) */}
             <InfoGroup label="ระยะเวลา" className="mb-4 break-inside-avoid">
-              {/* ลำดับเวลาจริง: ลงนาม → เริ่ม → สิ้นสุด (owner) */}
               <InfoRow label="ลงนามเมื่อ" value={c.signedAt ? d(c.signedAt) : undefined} hideEmpty />
               <InfoRow label="วันเริ่ม" value={d(c.startDate)} />
-              <InfoRow label="วันสิ้นสุด" value={<span className="inline-flex items-center gap-1.5">{d(c.endDate)}{c.status === 'active' && isExpiringSoon(c.endDate) && <span className="badge bg-gold/15 text-gold-dark">{fmtUntil(c.endDate)}</span>}</span>} />
+              <InfoRow label="วันสิ้นสุด" value={d(c.endDate)} />
             </InfoGroup>
 
-            {/* การเงิน — ค่าเช่าอยู่หัว glance แล้ว เหลือ มัดจำ/นายหน้า (T1.3) */}
             <InfoGroup label="การเงิน" className="mb-4 break-inside-avoid">
+              <InfoRow label="ค่าเช่า/เดือน" value={`฿${bahtFormat(Number(c.monthlyRent))}`} mono />
               <InfoRow label="เงินมัดจำ" value={c.depositAmount ? `฿${bahtFormat(Number(c.depositAmount))}` : undefined} mono hideEmpty />
               <InfoRow label="ค่านายหน้า" value={c.commissionAmount ? `฿${bahtFormat(Number(c.commissionAmount))}` : undefined} mono hideEmpty />
-              {!c.depositAmount && !c.commissionAmount && <p className="py-2.5 text-sm text-muted">ยังไม่ระบุมัดจำ/ค่านายหน้า</p>}
             </InfoGroup>
           </div>
-        ) },
-        { id: 'terms', label: 'เงื่อนไข', content: (
-          <div className="card p-5">
-            {terms.length === 0 ? <p className="mb-3 text-sm text-muted">ยังไม่มีเงื่อนไข</p> : (
-              <ul className="mb-3 divide-y divide-border">
-                {terms.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between py-2.5 text-sm">
-                    <span><span className="font-medium">{t.termKey}:</span> <span className="text-ink-soft">{t.termValue}</span></span>
-                    {can('contract', 'update') && <button className="text-xs text-danger hover:underline" onClick={() => delTerm(t.id)}>ลบ</button>}
-                  </li>
-                ))}
-              </ul>
+
+          <InfoGroup label="เงื่อนไข" className="mb-4">
+            {terms.length === 0 ? <p className="py-2.5 text-sm text-muted">ยังไม่มีเงื่อนไข</p> : (
+              terms.map((t) => (
+                <InfoRow key={t.id} label={t.termKey} value={
+                  <span className="inline-flex items-center gap-2">{t.termValue}{can('contract', 'update') && <button className="text-xs text-danger hover:underline" onClick={() => delTerm(t.id)}>ลบ</button>}</span>
+                } />
+              ))
             )}
             {can('contract', 'update') && (
-              <div className="flex flex-wrap gap-2">
-                <input className="field h-10 max-w-[160px]" placeholder="หัวข้อ (เช่น ค่าน้ำ)" value={tk} onChange={(e) => setTk(e.target.value)} />
+              <div className="flex flex-wrap gap-2 py-3">
+                <input className="field h-10 max-w-[150px]" placeholder="หัวข้อ (เช่น ค่าน้ำ)" value={tk} onChange={(e) => setTk(e.target.value)} />
                 <input className="field h-10 flex-1" placeholder="รายละเอียด" value={tv} onChange={(e) => setTv(e.target.value)} />
                 <button className="btn-ghost h-10" onClick={addTerm}><Icon name="plus" size={16} /> เพิ่ม</button>
               </div>
             )}
-          </div>
-        ) },
-        { id: 'docs', label: 'เอกสาร', content: (
-          <div className="card p-5">
-            <DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} />
-          </div>
-        ) },
-      ]} />
+          </InfoGroup>
+
+          <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
+            <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสารสัญญา</SectionLabel></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} /></div>
+          </section>
+        </div>
+      </div>
 
       {/* ออกใบเสร็จ */}
       <Modal open={receiptOpen} onClose={() => setReceiptOpen(false)} title="ออกใบเสร็จ"
