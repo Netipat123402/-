@@ -899,42 +899,33 @@ export function ListView<T>({
   // เปลี่ยนหน้า: คงแถวเดิมไว้ (จางลง) จนข้อมูลใหม่มา → ความสูงไม่หด/กระโดด → ปุ่มลูกศรอยู่จุดเดิม
   return (
     <div className={loading ? 'pointer-events-none opacity-50 transition-opacity duration-150' : 'transition-opacity duration-150'}>
-      {/* เดสก์ท็อป (เมาส์/แทร็กแพด): ตาราง — cell nowrap → ทุกแถว 1 บรรทัด ไม่ตก 2 บรรทัด · auto-layout คงความกว้างตามเนื้อหา (คอมเห็นเต็ม ไม่ตัด) · กว้างเกิน container → เลื่อนแนวนอน (wrapper overflow-x-auto) แทน wrap */}
+      {/* เดสก์ท็อป: grid เดียว + subgrid ต่อแถว + justify-between →
+          คอลัมน์กว้างตามเนื้อหา (ยาว=กว้าง) · ช่องไฟระหว่างคอลัมน์เท่ากันทุกช่อง · เต็มความกว้าง (คอลัมน์แรกชิดซ้าย/ท้ายสุดชิดขวา) · เหมือนกันทุกหน้า */}
       <div className="hidden overflow-x-auto mouse:block">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-wide text-muted">
-            <tr className="border-b border-border">
-              {leading && <th className="w-[68px] py-3 pl-5" aria-hidden />}
-              {cols.map((c, i) => (
-                // หัวคอลัมน์ชิดซ้าย · ยกเว้น right cols (status/metric) = กึ่งกลาง ให้หัวตรงกับเนื้อหาที่กึ่งกลาง (uniform ทุกหน้า แบบหน้าทรัพย์)
-                <th key={i} scope="col" className={`whitespace-nowrap px-5 py-3 font-medium ${c.right ? 'text-center ' : ''}${c.width ?? ''}`}>{c.header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((it) => (
-              <tr key={keyOf(it)}
-                className={`border-b border-border last:border-0 ${onRow ? 'cursor-pointer transition hover:bg-raised' : ''}`}
-                onClick={onRow ? () => onRow(it) : undefined}>
-                {leading && <td className="py-3.5 pl-5">{leading(it)}</td>}
-                {cols.map((c, i) => {
-                  // primary = cap กว้าง + ตัด "…" (ชื่อยาวไม่ดันเพี้ยน · twoLine ให้ cell คุมบรรทัด/ตัดเอง)
-                  // คอลัมน์มี width = คุมกว้าง+ตัด · ที่เหลือ nowrap · ไม่มีคอลัมน์ยืด → w-full auto เฉลี่ยช่องไฟเต็มกว้าง
-                  const colCls = c.right
-                    ? `whitespace-nowrap text-center ${c.width ?? ''}`
-                    : c === primary
-                    ? (c.twoLine ? 'max-w-[22rem]' : 'max-w-[22rem] truncate')
-                    : c.width
-                    ? `${c.width} truncate`
-                    : 'whitespace-nowrap';
-                  return (
-                    <td key={i} className={`py-3.5 ${colCls} ${leading && i === 0 ? 'pl-3 pr-5' : 'px-5'}`}>{c.cell(it)}</td>
-                  );
-                })}
-              </tr>
+        <div className="grid px-5"
+          style={{ gridTemplateColumns: `repeat(${(leading ? 1 : 0) + cols.length}, minmax(0, max-content))`, justifyContent: 'space-between', columnGap: '1.5rem' }}>
+          {/* หัวตาราง */}
+          <div className="col-span-full grid grid-cols-subgrid items-end border-b border-border text-xs uppercase tracking-wide text-muted">
+            {leading && <div aria-hidden />}
+            {cols.map((c, i) => (
+              <div key={i} className={`whitespace-nowrap py-3 font-medium ${c.right ? 'text-center' : ''}`}>{c.header}</div>
             ))}
-          </tbody>
-        </table>
+          </div>
+          {/* แถว */}
+          {items.map((it) => (
+            <div key={keyOf(it)}
+              className={`col-span-full grid grid-cols-subgrid items-center border-b border-border text-sm last:border-0 ${onRow ? 'cursor-pointer transition hover:bg-raised' : ''}`}
+              onClick={onRow ? () => onRow(it) : undefined}>
+              {leading && <div className="py-3">{leading(it)}</div>}
+              {cols.map((c, i) => (
+                // primary = cap 22rem + ตัด … · right = กึ่งกลาง · อื่น = nowrap · min-w-0 ให้ตัดได้
+                <div key={i} className={`min-w-0 py-3.5 ${c.right ? 'text-center' : c === primary ? `max-w-[22rem]${c.twoLine ? '' : ' truncate'}` : 'whitespace-nowrap'}`}>
+                  {c.cell(it)}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* สัมผัส (มือถือ/แท็บเล็ต): การ์ด — กริด 1 คอลัมน์ (มือถือ) → 2 คอลัมน์ (จอกว้าง/ไอแพด)
