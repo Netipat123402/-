@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { APPOINTMENT_STATUS } from '@/lib/status';
 import { fmtDateTime, fmtTimeRange, fmtUntil, fmtWeekdayDate } from '@/lib/format';
-import { ActionBar, DetailHeader, Field, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, SectionTabs, StatusBadge } from '@/components/ui';
+import { DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 interface ApptDetail {
@@ -58,78 +58,73 @@ export default function AppointmentDetailPage() {
   const subject = appt.lead?.fullName || appt.title || `นัด ${appt.code}`;
   const isUpcoming = appt.status === 'upcoming';
 
-  // แท็บ (owner: แยก 3 — ทรัพย์ · รายละเอียด · ลูกค้า) · โชว์ ทรัพย์/ลูกค้า เฉพาะที่มี (นัดนอกรอบไม่มี)
-  const tabs: { id: string; label: string; content: React.ReactNode }[] = [];
-  if (appt.property) tabs.push({ id: 'property', label: 'ทรัพย์ที่นัดดู', content: (
-    <InfoGroup label="ทรัพย์ที่นัดดู">
-      <InfoRow label="ทรัพย์" href={`/properties/${appt.property.id}`} strong hideChevron
-        value={<span><span className="block">{appt.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{appt.property.code}</span></span>} />
-    </InfoGroup>
-  ) });
-  tabs.push({ id: 'detail', label: 'รายละเอียดนัด', content: (
-    <div className="xl:columns-2 xl:gap-5">
-      <InfoGroup label="สถานที่นัด" className="mb-4 break-inside-avoid">
-        <div className="py-3 text-sm text-gold-dark">{appt.location || <span className="text-faint">—</span>}</div>
-      </InfoGroup>
-      <InfoGroup label="ผู้รับผิดชอบ" className="mb-4 break-inside-avoid">
-        <div className="py-3 text-sm text-ink">{appt.agent?.fullName || <span className="text-faint">—</span>}</div>
-      </InfoGroup>
-      {appt.status === 'cancelled' && appt.cancelReason && (
-        <InfoGroup label="เหตุผลที่ยกเลิก" className="mb-4 break-inside-avoid">
-          <div className="py-3 text-sm text-muted">{appt.cancelReason}</div>
-        </InfoGroup>
-      )}
-    </div>
-  ) });
-  if (appt.lead) tabs.push({ id: 'lead', label: 'ลูกค้า', content: (
-    <InfoGroup label="ลูกค้า">
-      <InfoRow label="ชื่อ" value={appt.lead.fullName} href={`/leads/${appt.lead.id}`} strong hideChevron />
-      <InfoRow label="เบอร์โทร" value={appt.lead.phone ? <PhoneLink phone={appt.lead.phone} /> : undefined} hideEmpty />
-    </InfoGroup>
-  ) });
-
   return (
     <div className="mx-auto max-w-3xl xl:max-w-5xl">
-      {/* HEADER = DetailHeader (แม่แบบทรัพย์) — รหัส+สถานะ+urgency · หัวข้อนัด · ปุ่ม status-driven (event-first) */}
       <DetailHeader
         backHref="/appointments"
         code={appt.code}
         badge={<StatusBadge map={APPOINTMENT_STATUS} value={appt.status} />}
-        meta={isUpcoming ? <span className="text-xs text-gold-dark">{fmtUntil(appt.scheduledAt)}</span> : undefined}
         title={subject}
-        actions={
-          <ActionBar>
-            {isUpcoming && can('appointment', 'change_status') && (
-              <>
-                <button className="btn-gold btn-sm" disabled={busy} onClick={() => run('complete', 'บันทึกว่าพบแล้ว')}>พบลูกค้าแล้ว</button>
-                <button className="btn-ghost btn-sm" disabled={busy} onClick={() => { setReAt(''); setReOpen(true); }}>เลื่อนนัด</button>
-                <MoreMenu items={[
-                  { label: 'ยกเลิกนัด', icon: 'x', danger: true, onClick: () => run('cancel', 'ยกเลิกนัด') },
-                  { label: 'ลูกค้าไม่มาตามนัด', icon: 'x', danger: true, onClick: () => run('no-show', 'บันทึกว่าไม่มาตามนัด') },
-                ]} />
-              </>
-            )}
-            {!isUpcoming && can('appointment', 'create') && (
-              <button className="btn-gold btn-sm" disabled={busy} onClick={rebook}><Icon name="calendar" size={15} /> นัดใหม่อีกครั้ง</button>
-            )}
-          </ActionBar>
-        }
+        subtitle={appt.property ? 'นัดดูทรัพย์' : (appt.title ? 'นัดนอกรอบ' : undefined)}
       />
 
-      {/* glance "เมื่อไหร่" = แก่นนัด (event) → เด่นใต้หัว */}
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-y border-border/60 py-3">
-        <span className="text-lg font-semibold tabular-nums tracking-tight text-ink">{fmtWeekdayDate(appt.scheduledAt)}</span>
-        <span className="text-sm tabular-nums text-muted">{fmtTimeRange(appt.scheduledAt, appt.durationMin)} · {appt.durationMin} นาที</span>
-      </div>
-
-      {appt.status === 'done' && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-canvas px-3 py-2 text-xs text-success">
-          <Icon name="check" size={14} className="shrink-0" /> พบลูกค้าแล้ว
+      {/* B = เนื้อหา (ทรัพย์/ลูกค้า/สถานที่) + รางวันเวลา/สถานะ/ปุ่ม — โครง+ขนาดเดียวกับสัญญา/ลูกค้า */}
+      <div className="mt-5 xl:grid xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8">
+        {/* ราง = วันเวลา (พระเอก) + สถานะ + ปุ่ม (คอม=ขวา sticky · iPad=แถบบน · มือถือ=การ์ดบน) */}
+        <div className="xl:order-2">
+          <div className="rounded-card border border-border bg-surface p-4 xl:sticky xl:top-20">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
+              <div className="shrink-0">
+                <div className="text-lg font-semibold tabular-nums text-ink">{fmtWeekdayDate(appt.scheduledAt)}</div>
+                <div className="text-sm tabular-nums text-muted">{fmtTimeRange(appt.scheduledAt, appt.durationMin)} · {appt.durationMin} นาที</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <StatusBadge map={APPOINTMENT_STATUS} value={appt.status} outline />
+                {isUpcoming && <span className="text-xs text-gold-dark">{fmtUntil(appt.scheduledAt)}</span>}
+              </div>
+              {isUpcoming && can('appointment', 'change_status') ? (
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run('complete', 'บันทึกว่าพบแล้ว')}>พบลูกค้าแล้ว</button>
+                  <button className="btn-ghost btn-sm" disabled={busy} onClick={() => { setReAt(''); setReOpen(true); }}>เลื่อนนัด</button>
+                </div>
+              ) : !isUpcoming && can('appointment', 'create') ? (
+                <button className="btn-gold btn-sm shrink-0" disabled={busy} onClick={rebook}><Icon name="calendar" size={15} /> นัดใหม่อีกครั้ง</button>
+              ) : null}
+            </div>
+            {isUpcoming && can('appointment', 'change_status') && (
+              <div className="mt-3 flex justify-center gap-5 text-xs">
+                <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => run('cancel', 'ยกเลิกนัด')}>ยกเลิกนัด</button>
+                <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => run('no-show', 'บันทึกว่าไม่มาตามนัด')}>ลูกค้าไม่มา</button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* per-device: มือถือ accordion · iPad/คอม แท็บ */}
-      <SectionTabs className="mt-6" items={tabs} />
+        {/* เนื้อหา — label-value ราง (กฎ 1) */}
+        <div className="mt-6 xl:order-1 xl:mt-0">
+          {appt.property && (
+            <InfoGroup label="ทรัพย์ที่นัดดู" className="mb-4">
+              <InfoRow label="ทรัพย์" href={`/properties/${appt.property.id}`} strong hideChevron
+                value={<span><span className="block">{appt.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{appt.property.code}</span></span>} />
+            </InfoGroup>
+          )}
+          {appt.lead && (
+            <InfoGroup label="ลูกค้า" className="mb-4">
+              <InfoRow label="ชื่อ" value={appt.lead.fullName} href={`/leads/${appt.lead.id}`} strong hideChevron />
+              <InfoRow label="เบอร์โทร" value={appt.lead.phone ? <PhoneLink phone={appt.lead.phone} /> : undefined} hideEmpty />
+            </InfoGroup>
+          )}
+          <InfoGroup label="สถานที่ · ผู้ดูแล" className="mb-4">
+            <InfoRow label="สถานที่นัด" value={appt.location || undefined} />
+            <InfoRow label="ผู้รับผิดชอบ" value={appt.agent?.fullName || undefined} />
+          </InfoGroup>
+          {appt.status === 'cancelled' && appt.cancelReason && (
+            <InfoGroup label="เหตุผลที่ยกเลิก" className="mb-4">
+              <InfoRow label="เหตุผล" value={appt.cancelReason} stack />
+            </InfoGroup>
+          )}
+        </div>
+      </div>
 
       {/* เลื่อนนัด */}
       <Modal open={reOpen} onClose={() => { setReOpen(false); setReAt(''); }} title="เลื่อนนัด"
