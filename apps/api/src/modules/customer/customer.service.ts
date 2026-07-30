@@ -77,7 +77,10 @@ export class CustomerService {
   async get(user: AuthenticatedUser, id: string) {
     const c = await this.prisma.customer.findFirst({
       where: { AND: [this.scopeWhere(user), { id }] },
-      include: { contracts: { where: { deletedAt: null }, select: { id: true, code: true, status: true, monthlyRent: true }, orderBy: { createdAt: 'desc' } } },
+      include: { contracts: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' },
+        // R2: property+owner+endDate ต่อสัญญา → detail โชว์ "กำลังเช่า" (ทรัพย์/เจ้าของ/เหลือกี่วัน)
+        select: { id: true, code: true, status: true, monthlyRent: true, endDate: true,
+          property: { select: { id: true, code: true, titleTh: true } }, owner: { select: { fullName: true } } } } },
     });
     return this.mask(c);
   }
