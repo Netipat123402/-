@@ -86,11 +86,15 @@ export class OwnerService {
       ? await this.prisma.property.groupBy({ by: ['ownerId'], where: { ownerId: { in: ids }, deletedAt: null }, _count: true })
       : [];
     const countBy = new Map(grouped.map((g) => [g.ownerId, g._count]));
-    // R2: ทรัพย์ "ว่างอยู่" (status available) ต่อเจ้าของ
+    // R2: ทรัพย์ "ว่างอยู่" (status available) + "เช่าอยู่" (status rented) ต่อเจ้าของ
     const availGrouped = ids.length
       ? await this.prisma.property.groupBy({ by: ['ownerId'], where: { ownerId: { in: ids }, deletedAt: null, status: 'available' }, _count: true })
       : [];
     const availBy = new Map(availGrouped.map((g) => [g.ownerId, g._count]));
+    const rentedGrouped = ids.length
+      ? await this.prisma.property.groupBy({ by: ['ownerId'], where: { ownerId: { in: ids }, deletedAt: null, status: 'rented' }, _count: true })
+      : [];
+    const rentedCntBy = new Map(rentedGrouped.map((g) => [g.ownerId, g._count]));
     // R2: "ปล่อยเช่าล่าสุด" = ทรัพย์จากสัญญา active ล่าสุด (ไม่มี active → สัญญาล่าสุดทุกสถานะ) ต่อเจ้าของ
     const contracts = ids.length
       ? await this.prisma.contract.findMany({
@@ -109,6 +113,7 @@ export class OwnerService {
         ...this.maskRow(o),
         propertyCount: countBy.get(o.id) ?? 0,
         availableCount: availBy.get(o.id) ?? 0,
+        rentedCount: rentedCntBy.get(o.id) ?? 0,
         latestRented: rentedBy.get(o.id)?.property ?? null,
       })),
       total, page, limit, totalPages: Math.ceil(total / limit),
