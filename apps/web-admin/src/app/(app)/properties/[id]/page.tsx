@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { mediaUrl } from '@/lib/api';
 import { PROPERTY_STATUS, bahtFormat } from '@/lib/status';
-import { ActionBar, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, MoreMenu, PhoneLink, ProgressBar, SectionLabel, SectionTabs, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, ProgressBar, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import PropertyForm, { type PropertyInitial } from '@/components/PropertyForm';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -93,6 +93,8 @@ export default function PropertyDetailPage() {
   const amenities = Object.entries(p.amenities ?? {}).filter(([, v]) => v).map(([k]) => k);
   const hasRoomInfo = p.bedrooms != null || p.bathrooms != null || !!p.areaSqm || !!p.floor || !!p.furnished;
   const hasLocation = !!p.projectName || !!p.province || !!p.district;
+  const activeContract = p.contracts?.[0]; // ไม่ว่าง → ลิงก์สัญญา
+  const webUrl = `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3000/properties/${p.code}`;
 
   // โหลดข้อมูลเต็มแล้วเปิด modal แก้ไข (ใช้ร่วมทั้ง primary/secondary ตามสถานะ) — ใช้ route id (คงที่)
   async function openEdit() {
@@ -111,80 +113,9 @@ export default function PropertyDetailPage() {
         subtitle={p.projectName ? p.titleTh : undefined}
         price={bahtFormat(Number(p.monthlyRent))}
         priceSuffix="/เดือน"
-        actions={
-          /* glance identifier: action ชิดขวาหัว (เดสก์ท็อป) / stack ล่าง (มือถือ) · 1 primary(gold)ตามสถานะ · featured ghost · อันตราย/รองยุบใน ⋯ */
-          <ActionBar>
-        {p.status === 'draft' && can('property', 'approve') && (
-          <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
-        )}
-        {p.status === 'draft' && !can('property', 'approve') && can('property', 'change_status') && (
-          <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/submit-review`, { method: 'POST', body: '{}' }), 'ส่งให้หัวหน้าเผยแพร่แล้ว')}>ขอเผยแพร่</button>
-        )}
-        {p.status !== 'draft' && can('property', 'update') && (
-          <button className="btn-gold btn-sm" disabled={busy} onClick={openEdit}>แก้ไขข้อมูล</button>
-        )}
-        {p.status === 'draft' && can('property', 'update') && (
-          <button className="btn-ghost btn-sm" disabled={busy} onClick={openEdit}>แก้ไขข้อมูล</button>
-        )}
-        {can('property', 'update') && (
-          <button className={`btn-ghost btn-sm ${p.isFeatured ? 'border-gold text-gold-dark' : ''}`} disabled={busy}
-            onClick={() => run(() => api(`/properties/${p.id}`, { method: 'PATCH', body: JSON.stringify({ isFeatured: !p.isFeatured }) }), p.isFeatured ? 'เอาออกจากแนะนำแล้ว' : 'ตั้งเป็นทรัพย์แนะนำแล้ว', (cur) => ({ ...cur, isFeatured: !cur.isFeatured }))}>
-            <Icon name="star" size={15} /> {p.isFeatured ? 'ทรัพย์แนะนำ' : 'ตั้งเป็นแนะนำ'}
-          </button>
-        )}
-        <MoreMenu items={[
-          ...(p.status === 'available' && can('property', 'change_status') ? [{ label: 'ทำเครื่องหมายไม่ว่าง', icon: 'key' as const, onClick: () => setConfirm('markRented') }] : []),
-          ...(p.status === 'available' && can('property', 'reject') ? [{ label: 'ถอนประกาศ', icon: 'file-text' as const, danger: true, onClick: () => setConfirm('reject') }] : []),
-          ...(p.status === 'draft' && can('property', 'delete') ? [{ label: 'ลบทรัพย์', icon: 'trash' as const, danger: true, onClick: () => setConfirm('delete') }] : []),
-        ]} />
-          </ActionBar>
-        }
       />
 
-      {/* hint ตามสถานะ — แถบบาง ไม่กินพื้นที่ */}
-      {p.status === 'draft' && (
-        <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-canvas px-3 py-2 text-xs text-ink-soft">
-          <Icon name="file-text" size={14} className="shrink-0 text-muted" />
-          <span><b>ฉบับร่าง</b> — ยังไม่แสดงบนเว็บลูกค้า กด <b>“เผยแพร่ขึ้นเว็บ”</b> เมื่อข้อมูลครบ</span>
-        </div>
-      )}
-      {p.status === 'available' && (
-        <div className="mt-4 flex items-center justify-between gap-2 rounded-lg border border-border bg-canvas px-3 py-2 text-xs text-muted">
-          <span className="inline-flex items-center gap-1.5"><Icon name="check" size={14} className="shrink-0 text-success" /> เผยแพร่บนเว็บลูกค้าแล้ว</span>
-          <a href={`http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3000/properties/${p.code}`}
-            target="_blank" rel="noreferrer" className="inline-flex shrink-0 items-center gap-1 font-medium text-gold-dark hover:underline">ดูบนเว็บ <Icon name="arrow-right" size={13} /></a>
-        </div>
-      )}
-      {/* ไม่ว่าง (Phase 13 · ข้อ 14) — ให้ "ทางไปต่อ" แทนทางตัน:
-          • ผูกสัญญา active → ลิงก์เข้าสัญญา (คืนทรัพย์โดยปิดสัญญา ไม่ใช่ปลดที่นี่)
-          • ไม่ว่างแบบ manual (ไม่มีสัญญา live) → ปุ่ม "ทำเครื่องหมายว่าง" */}
-      {p.status === 'rented' && (() => {
-        const active = p.contracts?.[0];
-        return (
-          <div className="mt-4 overflow-hidden rounded-lg border border-gold/30 bg-gold/5">
-            <div className="flex items-center gap-2 px-3 py-2 text-xs text-gold-dark">
-              <Icon name="key" size={14} className="shrink-0" />
-              <span><b>ไม่ว่าง</b> — {active ? 'ปล่อยเช่าตามสัญญาที่มีผลอยู่' : 'ทำเครื่องหมายไว้ว่าไม่ว่าง (ไม่มีสัญญาในระบบ)'}</span>
-            </div>
-            {active ? (
-              <Link href={`/contracts/${active.id}`}
-                className="flex items-center justify-between gap-2 border-t border-gold/20 px-3 py-2.5 text-sm transition hover:bg-gold/10">
-                <span className="inline-flex items-center gap-1.5 text-ink"><Icon name="file-text" size={15} className="text-gold-dark" /> ดูสัญญา <span className="font-mono text-xs text-muted">{active.code}</span></span>
-                <Icon name="chevron-right" size={16} className="text-faint" />
-              </Link>
-            ) : can('property', 'change_status') ? (
-              <div className="border-t border-gold/20 px-3 py-2.5">
-                <button className="btn-ghost btn-sm" disabled={busy}
-                  onClick={() => run(() => api(`/properties/${p.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'available' }) }), 'ทำเครื่องหมายว่างแล้ว — ทรัพย์กลับขึ้นเว็บ')}>
-                  ทำเครื่องหมายว่าง
-                </button>
-              </div>
-            ) : null}
-          </div>
-        );
-      })()}
-
-      {/* รูปทรัพย์ (identity) คงบนสุดเสมอ · มือถือปัด / desktop ลูกศร hover */}
+      {/* รูปทรัพย์ (gallery hero) คงบนสุดเสมอ · มือถือปัด / desktop ลูกศร hover */}
       <div className="mt-6">
         <input ref={fileRef} type="file" accept="image/*" hidden
           onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadImage(file); e.target.value = ''; }} />
@@ -263,63 +194,105 @@ export default function PropertyDetailPage() {
         })()}
       </div>
 
-      {/* per-device (owner mandate): มือถือ = accordion · iPad/คอม = แท็บ · เนื้อ "ข้อมูลทรัพย์" 2 คอลัมน์บนคอม (xl) */}
-      <SectionTabs className="mt-6" items={[
-        { id: 'info', label: 'ข้อมูลทรัพย์', content: (
-          <div className="xl:columns-2 xl:gap-5">
-            {p.depositMonths != null && (
-              <InfoGroup label="เงื่อนไขการเช่า" className="mb-4 break-inside-avoid">
-                <InfoRow label="เงินมัดจำ" value={`${p.depositMonths} เดือน`} />
-              </InfoGroup>
-            )}
-            {hasRoomInfo && (
-              <InfoGroup label="ห้อง & พื้นที่" className="mb-4 break-inside-avoid">
-                <InfoRow icon="bed" label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
-                <InfoRow icon="bath" label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
-                <InfoRow icon="area" label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
-                <InfoRow icon="floor" label="ชั้น" value={p.floor || undefined} hideEmpty />
-                <InfoRow icon="sofa" label="เฟอร์นิเจอร์" value={p.furnished ? (FURNISHED_TH[p.furnished] ?? p.furnished) : undefined} hideEmpty />
-              </InfoGroup>
-            )}
-            {hasLocation && (
-              <InfoGroup label="ทำเล" className="mb-4 break-inside-avoid">
-                <InfoRow label="โครงการ" value={p.projectName || undefined} hideEmpty />
-                <InfoRow label="จังหวัด" value={p.province || undefined} hideEmpty />
-                <InfoRow label="เขต / อำเภอ" value={p.district || undefined} hideEmpty />
-              </InfoGroup>
-            )}
-            {p.descriptionTh && (
-              <InfoGroup className="mb-4 break-inside-avoid">
-                <InfoRow label="รายละเอียด" stack value={<span className="whitespace-pre-line leading-relaxed">{p.descriptionTh}</span>} />
-              </InfoGroup>
-            )}
-            {amenities.length > 0 && (
-              <InfoGroup label="สิ่งอำนวยความสะดวก" className="mb-4 break-inside-avoid">
-                <div className="flex flex-wrap gap-1.5 py-3">
-                  {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
+      {/* main + ราง (เลิกแท็บ · listing) */}
+      <div className="mt-6 xl:grid xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8">
+        {/* ราง = สถานะ + ปุ่มตามสถานะ (คอม=ขวา sticky · iPad=แถบบน · มือถือ=การ์ดบน) */}
+        <div className="xl:order-2">
+          <div className="rounded-card border border-border bg-surface p-4 xl:sticky xl:top-20">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
+              <div className="shrink-0 text-center sm:text-left xl:text-center">
+                <StatusBadge map={PROPERTY_STATUS} value={p.status} />
+                <div className="mt-1 text-xs">
+                  {p.status === 'draft' && <span className="text-faint">ยังไม่ขึ้นเว็บลูกค้า</span>}
+                  {p.status === 'available' && <a href={webUrl} target="_blank" rel="noreferrer" className="text-gold-dark hover:underline">เผยแพร่แล้ว · ดูบนเว็บ ›</a>}
+                  {p.status === 'rented' && (activeContract
+                    ? <Link href={`/contracts/${activeContract.id}`} className="text-gold-dark hover:underline">ไม่ว่าง · ดูสัญญา ›</Link>
+                    : <span className="text-faint">ไม่ว่าง (นอกระบบ)</span>)}
                 </div>
-              </InfoGroup>
-            )}
-            {p.depositMonths == null && !hasRoomInfo && !hasLocation && !p.descriptionTh && amenities.length === 0 && (
-              <p className="py-3 text-sm text-muted">ยังไม่มีข้อมูลทรัพย์เพิ่มเติม — กด “แก้ไขข้อมูล”</p>
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+                {p.status === 'draft' && can('property', 'approve') && (
+                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
+                )}
+                {p.status === 'draft' && !can('property', 'approve') && can('property', 'change_status') && (
+                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/submit-review`, { method: 'POST', body: '{}' }), 'ส่งให้หัวหน้าเผยแพร่แล้ว')}>ขอเผยแพร่</button>
+                )}
+                {can('property', 'update') && (
+                  <button className={`btn-sm ${p.status === 'draft' ? 'btn-ghost' : 'btn-gold'}`} disabled={busy} onClick={openEdit}>แก้ไขข้อมูล</button>
+                )}
+                {can('property', 'update') && (
+                  <button className={`btn-ghost btn-sm ${p.isFeatured ? 'border-gold text-gold-dark' : ''}`} disabled={busy}
+                    onClick={() => run(() => api(`/properties/${p.id}`, { method: 'PATCH', body: JSON.stringify({ isFeatured: !p.isFeatured }) }), p.isFeatured ? 'เอาออกจากแนะนำแล้ว' : 'ตั้งเป็นทรัพย์แนะนำแล้ว', (cur) => ({ ...cur, isFeatured: !cur.isFeatured }))}>
+                    <Icon name="star" size={15} /> {p.isFeatured ? 'ทรัพย์แนะนำ' : 'ตั้งเป็นแนะนำ'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* action รอง — quiet */}
+            {((p.status === 'available' && (can('property', 'change_status') || can('property', 'reject'))) || (p.status === 'rented' && !activeContract && can('property', 'change_status')) || (p.status === 'draft' && can('property', 'delete'))) && (
+              <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+                {p.status === 'available' && can('property', 'change_status') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => setConfirm('markRented')}>ทำเครื่องหมายไม่ว่าง</button>}
+                {p.status === 'available' && can('property', 'reject') && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('reject')}>ถอนประกาศ</button>}
+                {p.status === 'rented' && !activeContract && can('property', 'change_status') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'available' }) }), 'ทำเครื่องหมายว่างแล้ว — ทรัพย์กลับขึ้นเว็บ')}>ทำเครื่องหมายว่าง</button>}
+                {p.status === 'draft' && can('property', 'delete') && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('delete')}>ลบทรัพย์</button>}
+              </div>
             )}
           </div>
-        ) },
-        { id: 'owner', label: 'เจ้าของ', content: p.owner ? (
-          <InfoGroup label="เจ้าของทรัพย์">
-            <InfoRow label="ชื่อ" value={p.owner.fullName} href={p.owner.id ? `/owners/${p.owner.id}` : undefined} strong hideChevron />
-            <InfoRow label="เบอร์โทร" value={p.owner.phone ? <PhoneLink phone={p.owner.phone} /> : undefined} hideEmpty />
-            <InfoRow label="อีเมล" value={p.owner.email || undefined} hideEmpty />
-            <InfoRow label="จำนวนทรัพย์ที่ถือ" value={p.owner._count ? `${p.owner._count.properties} รายการ` : undefined} hideEmpty />
-          </InfoGroup>
-        ) : <p className="py-3 text-sm text-muted">ไม่มีข้อมูลเจ้าของ</p> },
-        { id: 'docs', label: 'เอกสาร', content: (
-          <div className="card p-5"><DocumentSection entityType="property" entityId={p.id} /></div>
-        ) },
-        { id: 'activity', label: 'ประวัติ', content: (
-          <div className="card p-5"><ActivityTimeline path={`/properties/${p.id}/activities`} /></div>
-        ) },
-      ]} />
+        </div>
+
+        {/* เนื้อหา — label-value ราง (กฎ 1) */}
+        <div className="mt-6 xl:order-1 xl:mt-0">
+          {hasRoomInfo && (
+            <InfoGroup label="ห้อง & พื้นที่" className="mb-4">
+              <InfoRow icon="bed" label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
+              <InfoRow icon="bath" label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
+              <InfoRow icon="area" label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
+              <InfoRow icon="floor" label="ชั้น" value={p.floor || undefined} hideEmpty />
+              <InfoRow icon="sofa" label="เฟอร์นิเจอร์" value={p.furnished ? (FURNISHED_TH[p.furnished] ?? p.furnished) : undefined} hideEmpty />
+            </InfoGroup>
+          )}
+          {hasLocation && (
+            <InfoGroup label="ทำเล" className="mb-4">
+              <InfoRow label="โครงการ" value={p.projectName || undefined} hideEmpty />
+              <InfoRow label="จังหวัด" value={p.province || undefined} hideEmpty />
+              <InfoRow label="เขต / อำเภอ" value={p.district || undefined} hideEmpty />
+            </InfoGroup>
+          )}
+          {p.descriptionTh && (
+            <InfoGroup label="รายละเอียด" className="mb-4">
+              <InfoRow label="รายละเอียด" stack value={<span className="whitespace-pre-line leading-relaxed">{p.descriptionTh}</span>} />
+            </InfoGroup>
+          )}
+          {amenities.length > 0 && (
+            <InfoGroup label="สิ่งอำนวยความสะดวก" className="mb-4">
+              <div className="flex flex-wrap gap-1.5 py-3">
+                {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
+              </div>
+            </InfoGroup>
+          )}
+          {p.depositMonths != null && (
+            <InfoGroup label="เงื่อนไขการเช่า" className="mb-4">
+              <InfoRow label="เงินมัดจำ" value={`${p.depositMonths} เดือน`} />
+            </InfoGroup>
+          )}
+          {p.owner && (
+            <InfoGroup label="เจ้าของทรัพย์" className="mb-4">
+              <InfoRow label="ชื่อ" value={p.owner.fullName} href={p.owner.id ? `/owners/${p.owner.id}` : undefined} strong hideChevron />
+              <InfoRow label="เบอร์โทร" value={p.owner.phone ? <PhoneLink phone={p.owner.phone} /> : undefined} hideEmpty />
+              <InfoRow label="อีเมล" value={p.owner.email || undefined} hideEmpty />
+              <InfoRow label="จำนวนทรัพย์ที่ถือ" value={p.owner._count ? `${p.owner._count.properties} รายการ` : undefined} hideEmpty />
+            </InfoGroup>
+          )}
+          <section className="mb-4 scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
+            <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="property" entityId={p.id} /></div>
+          </section>
+          <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
+            <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>ประวัติ</SectionLabel></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><ActivityTimeline path={`/properties/${p.id}/activities`} /></div>
+          </section>
+        </div>
+      </div>
 
       <Modal open={!!editInitial} onClose={() => setEditInitial(null)} title="แก้ไขทรัพย์" size="xl">
         {editInitial && (
