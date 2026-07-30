@@ -900,13 +900,13 @@ export function ListView<T>({
   return (
     <div className={loading ? 'pointer-events-none opacity-50 transition-opacity duration-150' : 'transition-opacity duration-150'}>
       {/* เดสก์ท็อป: grid เดียว + subgrid ต่อแถว + justify-between →
-          คอลัมน์กว้างตามเนื้อหา (ยาว=กว้าง) · ช่องไฟระหว่างคอลัมน์เท่ากันทุกช่อง · เต็มความกว้าง (คอลัมน์แรกชิดซ้าย/ท้ายสุดชิดขวา) · เหมือนกันทุกหน้า */}
+          คอลัมน์กว้างตามเนื้อหา (ยาว=กว้าง) · ช่องไฟระหว่างคอลัมน์เท่ากันทุกช่อง · เต็มความกว้าง (คอลัมน์แรกชิดซ้าย/ท้ายสุดชิดขวา) · เหมือนกันทุกหน้า
+          leading (รูป) = อยู่ในเซลล์ primary (รูปติดรหัส/ชื่อ เป็นชุดเดียว) ไม่ใช่คอลัมน์แยก → space-between ไม่ดันรูปออกห่าง */}
       <div className="hidden overflow-x-auto mouse:block">
         <div className="grid px-5"
-          style={{ gridTemplateColumns: `repeat(${(leading ? 1 : 0) + cols.length}, minmax(0, max-content))`, justifyContent: 'space-between', columnGap: '1.5rem' }}>
+          style={{ gridTemplateColumns: `repeat(${cols.length}, minmax(0, max-content))`, justifyContent: 'space-between', columnGap: '1.5rem' }}>
           {/* หัวตาราง */}
           <div className="col-span-full grid grid-cols-subgrid items-end border-b border-border text-xs uppercase tracking-wide text-muted">
-            {leading && <div aria-hidden />}
             {cols.map((c, i) => (
               <div key={i} className={`whitespace-nowrap py-3 font-medium ${c.right ? 'text-center' : ''}`}>{c.header}</div>
             ))}
@@ -916,11 +916,12 @@ export function ListView<T>({
             <div key={keyOf(it)}
               className={`col-span-full grid grid-cols-subgrid items-center border-b border-border text-sm last:border-0 ${onRow ? 'cursor-pointer transition hover:bg-raised' : ''}`}
               onClick={onRow ? () => onRow(it) : undefined}>
-              {leading && <div className="py-3">{leading(it)}</div>}
               {cols.map((c, i) => (
-                // primary = cap 22rem + ตัด … · right = กึ่งกลาง · อื่น = nowrap · min-w-0 ให้ตัดได้
+                // primary = cap 22rem + ตัด … (รูปพ่วงหน้าถ้ามี leading) · right = กึ่งกลาง · อื่น = nowrap · min-w-0 ให้ตัดได้
                 <div key={i} className={`min-w-0 py-3.5 ${c.right ? 'text-center' : c === primary ? `max-w-[22rem]${c.twoLine ? '' : ' truncate'}` : 'whitespace-nowrap'}`}>
-                  {c.cell(it)}
+                  {c === primary && leading
+                    ? <span className="flex items-center gap-3"><span className="shrink-0">{leading(it)}</span><span className="min-w-0 flex-1">{c.cell(it)}</span></span>
+                    : c.cell(it)}
                 </div>
               ))}
             </div>
