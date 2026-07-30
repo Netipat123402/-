@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { ConfirmDialog, DetailHeader, Field, InfoGroup, Modal, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
 import { CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import DocumentSection from '@/components/DocumentSection';
-import { formatPhone } from '@/lib/format';
+import { fmtDate, formatPhone } from '@/lib/format';
 
 interface ContractLite {
   id: string; code: string; status: string; monthlyRent?: string; endDate?: string;
@@ -68,30 +68,34 @@ export default function CustomerDetailPage() {
 
       {/* A = เนื้อหลัก (การเช่า/ประวัติ/เอกสาร) + รางตัวตน (คอม=ขวา sticky · iPad=แถบบน · มือถือ=การ์ดบน) */}
       <div className="mt-5 xl:grid xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start xl:gap-8">
-        {/* รางตัวตน / ติดต่อ */}
+        {/* รางตัวตน / ติดต่อ (คอม=ขวา sticky · iPad=แถบแนวนอน · มือถือ=การ์ด) */}
         <div className="xl:order-2">
           <div className="rounded-card border border-border bg-surface p-4 xl:sticky xl:top-20">
-            {/* สถิติ */}
-            <div className="flex flex-wrap gap-x-6 gap-y-3">
-              <div>
-                <div className="text-lg font-semibold tabular-nums text-ink">{contracts.length}</div>
-                <div className="text-xs text-muted">สัญญา</div>
-              </div>
-              {activeRent > 0 && (
-                <div>
-                  <div className="text-lg font-semibold tabular-nums text-gold-dark">฿{bahtFormat(activeRent)}<span className="text-xs font-normal text-faint">/ด</span></div>
-                  <div className="text-xs text-muted">ค่าเช่าปัจจุบัน</div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 xl:flex-col xl:items-stretch xl:gap-3">
+              {/* สถิติ — กึ่งกลาง (กฎ 2) */}
+              <div className="flex shrink-0 text-center">
+                <div className="flex-1 px-3">
+                  <div className="text-lg font-semibold tabular-nums text-ink">{contracts.length}</div>
+                  <div className="text-xs text-muted">สัญญา</div>
                 </div>
-              )}
+                {activeRent > 0 && (
+                  <div className="flex-1 border-l border-border px-3">
+                    <div className="text-lg font-semibold tabular-nums text-gold-dark">฿{bahtFormat(activeRent)}</div>
+                    <div className="text-xs text-muted">ค่าเช่าปัจจุบัน</div>
+                  </div>
+                )}
+              </div>
+              {/* ติดต่อ — label-value ราง (กฎ 1) */}
+              <div className="border-t border-border pt-3 text-sm sm:flex-1 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0 xl:border-l-0 xl:border-t xl:pl-0 xl:pt-3">
+                <div className="divide-y divide-border/60">
+                  {c.phone && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">เบอร์</span><PhoneLink phone={c.phone} className="text-ink" /></div>}
+                  {c.email && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">อีเมล</span><span className="truncate text-ink">{c.email}</span></div>}
+                  {c.address && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">ที่อยู่</span><span className="text-ink">{c.address}</span></div>}
+                  {!c.phone && !c.email && !c.address && <p className="py-2 text-faint">— ยังไม่มีข้อมูลติดต่อ</p>}
+                </div>
+              </div>
+              {can('customer', 'update') && <button className="btn-ghost w-full shrink-0 sm:w-auto xl:w-full" onClick={() => { setForm(c); setEdit(true); }}>แก้ไขข้อมูล</button>}
             </div>
-            {/* ติดต่อ */}
-            <div className="mt-3 space-y-2 border-t border-border pt-3 text-sm sm:flex sm:flex-wrap sm:gap-x-6 sm:gap-y-2 sm:space-y-0 xl:block xl:space-y-2">
-              {c.phone && <div className="flex justify-between gap-3 sm:block xl:flex"><span className="text-faint">เบอร์</span><PhoneLink phone={c.phone} className="text-ink" /></div>}
-              {c.email && <div className="flex justify-between gap-3 sm:block xl:flex"><span className="text-faint">อีเมล</span><span className="truncate text-ink">{c.email}</span></div>}
-              {c.address && <div className="sm:basis-full xl:block"><span className="text-faint">ที่อยู่</span><span className="ml-2 text-ink xl:ml-0 xl:mt-0.5 xl:block">{c.address}</span></div>}
-              {!c.email && !c.address && !c.phone && <span className="text-faint">— ยังไม่มีข้อมูลติดต่อ</span>}
-            </div>
-            {can('customer', 'update') && <button className="btn-ghost mt-3 w-full" onClick={() => { setForm(c); setEdit(true); }}>แก้ไขข้อมูล</button>}
           </div>
           {can('customer', 'delete') && contracts.length === 0 && (
             <div className="mt-2 text-center"><button className="text-xs text-muted transition hover:text-danger" onClick={() => setDelOpen(true)}>ลบลูกค้ารายนี้</button></div>
@@ -100,39 +104,34 @@ export default function CustomerDetailPage() {
 
         {/* เนื้อหลัก */}
         <div className="mt-6 xl:order-1 xl:mt-0">
-          {/* กำลังเช่า = สัญญา active (ทรัพย์+เจ้าของ+เหลือกี่วัน) */}
-          <InfoGroup label="กำลังเช่า" className="mb-4">
-            {active.length === 0 ? (
+          {/* กำลังเช่า = สัญญา active → label-value ราง (กฎ 1) */}
+          {active.length === 0 ? (
+            <InfoGroup label="กำลังเช่า" className="mb-4">
               <p className="py-2.5 text-sm text-muted">ยังไม่มีสัญญาที่เช่าอยู่</p>
-            ) : active.map((ct) => {
-              const dl = daysLeftOf(ct.endDate);
-              return (
-                <button key={ct.id} onClick={() => router.push(`/contracts/${ct.id}`)}
-                  className="group flex w-full flex-col gap-1 py-3 text-left transition">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="font-medium text-ink transition group-hover:text-gold-dark">{ct.property?.titleTh ?? `สัญญา ${ct.code}`}</span>
-                    <span className="shrink-0 font-semibold tabular-nums text-gold-dark">฿{bahtFormat(Number(ct.monthlyRent ?? 0))}<span className="text-xs font-normal text-faint">/เดือน</span></span>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 text-xs">
-                    <span className="truncate font-mono text-faint">{ct.property?.code ?? ct.code}{ct.owner && <span className="font-sans text-muted"> · เจ้าของ {ct.owner.fullName}</span>}</span>
-                    {dl != null && <span className="shrink-0 text-gold-dark">เหลือ {dl} วัน</span>}
-                  </div>
-                </button>
-              );
-            })}
-          </InfoGroup>
+            </InfoGroup>
+          ) : active.map((ct) => {
+            const dl = daysLeftOf(ct.endDate);
+            return (
+              <InfoGroup key={ct.id} label="กำลังเช่า" className="mb-4"
+                action={<button className="text-xs text-gold-dark transition hover:underline" onClick={() => router.push(`/contracts/${ct.id}`)}>ดูสัญญา ›</button>}>
+                {ct.property && (
+                  <InfoRow label="ทรัพย์" href={`/properties/${ct.property.id}`} strong hideChevron
+                    value={<span><span className="block">{ct.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{ct.property.code}</span></span>} />
+                )}
+                {ct.owner && <InfoRow label="เจ้าของ" value={ct.owner.fullName} />}
+                <InfoRow label="ค่าเช่า" value={`฿${bahtFormat(Number(ct.monthlyRent ?? 0))}/เดือน`} />
+                <InfoRow label="วันสิ้นสุด" value={<span>{ct.endDate ? fmtDate(ct.endDate) : '—'}{dl != null && <span className="text-gold-dark"> · เหลือ {dl} วัน</span>}</span>} />
+              </InfoGroup>
+            );
+          })}
 
-          {/* ประวัติสัญญา = ไม่ active */}
+          {/* ประวัติสัญญา = ไม่ active → label(รหัส)-value(ค่าเช่า/สถานะ) ราง */}
           {past.length > 0 && (
             <InfoGroup label="ประวัติสัญญา" className="mb-4">
               {past.map((ct) => (
-                <button key={ct.id} onClick={() => router.push(`/contracts/${ct.id}`)}
-                  className="flex w-full items-center gap-3 py-2.5 text-left transition hover:opacity-70">
-                  <span className="shrink-0 font-mono text-sm">{ct.code}</span>
-                  {ct.property && <span className="truncate text-sm text-muted">{ct.property.titleTh}</span>}
-                  {ct.monthlyRent != null && <span className="ml-auto shrink-0 text-sm tabular-nums text-muted">฿{bahtFormat(Number(ct.monthlyRent))}</span>}
-                  <StatusBadge map={CONTRACT_STATUS} value={ct.status} short outline />
-                </button>
+                <InfoRow key={ct.id} onClick={() => router.push(`/contracts/${ct.id}`)} hideChevron
+                  label={<span className="font-mono text-xs">{ct.code}</span>}
+                  value={<span className="inline-flex items-center gap-2">{ct.monthlyRent != null && <span className="tabular-nums text-muted">฿{bahtFormat(Number(ct.monthlyRent))}</span>}<StatusBadge map={CONTRACT_STATUS} value={ct.status} short outline /></span>} />
               ))}
             </InfoGroup>
           )}
