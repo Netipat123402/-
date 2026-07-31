@@ -210,7 +210,7 @@ export default function PropertyDetailPage() {
                     : <span className="text-faint">ไม่ว่าง (นอกระบบ)</span>)}
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+              <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                 {p.status === 'draft' && can('property', 'approve') && (
                   <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
                 )}

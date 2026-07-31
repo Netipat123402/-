@@ -74,21 +74,23 @@ export default function AppointmentDetailPage() {
         <div className="xl:order-2">
           <div className="rounded-card border border-border bg-surface p-4 xl:sticky xl:top-20">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
-              <div className="shrink-0">
+              <div className="shrink-0 sm:text-left xl:text-center">
                 <div className="text-lg font-semibold tabular-nums text-ink">{fmtWeekdayDate(appt.scheduledAt)}</div>
                 <div className="text-sm tabular-nums text-muted">{fmtTimeRange(appt.scheduledAt, appt.durationMin)} · {appt.durationMin} นาที</div>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2 xl:justify-center">
                 <StatusBadge map={APPOINTMENT_STATUS} value={appt.status} outline />
                 {isUpcoming && <span className="text-xs text-gold-dark">{fmtUntil(appt.scheduledAt)}</span>}
               </div>
               {isUpcoming && can('appointment', 'change_status') ? (
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+                <div className="grid grid-cols-2 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                   <button className="btn-gold btn-sm" disabled={busy} onClick={() => run('complete', 'บันทึกว่าพบแล้ว')}>พบลูกค้าแล้ว</button>
                   <button className="btn-ghost btn-sm" disabled={busy} onClick={() => { setReAt(''); setReOpen(true); }}>เลื่อนนัด</button>
                 </div>
               ) : !isUpcoming && can('appointment', 'create') ? (
-                <button className="btn-gold btn-sm shrink-0" disabled={busy} onClick={rebook}><Icon name="calendar" size={15} /> นัดใหม่อีกครั้ง</button>
+                <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
+                  <button className="btn-gold btn-sm" disabled={busy} onClick={rebook}><Icon name="calendar" size={15} /> นัดใหม่อีกครั้ง</button>
+                </div>
               ) : null}
             </div>
             {isUpcoming && can('appointment', 'change_status') && (

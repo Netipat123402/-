@@ -78,12 +78,14 @@ export default function LeadDetailPage() {
                 <div className="mt-1 text-xs text-faint">ช่องทาง {LEAD_SOURCE[lead.source] ?? lead.source}</div>
               </div>
               {lead.status === 'new' && can('lead', 'assign') ? (
-                <button className="btn-gold btn-sm sm:ml-auto sm:shrink-0" disabled={busy}
-                  onClick={() => act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }), 'รับ Lead มาดูแลแล้ว')}>
-                  รับดูแล Lead นี้
-                </button>
+                <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
+                  <button className="btn-gold btn-sm" disabled={busy}
+                    onClick={() => act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }), 'รับ Lead มาดูแลแล้ว')}>
+                    รับดูแล Lead นี้
+                  </button>
+                </div>
               ) : lead.status === 'working' ? (
-                <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
+                <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                   {can('appointment', 'create') && (
                     <button className="btn-gold btn-sm" disabled={busy} onClick={() => router.push(`/appointments?newLead=${lead.id}`)}>
                       <Icon name="calendar" size={15} /> สร้างนัดดูทรัพย์
