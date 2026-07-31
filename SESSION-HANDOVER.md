@@ -18,19 +18,19 @@
 
 ## 2) ทำอะไรไปแล้ว (สะสมทุก session · ล่าสุด `b33ca52`)
 **A · List pass ครบ 6 หน้า** — grid+subgrid ช่องไฟเท่ากันเต็มจอ · ลีด·นัด·ลูกค้า·สัญญา·เจ้าของ·ทรัพย์ (4 คอลัมน์ label-value · R2 rich cols) · คอลัมน์ขวากึ่งกลาง · รูปทรัพย์ติดรหัส/ชื่อ
-**B · ⭐ Detail redesign = "main + ราง" (เลิก SectionTabs) — เสร็จ 5/6:**
+**B · ⭐ Detail redesign = "main + ราง" (เลิก SectionTabs) — เสร็จ 6/6 ครบ:**
 - **สัญญา** `73855a6` = **A+** (เอกสารอ่านรวดเดียว + รางสถานะ/progress/เหลือ N วัน)
 - **ลูกค้า** `a48df47`+`c30b524` = **A** (โปรไฟล์ผู้เช่า + รางตัวตน สถิติ/ติดต่อ · แก้ text-layout ตามกฎใหม่)
 - **นัดหมาย** `b0380f9` = **B** (รางวันเวลาพระเอก + สถานะ + ปุ่ม)
 - **ลีด** `7e4e120` = **A** (ราง pipeline สถานะ+ขั้นถัดไป แนว HubSpot)
 - **ทรัพย์** `b33ca52` = **A listing** (รูป gallery พระเอกเต็มบน + main label-value + รางสถานะ/ปุ่ม/ดูบนเว็บ · gallery/lightbox/อัปโหลดคงครบ)
+- **เจ้าของ** `a1f678b` = **A portfolio** (occupancy-first: stat กึ่งกลาง ทรัพย์/เช่าอยู่/รายได้ rent roll + ติดต่อ label-value + แก้ไข modal · เนื้อหลัก ทรัพย์ในพอร์ต→สัญญา→ระบุตัวตน→โน้ต→เอกสาร · ไม่แตะ backend)
 - ทุกหน้า: verify authed 3 จอ · ปรับตามสถานะครบ · ฟังก์ชันเดิมครบ · typecheck เขียว
 **C · Backend R2** — customer.get ส่ง property+owner+endDate ต่อสัญญา · owner list ส่ง rentedCount/availableCount/latestRented · appointment/contract list ส่ง phone/rent · property list ส่ง monthlyRent
 **D · 2 กฎ text-layout ใหม่** (owner เทียบรูปสัญญา vs ลูกค้า) — ดู §4
 
 ## 3) 🎯 งานถัดไป (ทีละหน้า · จบแล้วหยุด · เสนอ+รูป 3 จอ ก่อนแก้เสมอ)
-### ⭐ A) เจ้าของ detail (หน้า detail สุดท้าย) — [[ros-detail-archetypes-and-date-standard]]
-ยกเป็น main+ราง แบบเดียวกับอีก 5 หน้า · เจ้าของ = **portfolio** (ทรัพย์ทั้งหมด/เช่าอยู่/ว่าง · ปล่อยเช่าล่าสุด · ทรัพย์ที่ถือ list) · ราง = สถิติพอร์ต(กึ่งกลาง)+ติดต่อ+แก้ไข · เสนอทิศทาง+รูป 3 จอ ก่อนลงมือ (โครง/ขนาดเดียวกับหน้าอื่น)
+### ✅ A) เจ้าของ detail — เสร็จ `a1f678b` (detail ครบ 6/6 · verify authed 3 จอ)
 ### ⭐ B) §10 แยกหมวด (category split) — DESIGN-SYSTEM §10 · [[ros-category-split-and-device-subset]]
 ไล่สแกน **detail/create form ทั้งหมด** หาชุดข้อความที่ควรแยกแต่ยังติดกัน (เช่น **นัด create form: วันเวลา+สถานที่ ติดกัน** · ฟอร์มอื่น ๆ) → เสนอ **before/after + รูป 3 จอ + เหตุผลตามกฎ** ก่อนแก้ · เสนอรวมทีเดียวได้
 ### ⭐ C) §11 per-device data subset — DESIGN-SYSTEM §11
