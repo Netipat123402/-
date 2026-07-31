@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, RailBlock, SectionLabel, StatusBadge } from '@/components/ui';
 import { CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import DocumentSection from '@/components/DocumentSection';
 import { fmtDate, formatPhone } from '@/lib/format';
@@ -139,7 +139,7 @@ export default function CustomerDetailPage() {
           {/* เอกสาร */}
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="customer" entityId={c.id} /></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection entityType="customer" entityId={c.id} /></RailBlock></div>
           </section>
         </div>
       </div>

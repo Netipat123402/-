@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { bahtFormat, CONTRACT_STATUS } from '@/lib/status';
 import { fmtDate } from '@/lib/format';
-import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, SectionLabel, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, RailBlock, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
 
@@ -253,7 +253,7 @@ export default function ContractDetailPage() {
 
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสารสัญญา</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} /></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection key={docKey} entityType="contract" entityId={c.id} onDocsLoaded={onDocs} /></RailBlock></div>
           </section>
         </div>
       </div>

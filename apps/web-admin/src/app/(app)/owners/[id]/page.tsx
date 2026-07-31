@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
+import { DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, RailBlock, SectionLabel, StatusBadge } from '@/components/ui';
 import DocumentSection from '@/components/DocumentSection';
 import { PROPERTY_STATUS, CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import { formatPhone } from '@/lib/format';
@@ -120,17 +120,23 @@ export default function OwnerDetailPage() {
             action={props.length > 0 ? <span className="text-xs text-muted">{props.length} รายการ</span> : undefined}>
             {props.length === 0 ? (
               <p className="py-2.5 text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
-            ) : props.map((p) => (
-              <button key={p.id} onClick={() => router.push(`/properties/${p.id}`)}
-                className="group flex w-full items-center gap-3 py-2.5 text-left outline-none transition hover:bg-raised/60 focus-visible:bg-raised focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-ink">{p.titleTh}</p>
-                  <p className="font-mono text-[11px] text-faint">{p.code}</p>
+            ) : (
+              <RailBlock className="py-1">
+                <div className="divide-y divide-border/60">
+                  {props.map((p) => (
+                    <button key={p.id} onClick={() => router.push(`/properties/${p.id}`)}
+                      className="group flex w-full items-center gap-3 py-2.5 text-left outline-none transition hover:bg-raised/60 focus-visible:bg-raised focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-ink">{p.titleTh}</p>
+                        <p className="font-mono text-[11px] text-faint">{p.code}</p>
+                      </div>
+                      <span className="shrink-0 text-sm tabular-nums text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
+                      <StatusBadge map={PROPERTY_STATUS} value={p.status} short outline />
+                    </button>
+                  ))}
                 </div>
-                <span className="shrink-0 text-sm tabular-nums text-gold-dark">฿{bahtFormat(Number(p.monthlyRent))}</span>
-                <StatusBadge map={PROPERTY_STATUS} value={p.status} short outline />
-              </button>
-            ))}
+              </RailBlock>
+            )}
           </InfoGroup>
 
           {/* สัญญาที่เจ้าของเป็นคู่สัญญา (มีก็ต่อเมื่อมีจริง) */}
@@ -157,7 +163,7 @@ export default function OwnerDetailPage() {
           {/* เอกสาร */}
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="owner" entityId={o.id} /></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection entityType="owner" entityId={o.id} /></RailBlock></div>
           </section>
         </div>
       </div>
