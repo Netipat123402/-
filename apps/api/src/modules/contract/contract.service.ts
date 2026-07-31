@@ -167,8 +167,9 @@ export class ContractService {
     const orderBy: Prisma.ContractOrderByWithRelationInput =
       query.sort === 'code' ? { code: 'asc' }
         : query.sort === 'rent' ? { monthlyRent: 'desc' }
-          : query.sort === 'expiry' ? { endDate: 'asc' }
-            : { createdAt: 'desc' }; // MR-12
+          : query.sort === 'expiry' ? { endDate: 'asc' }           // ใกล้ครบกำหนด (ต่ออายุด่วน)
+            : query.sort === 'expiry_desc' ? { endDate: 'desc' }   // ครบกำหนดไกลสุด
+              : { createdAt: 'desc' }; // ใหม่สุด (default/new) · MR-12
     const [items, total] = await this.prisma.$transaction([
       this.prisma.contract.findMany({
         where, orderBy, skip: (page - 1) * limit, take: limit,

@@ -26,9 +26,11 @@ const STATUS_OPTIONS = [
   { value: 'ended', label: 'สิ้นสุด' },
 ];
 const SORT_OPTIONS = [
-  { value: 'code', label: 'รหัสสัญญา' },
-  { value: 'expiry', label: 'ใกล้ครบสัญญา' },
+  { value: 'expiry', label: 'ใกล้ครบกำหนด' },       // default: ต่ออายุด่วน (renewal management)
+  { value: 'expiry_desc', label: 'ครบกำหนดไกลสุด' },
+  { value: 'new', label: 'ใหม่สุด' },
   { value: 'rent', label: 'ค่าเช่า มาก→น้อย' },
+  { value: 'code', label: 'รหัสสัญญา' },
 ];
 
 // P1: นิยามที่ module scope (ไม่ใช่ใน render) — ไม่งั้น Combobox ข้างในถูก remount ทุก render → dropdown/ค้นหารีเซ็ต
@@ -48,7 +50,7 @@ export default function ContractsPage() {
   const sp = useSearchParams();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState(sp.get('status') ?? '');
-  const [sort, setSort] = useState('code');
+  const [sort, setSort] = useState('expiry');
   const [q, setQ] = useState('');
   const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
@@ -172,6 +174,7 @@ export default function ContractsPage() {
         <Segmented options={STATUS_OPTIONS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
       </div>
       <FilterBar
+        searchWide
         search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหารหัส/ลูกค้า/ทรัพย์…' }}
         sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: SORT_OPTIONS }}
       />
