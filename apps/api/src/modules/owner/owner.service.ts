@@ -72,10 +72,17 @@ export class OwnerService {
         ],
       });
     }
+    // toggle "มีทรัพย์ว่าง" — กรองเจ้าของที่มีทรัพย์ status available อย่างน้อย 1 (relation some)
+    if (query.hasVacant) {
+      (where.AND as Prisma.OwnerWhereInput[]).push({ properties: { some: { deletedAt: null, status: 'available' } } });
+    }
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
+    // sort: name (ก-ฮ) · most_properties (ทรัพย์มากสุด · orderBy relation _count) · new (ใหม่สุด default)
     const orderBy: Prisma.OwnerOrderByWithRelationInput =
-      query.sort === 'name' ? { fullName: 'asc' } : { createdAt: 'desc' }; // MR-12 (server-side sort ข้ามหน้า)
+      query.sort === 'name' ? { fullName: 'asc' }
+        : query.sort === 'most_properties' ? { properties: { _count: 'desc' } }
+          : { createdAt: 'desc' };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.owner.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
       this.prisma.owner.count({ where }),

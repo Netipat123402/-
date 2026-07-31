@@ -43,5 +43,9 @@ export class QueryOwnerDto {
   limit?: number = 20;
 
   @IsOptional() @IsString()
-  sort?: string; // name | new (MR-12)
+  sort?: string; // name | most_properties | new
+
+  /** กรองเฉพาะเจ้าของที่มีทรัพย์ว่าง (status available) — หน้า owner list toggle */
+  @IsOptional() @IsString()
+  hasVacant?: string;
 }

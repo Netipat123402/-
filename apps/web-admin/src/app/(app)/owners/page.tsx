@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
-import { Col, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink , PAGE_SIZE} from '@/components/ui';
+import { Col, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink, Segmented, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { formatPhone, phoneDigits } from '@/lib/format';
 
@@ -19,7 +19,13 @@ interface Owner {
 
 const SORT_OPTIONS = [
   { value: 'name', label: 'ชื่อ (ก–ฮ)' },
+  { value: 'most_properties', label: 'ทรัพย์มากสุด' },
   { value: 'new', label: 'ใหม่สุด' },
+];
+// toggle มีทรัพย์ว่าง (action หลัก: หาเจ้าของที่มีของว่างเพื่อปล่อยเช่า)
+const VACANT_OPTIONS = [
+  { value: '', label: 'ทั้งหมด' },
+  { value: 'vacant', label: 'มีทรัพย์ว่าง' },
 ];
 
 export default function OwnersPage() {
@@ -29,9 +35,11 @@ export default function OwnersPage() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('name');
+  const [vacant, setVacant] = useState(''); // '' = ทั้งหมด · 'vacant' = เฉพาะมีทรัพย์ว่าง
   const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
   if (dq) params.set('q', dq);
+  if (vacant) params.set('hasVacant', '1');
   const { rows, meta, loading, reload } = useList<Owner>(`/owners?${params}`);
   // เรียงฝั่ง server แล้ว (ส่ง sort ไป API → ถูกต้องข้ามหน้า) — MR-12
 
@@ -99,6 +107,10 @@ export default function OwnersPage() {
     <div>
       <PageHeader title="เจ้าของทรัพย์" count={`${meta.total ?? 0} ราย`}
         action={can('owner', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> เจ้าของ</button>} />
+      {/* quick-filter: มีทรัพย์ว่าง (action หลัก) — Segmented เดียวกับ pattern property/lead */}
+      <div className="mt-4 -mb-1">
+        <Segmented options={VACANT_OPTIONS} value={vacant} onChange={(v) => { setPage(1); setVacant(v); }} />
+      </div>
       <FilterBar
         search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/เบอร์…' }}
         sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: SORT_OPTIONS }}
