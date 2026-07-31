@@ -162,21 +162,33 @@ export default function OwnerDetailPage() {
         </div>
       </div>
 
-      {/* แก้ไขข้อมูล (modal — มาตรฐานเดียวกับลูกค้า) */}
+      {/* แก้ไขข้อมูล (modal) — จัด 3 หมวด (§10) ตรงกับ cluster หน้า detail · หัวข้อไม่มีไอคอน (§10b) */}
       <Modal open={edit} onClose={closeEdit} title="แก้ไขข้อมูลเจ้าของ" confirmOnClose={dirty}>
-        <div className="space-y-4">
-          <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-          <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
-          <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <Field label="เลขบัตรประชาชน" inputMode="numeric"
-            hint={o.idCardNo ? `ปัจจุบัน: ${o.idCardNo} — เว้นว่าง = ไม่เปลี่ยน` : 'เว้นว่าง = ไม่ระบุ'}
-            placeholder="กรอกเพื่อเปลี่ยน/เพิ่ม" value={idCardInput} onChange={(e) => setIdCardInput(e.target.value)} />
-          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
-            <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          </label>
-          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">โน้ต</span>
-            <textarea className="field h-auto py-2.5" rows={2} placeholder="บันทึกภายใน เช่น ช่องทางติดต่อที่สะดวก" value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
-          </label>
+        <div className="space-y-5">
+          {/* หมวด 1 — ข้อมูลติดต่อ */}
+          <div className="space-y-3">
+            <SectionLabel>ข้อมูลติดต่อ</SectionLabel>
+            <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+            <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
+            <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
+              <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            </label>
+          </div>
+          {/* หมวด 2 — ระบุตัวตน */}
+          <div className="space-y-3">
+            <SectionLabel>ระบุตัวตน</SectionLabel>
+            <Field label="เลขบัตรประชาชน" inputMode="numeric"
+              hint={o.idCardNo ? `ปัจจุบัน: ${o.idCardNo} — เว้นว่าง = ไม่เปลี่ยน` : 'เว้นว่าง = ไม่ระบุ'}
+              placeholder="กรอกเพื่อเปลี่ยน/เพิ่ม" value={idCardInput} onChange={(e) => setIdCardInput(e.target.value)} />
+          </div>
+          {/* หมวด 3 — โน้ตภายใน */}
+          <div className="space-y-3">
+            <SectionLabel>โน้ตภายใน</SectionLabel>
+            <label className="block"><span className="sr-only">โน้ต</span>
+              <textarea className="field h-auto py-2.5" rows={2} placeholder="บันทึกภายใน เช่น ช่องทางติดต่อที่สะดวก" value={form.note ?? ''} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+            </label>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <button className="btn-ghost" onClick={closeEdit}>ยกเลิก</button>
             <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
