@@ -184,6 +184,20 @@ export function InfoRow({
 }
 
 /**
+ * RailBlock — เนื้อเต็มกว้าง (chips/ลิสต์/เอกสาร/ประวัติ) ให้ชิด "ราง value" เดียวกับ InfoRow (Tang A)
+ *  - มือถือ (<sm): เต็มกว้าง (ไม่มีราง — InfoRow ก็ justify-between)
+ *  - sm+: เว้นคอลัมน์ว่าง w-36 + gap-3 (เรขาคณิตตรง InfoRow) → เนื้อเริ่มที่รางเดียวกับค่าอื่น = การ์ดมีขอบเนื้อเดียว
+ */
+export function RailBlock({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`sm:flex sm:gap-3 ${className}`}>
+      <span className="hidden sm:block sm:w-36 sm:shrink-0" aria-hidden />
+      <div className="min-w-0 sm:flex-1">{children}</div>
+    </div>
+  );
+}
+
+/**
  * InfoGroup — กล่องเอกสารสไตล์ Claude: หัว (header) → เนื้อ (rows R1) → ท้าย (footer)
  * รวมหลายข้อมูลในกล่องเดียว ภายในไล่ลงทีละบรรทัดตามกฎ R1 (1 บรรทัด 1 ข้อมูล)
  *  - label  → หัวข้อกลุ่ม (ชิดซ้าย uppercase จาง) = "หัว"

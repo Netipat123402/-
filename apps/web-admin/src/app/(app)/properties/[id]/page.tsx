@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { mediaUrl } from '@/lib/api';
 import { PROPERTY_STATUS, bahtFormat } from '@/lib/status';
-import { ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, ProgressBar, SectionLabel, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, ProgressBar, RailBlock, SectionLabel, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import PropertyForm, { type PropertyInitial } from '@/components/PropertyForm';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -266,13 +266,11 @@ export default function PropertyDetailPage() {
           )}
           {amenities.length > 0 && (
             <InfoGroup label="สิ่งอำนวยความสะดวก" className="mb-4">
-              {/* Tang A: เนื้อเต็มกว้างชิดราง value (sm+) — มือถือเต็มกว้าง */}
-              <div className="py-2.5 sm:flex sm:gap-3">
-                <span className="hidden sm:block sm:w-36 sm:shrink-0" aria-hidden />
-                <div className="flex flex-wrap gap-1.5 sm:flex-1">
+              <RailBlock className="py-2.5">
+                <div className="flex flex-wrap gap-1.5">
                   {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
                 </div>
-              </div>
+              </RailBlock>
             </InfoGroup>
           )}
           {p.depositMonths != null && (
@@ -290,11 +288,11 @@ export default function PropertyDetailPage() {
           )}
           <section className="mb-4 scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="property" entityId={p.id} /></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection entityType="property" entityId={p.id} /></RailBlock></div>
           </section>
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>ประวัติ</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><ActivityTimeline path={`/properties/${p.id}/activities`} /></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><ActivityTimeline path={`/properties/${p.id}/activities`} /></RailBlock></div>
           </section>
         </div>
       </div>
