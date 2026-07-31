@@ -266,8 +266,12 @@ export default function PropertyDetailPage() {
           )}
           {amenities.length > 0 && (
             <InfoGroup label="สิ่งอำนวยความสะดวก" className="mb-4">
-              <div className="flex flex-wrap gap-1.5 py-3">
-                {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
+              {/* Tang A: เนื้อเต็มกว้างชิดราง value (sm+) — มือถือเต็มกว้าง */}
+              <div className="py-2.5 sm:flex sm:gap-3">
+                <span className="hidden sm:block sm:w-36 sm:shrink-0" aria-hidden />
+                <div className="flex flex-wrap gap-1.5 sm:flex-1">
+                  {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
+                </div>
               </div>
             </InfoGroup>
           )}
