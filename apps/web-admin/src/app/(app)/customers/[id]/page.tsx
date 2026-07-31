@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
-import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, RailBlock, SectionLabel, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
 import { CONTRACT_STATUS, bahtFormat } from '@/lib/status';
 import DocumentSection from '@/components/DocumentSection';
 import { fmtDate, formatPhone } from '@/lib/format';
@@ -107,7 +107,7 @@ export default function CustomerDetailPage() {
           {/* กำลังเช่า = สัญญา active → label-value ราง (กฎ 1) */}
           {active.length === 0 ? (
             <InfoGroup label="กำลังเช่า" className="mb-4">
-              <p className="py-2.5 text-sm text-muted">ยังไม่มีสัญญาที่เช่าอยู่</p>
+              <p className="py-6 text-center text-sm text-muted">ยังไม่มีสัญญาที่เช่าอยู่</p>
             </InfoGroup>
           ) : active.map((ct) => {
             const dl = daysLeftOf(ct.endDate);
@@ -139,7 +139,7 @@ export default function CustomerDetailPage() {
           {/* เอกสาร */}
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection entityType="customer" entityId={c.id} /></RailBlock></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="customer" entityId={c.id} /></div>
           </section>
         </div>
       </div>

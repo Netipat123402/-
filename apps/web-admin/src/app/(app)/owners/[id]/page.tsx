@@ -119,7 +119,7 @@ export default function OwnerDetailPage() {
           <InfoGroup label="ทรัพย์ในพอร์ต" className="mb-4"
             action={props.length > 0 ? <span className="text-xs text-muted">{props.length} รายการ</span> : undefined}>
             {props.length === 0 ? (
-              <p className="py-2.5 text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
+              <p className="py-6 text-center text-sm text-muted">ยังไม่มีทรัพย์ของเจ้าของรายนี้</p>
             ) : (
               <RailBlock className="py-1">
                 <div className="divide-y divide-border/60">
@@ -163,7 +163,7 @@ export default function OwnerDetailPage() {
           {/* เอกสาร */}
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection entityType="owner" entityId={o.id} /></RailBlock></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="owner" entityId={o.id} /></div>
           </section>
         </div>
       </div>

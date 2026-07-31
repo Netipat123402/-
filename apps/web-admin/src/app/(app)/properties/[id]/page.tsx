@@ -288,11 +288,11 @@ export default function PropertyDetailPage() {
           )}
           <section className="mb-4 scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><DocumentSection entityType="property" entityId={p.id} /></RailBlock></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="property" entityId={p.id} /></div>
           </section>
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
             <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>ประวัติ</SectionLabel></div>
-            <div className="px-4 pb-4 pt-2 sm:px-5"><RailBlock><ActivityTimeline path={`/properties/${p.id}/activities`} /></RailBlock></div>
+            <div className="px-4 pb-4 pt-2 sm:px-5"><ActivityTimeline path={`/properties/${p.id}/activities`} /></div>
           </section>
         </div>
       </div>

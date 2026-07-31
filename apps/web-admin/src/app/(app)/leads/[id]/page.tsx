@@ -118,11 +118,11 @@ export default function LeadDetailPage() {
           <InfoGroup label="ความต้องการ" className="mb-4">
             <InfoRow label="โจทย์" value={lead.message || undefined} stack hideEmpty />
             <InfoRow label="อยากเข้าชม" value={lead.preferredViewAt ? fmtDate(lead.preferredViewAt) : undefined} hideEmpty />
-            {!lead.message && !lead.preferredViewAt && <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุ</p>}
+            {!lead.message && !lead.preferredViewAt && <p className="py-6 text-center text-sm text-muted">ยังไม่ได้ระบุ</p>}
           </InfoGroup>
 
           <InfoGroup label="ทรัพย์ที่สนใจ" className="mb-4">
-            {interests.length === 0 ? <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุทรัพย์ที่สนใจ</p> : (
+            {interests.length === 0 ? <p className="py-6 text-center text-sm text-muted">ยังไม่ได้ระบุทรัพย์ที่สนใจ</p> : (
               <RailBlock className="py-1">
                 <div className="divide-y divide-border/60">
                   {interests.map((it) => (
