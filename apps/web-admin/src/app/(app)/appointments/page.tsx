@@ -8,7 +8,7 @@ import { useLookup, useSearchLookup } from '@/lib/lookups';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useToast } from '@/components/Toast';
 import { APPOINTMENT_STATUS, bahtFormat } from '@/lib/status';
-import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
+import { Col, Combobox, FilterBar, Field, ListView, Modal, PageHeader, Pagination, PhoneLink, SectionLabel, Segmented, StatusBadge, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import { fmtDateTime } from '@/lib/format';
 
@@ -211,26 +211,42 @@ export default function AppointmentsPage() {
       {/* create */}
       <Modal open={open} onClose={close} title="สร้างนัดหมาย"
         confirmOnClose={!!(form.scheduledAt || form.location.trim() || form.title.trim())}>
-        <form onSubmit={create} className="space-y-4">
+        <form onSubmit={create} className="space-y-5">
           <Segmented
             options={[{ value: 'viewing', label: 'นัดดูทรัพย์' }, { value: 'general', label: 'นัดนอกรอบ' }]}
             value={mode} onChange={(v) => { setMode(v as 'viewing' | 'general'); setFe({}); }} />
-          {mode === 'viewing' ? (
-            <>
-              <Combobox label="Lead *" error={fe.leadId} placeholder="— เลือก Lead —" value={form.leadId} onChange={(v) => setField('leadId', v)} options={seedLead && !leads.options.some((o) => o.value === seedLead.value) ? [seedLead, ...leads.options] : leads.options} onSearch={leads.setQuery} loading={leads.loading} loadError={leads.error} onRetry={leads.reload} />
-              <Combobox label="ทรัพย์ *" error={fe.propertyId} placeholder="— เลือกทรัพย์ —" value={form.propertyId} onChange={(v) => setField('propertyId', v)} options={seedProp && !props.options.some((o) => o.value === seedProp.value) ? [seedProp, ...props.options] : props.options} onSearch={props.setQuery} loading={props.loading} loadError={props.error} onRetry={props.reload} />
-            </>
-          ) : (
-            <Field label="หัวข้อนัด *" error={fe.title} placeholder="เช่น ประชุมทีม, นัดเจ้าของทรัพย์" value={form.title} onChange={(e) => setField('title', e.target.value)} />
-          )}
-          <Combobox label="พนักงานรับผิดชอบ" value={form.agentId} onChange={(v) => setField('agentId', v)} options={[{ value: '', label: '— ตัวฉันเอง —' }, ...agents.options]} loadError={agents.error} onRetry={agents.reload} />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="วันเวลานัด *" type="datetime-local" error={fe.scheduledAt}
-              hint={form.scheduledAt ? fmtDateTime(form.scheduledAt) : undefined}
-              value={form.scheduledAt} onChange={(e) => setField('scheduledAt', e.target.value)} />
-            <Field label="ระยะเวลา (นาที)" type="number" value={form.durationMin} onChange={(e) => setField('durationMin', Number(e.target.value))} />
+
+          {/* หมวด 1 — ใคร/ทรัพย์ไหน (แยกหมวด §10 · หัวข้อไม่มีไอคอน §10b) */}
+          <div className="space-y-3">
+            <SectionLabel>{mode === 'viewing' ? 'นัดกับใคร · ทรัพย์ไหน' : 'รายละเอียดนัด'}</SectionLabel>
+            {mode === 'viewing' ? (
+              <>
+                <Combobox label="Lead *" error={fe.leadId} placeholder="— เลือก Lead —" value={form.leadId} onChange={(v) => setField('leadId', v)} options={seedLead && !leads.options.some((o) => o.value === seedLead.value) ? [seedLead, ...leads.options] : leads.options} onSearch={leads.setQuery} loading={leads.loading} loadError={leads.error} onRetry={leads.reload} />
+                <Combobox label="ทรัพย์ *" error={fe.propertyId} placeholder="— เลือกทรัพย์ —" value={form.propertyId} onChange={(v) => setField('propertyId', v)} options={seedProp && !props.options.some((o) => o.value === seedProp.value) ? [seedProp, ...props.options] : props.options} onSearch={props.setQuery} loading={props.loading} loadError={props.error} onRetry={props.reload} />
+              </>
+            ) : (
+              <Field label="หัวข้อนัด *" error={fe.title} placeholder="เช่น ประชุมทีม, นัดเจ้าของทรัพย์" value={form.title} onChange={(e) => setField('title', e.target.value)} />
+            )}
+            <Combobox label="พนักงานรับผิดชอบ" value={form.agentId} onChange={(v) => setField('agentId', v)} options={[{ value: '', label: '— ตัวฉันเอง —' }, ...agents.options]} loadError={agents.error} onRetry={agents.reload} />
           </div>
-          <Field label="สถานที่นัด" value={form.location} onChange={(e) => setField('location', e.target.value)} />
+
+          {/* หมวด 2 — เมื่อไหร่ (วันเวลา + ระยะเวลา จับคู่แถวเดียว sm+) */}
+          <div className="space-y-3">
+            <SectionLabel>เมื่อไหร่</SectionLabel>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="วันเวลานัด *" type="datetime-local" error={fe.scheduledAt}
+                hint={form.scheduledAt ? fmtDateTime(form.scheduledAt) : undefined}
+                value={form.scheduledAt} onChange={(e) => setField('scheduledAt', e.target.value)} />
+              <Field label="ระยะเวลา (นาที)" type="number" value={form.durationMin} onChange={(e) => setField('durationMin', Number(e.target.value))} />
+            </div>
+          </div>
+
+          {/* หมวด 3 — ที่ไหน */}
+          <div className="space-y-3">
+            <SectionLabel>ที่ไหน</SectionLabel>
+            <Field label="สถานที่นัด" value={form.location} onChange={(e) => setField('location', e.target.value)} />
+          </div>
+
           {err && <p className="text-sm text-danger">{err}</p>}
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" className="btn-ghost" onClick={close}>ยกเลิก</button>
