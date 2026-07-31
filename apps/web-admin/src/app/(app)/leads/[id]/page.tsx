@@ -8,7 +8,7 @@ import { useToast } from '@/components/Toast';
 import { useLookup } from '@/lib/lookups';
 import { LEAD_SOURCE, LEAD_STATUS, PROPERTY_STATUS, bahtFormat } from '@/lib/status';
 import { fmtDate } from '@/lib/format';
-import { Combobox, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, StatusBadge } from '@/components/ui';
+import { Combobox, ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, RailBlock, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 interface PropLite { id: string; code: string; titleTh: string; status: string; monthlyRent: string; }
@@ -123,14 +123,18 @@ export default function LeadDetailPage() {
 
           <InfoGroup label="ทรัพย์ที่สนใจ" className="mb-4">
             {interests.length === 0 ? <p className="py-2.5 text-sm text-muted">ยังไม่ได้ระบุทรัพย์ที่สนใจ</p> : (
-              interests.map((it) => (
-                <button key={it.property.id} onClick={() => router.push(`/properties/${it.property.id}`)}
-                  className="group flex w-full items-center gap-3 py-3 text-left transition">
-                  <span className="min-w-0 flex-1 truncate text-ink transition group-hover:text-gold-dark">{it.property.titleTh}</span>
-                  <span className="shrink-0 tabular-nums text-muted">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
-                  <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short outline />
-                </button>
-              ))
+              <RailBlock className="py-1">
+                <div className="divide-y divide-border/60">
+                  {interests.map((it) => (
+                    <button key={it.property.id} onClick={() => router.push(`/properties/${it.property.id}`)}
+                      className="group flex w-full items-center gap-3 py-3 text-left transition">
+                      <span className="min-w-0 flex-1 truncate text-ink transition group-hover:text-gold-dark">{it.property.titleTh}</span>
+                      <span className="shrink-0 tabular-nums text-muted">฿{bahtFormat(Number(it.property.monthlyRent))}</span>
+                      <StatusBadge map={PROPERTY_STATUS} value={it.property.status} short outline />
+                    </button>
+                  ))}
+                </div>
+              </RailBlock>
             )}
           </InfoGroup>
 
