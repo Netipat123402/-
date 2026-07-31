@@ -138,7 +138,7 @@ export default function LeadsPage() {
           <Field label="ชื่อ-นามสกุล *" error={fe.fullName} placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setField('fullName', e.target.value)} />
           <Field label="เบอร์โทร *" error={fe.phone} inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone} onChange={(e) => setField('phone', formatPhone(e.target.value))} />
           <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email} onChange={(e) => setField('email', e.target.value)} />
-          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ความต้องการ/บันทึก</span>
+          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ความต้องการ</span>
             <textarea className="field h-auto py-2.5" rows={3} placeholder="เช่น สนใจคอนโดใกล้ BTS งบไม่เกิน 20,000" value={form.message} onChange={(e) => setField('message', e.target.value)} />
           </label>
           {err && <p className="text-sm text-danger">{err}</p>}
