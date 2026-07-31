@@ -56,15 +56,17 @@ export default function AppointmentsPage() {
   const [dateTo, setDateTo] = useState('');
   const [sort, setSort] = useState('asc');
   const [q, setQ] = useState('');
+  const [mine, setMine] = useState(''); // '' = ทั้งหมด · 'me' = ผู้รับผิดชอบของฉัน (agent โฟกัสนัดตัวเอง)
   const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
   if (status) params.set('status', status);
   if (date) params.set('date', date);
   if (dateFrom) params.set('dateFrom', dateFrom);
   if (dateTo) params.set('dateTo', dateTo);
+  if (mine === 'me' && user) params.set('agentId', user.id);
   if (dq) params.set('q', dq);
   const { rows, meta, loading, reload } = useList<Appt>(`/appointments?${params}`);
-  const filtered = !!(q || status || date || dateFrom || dateTo);
+  const filtered = !!(q || status || date || dateFrom || dateTo || mine);
   const clearFilters = () => { setQ(''); setStatus(''); setDate(''); setDateFrom(''); setDateTo(''); setPage(1); };
   // เรียงฝั่ง server แล้ว (sort=asc/desc ไป API → ถูกต้องข้ามหน้า) — MR-12
 
@@ -190,8 +192,11 @@ export default function AppointmentsPage() {
         <Segmented options={TIME_OPTIONS} value={timePreset} onChange={setTimePreset} />
       </div>
       <FilterBar
+        searchWide
         search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหารหัส/ลูกค้า/ทรัพย์…' }}
         filters={[
+          // ผู้รับผิดชอบ: ของฉัน = agent โฟกัสนัดตัวเอง (consistent กับลีด)
+          { key: 'mine', label: 'ผู้รับผิดชอบ', value: mine, onChange: (v) => { setPage(1); setMine(v); }, options: [{ value: '', label: 'ผู้รับผิดชอบทั้งหมด' }, { value: 'me', label: 'ของฉัน' }] },
           { key: 'date', label: 'เลือกวันที่เอง', type: 'date', value: date, onChange: (v) => { setPage(1); setDate(v); setDateFrom(''); setDateTo(''); } },
         ]}
         sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: [{ value: 'asc', label: 'วันนัด ใกล้→ไกล' }, { value: 'desc', label: 'วันนัด ไกล→ใกล้' }] }}
