@@ -72,8 +72,16 @@ export default function OwnersPage() {
         <PhoneLink phone={o.phone} className="text-xs text-muted" />
       </div>
     ) },
-    // 2) ทรัพย์ทั้งหมด = จำนวนทรัพย์ทั้งหมด · เลขเดี่ยว (คอม หัวข้อบอกความหมาย · มือถือเติมป้ายกำกับ mouse:hidden)
-    { header: 'ทรัพย์ทั้งหมด', right: true, cell: (o) => <span className="tabular-nums text-muted"><span className="mouse:hidden">ทั้งหมด </span>{o.propertyCount ?? 0}</span> },
+    // 2) ทรัพย์ทั้งหมด · C1: ตาราง(คอม)=เลขเดี่ยว (หัวข้อบอกความหมาย) · การ์ด(touch)=รวม 3 สถิติเป็นบรรทัดเดียวกระชับ (เลิก 3 สถิติซ้อนแย่งสายตา)
+    { header: 'ทรัพย์ทั้งหมด', right: true, cell: (o) => {
+      const total = o.propertyCount ?? 0, rented = o.rentedCount ?? 0, avail = o.availableCount ?? 0;
+      return (
+        <>
+          <span className="hidden tabular-nums text-muted mouse:block">{total}</span>
+          <span className="whitespace-nowrap text-xs text-muted mouse:hidden">{total} ทรัพย์ · เช่า {rented} · <span className={avail > 0 ? 'text-ink' : 'text-faint'}>ว่าง {avail}</span></span>
+        </>
+      );
+    } },
     // 3) ปล่อยเช่าล่าสุด = ทรัพย์จากสัญญาล่าสุด (รหัส mono ทอง + ชื่อ แบบหน้าทรัพย์ ไม่มีรูป)
     { header: 'ปล่อยเช่าล่าสุด', sub: true, cell: (o) => o.latestRented ? (
       <span className="block min-w-0 max-w-[16rem]">
@@ -81,10 +89,10 @@ export default function OwnersPage() {
         <span className="block truncate text-muted">{o.latestRented.titleTh}</span>
       </span>
     ) : <span className="text-faint">—</span> },
-    // 4) เช่าอยู่ = จำนวนทรัพย์ status rented (occupancy · เกาะกลุ่มกับ ทั้งหมด/ว่าง)
-    { header: 'เช่าอยู่', right: true, cell: (o) => <span className="tabular-nums text-muted"><span className="mouse:hidden">เช่าอยู่ </span>{o.rentedCount ?? 0}</span> },
-    // 5) ว่าง = จำนวนทรัพย์ status available (คลังที่ยังปล่อยได้ · เน้นเมื่อ >0)
-    { header: 'ว่าง', right: true, cell: (o) => <span className={`tabular-nums ${(o.availableCount ?? 0) > 0 ? 'text-ink' : 'text-faint'}`}><span className="mouse:hidden">ว่าง </span>{o.availableCount ?? 0}</span> },
+    // 4) เช่าอยู่ · เฉพาะตาราง(คอม) — การ์ดรวมไว้ใน "ทรัพย์ทั้งหมด" แล้ว (C1)
+    { header: 'เช่าอยู่', right: true, cell: (o) => <span className="hidden tabular-nums text-muted mouse:block">{o.rentedCount ?? 0}</span> },
+    // 5) ว่าง · เฉพาะตาราง(คอม) — เน้นเมื่อ >0 · การ์ดรวมไว้ใน "ทรัพย์ทั้งหมด" แล้ว (C1)
+    { header: 'ว่าง', right: true, cell: (o) => <span className={`hidden tabular-nums mouse:block ${(o.availableCount ?? 0) > 0 ? 'text-ink' : 'text-faint'}`}>{o.availableCount ?? 0}</span> },
   ];
 
   return (
