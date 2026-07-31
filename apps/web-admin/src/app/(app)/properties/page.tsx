@@ -26,10 +26,10 @@ const TYPE_OPTIONS = [{ value: '', label: 'ทุกประเภท' }, ...Ob
 // ไอคอนตามประเภท (ตึกสูง vs บ้าน) — ใช้ในรูป placeholder ของทรัพย์ที่ยังไม่มีภาพ
 const TYPE_ICON: Record<string, 'building' | 'home'> = { condo: 'building', apartment: 'building', house: 'home', townhome: 'home' };
 const SORT_OPTIONS = [
-  { value: 'code', label: 'รหัสทรัพย์ (ก–ฮ)' },
+  { value: 'new', label: 'ใหม่สุด' },
   { value: 'price_asc', label: 'ค่าเช่า น้อย→มาก' },
   { value: 'price_desc', label: 'ค่าเช่า มาก→น้อย' },
-  { value: 'new', label: 'เพิ่มล่าสุด' },
+  { value: 'code', label: 'รหัสทรัพย์ (ก–ฮ)' },
 ];
 // ช่วงค่าเช่าสำหรับสไลเดอร์กรอง (บาท/เดือน)
 const RENT_MAX = 100000;
@@ -52,7 +52,7 @@ export default function PropertiesPage() {
   // หน่วงค่าช่วงค่าเช่า: สไลเดอร์เลื่อนลื่น (rentMin/Max อัปเดตทันที) แต่ยิง API หลังหยุดลาก 300ms (กัน request ถล่มตอนลาก)
   const dRentMin = useDebouncedValue(rentMin, 300);
   const dRentMax = useDebouncedValue(rentMax, 300);
-  const [sort, setSort] = useState('code');
+  const [sort, setSort] = useState('new');
   const [q, setQ] = useState('');
   const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์ (เดิม q ตรง ๆ = ทุกตัวอักษร)
   const [page, setPage] = useState(1);
@@ -137,10 +137,11 @@ export default function PropertiesPage() {
         <Segmented options={STATUS_OPTIONS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
       </div>
       <FilterBar
-        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/โครงการ…' }}
+        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/โครงการ/รหัส…' }}
+        searchWide
         filters={[
-          { key: 'type', label: 'ประเภท', value: type, onChange: (v) => { setPage(1); setType(v); }, options: TYPE_OPTIONS },
           { key: 'province', label: 'จังหวัด', value: province, onChange: (v) => { setPage(1); setProvince(v); }, options: [{ value: '', label: 'ทุกจังหวัด' }, ...provinceOpts], searchable: true },
+          { key: 'type', label: 'ประเภท', value: type, onChange: (v) => { setPage(1); setType(v); }, options: TYPE_OPTIONS },
         ]}
         range={{
           label: 'ค่าเช่า/เดือน',

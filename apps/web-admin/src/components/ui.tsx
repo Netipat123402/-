@@ -765,11 +765,12 @@ function InlineRange({ range }: { range: RangeDef }) {
   );
 }
 
-export function FilterBar({ search, sort, filters = [], range }: {
+export function FilterBar({ search, sort, filters = [], range, searchWide }: {
   search?: { value: string; onChange: (v: string) => void; placeholder?: string };
   sort?: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[] };
   filters?: FilterDef[];
   range?: RangeDef;       // ตัวกรองช่วงค่า (สไลเดอร์ 2 หัว) — ออปชัน ไม่ส่ง = ไม่มี
+  searchWide?: boolean;   // หน้าที่ค้นหาเป็นพระเอก (ทรัพย์) → คอมปล่อยกว้างเต็ม (ไม่ cap 280)
 }) {
   const [open, setOpen] = useState(false);
 
@@ -790,7 +791,7 @@ export function FilterBar({ search, sort, filters = [], range }: {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
       {search && (
-        <input className="field min-w-0 flex-1 sm:max-w-[280px]" placeholder={search.placeholder ?? 'ค้นหา…'}
+        <input className={`field min-w-0 flex-1 sm:max-w-[280px] ${searchWide ? 'lg:max-w-none' : ''}`} placeholder={search.placeholder ?? 'ค้นหา…'}
           value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} />
       )}
 
