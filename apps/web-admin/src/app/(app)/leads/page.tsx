@@ -31,23 +31,25 @@ const SORT_OPTIONS = [
 ];
 
 export default function LeadsPage() {
-  const { api, can } = useAuth();
+  const { api, can, user } = useAuth();
   const toast = useToast();
   const router = useRouter();
   const sp = useSearchParams();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState(sp.get('status') ?? '');
   const [source, setSource] = useState('');
+  const [assignee, setAssignee] = useState(''); // '' = ทั้งหมด · 'me' = ผู้ดูแลของฉัน (โฟกัสงานตัวเอง)
   const [sort, setSort] = useState('new');
   const [q, setQ] = useState('');
   const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์ (ไม่ยิงทุกตัวอักษร)
   const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), sort });
   if (status) params.set('status', status);
   if (source) params.set('source', source);
+  if (assignee === 'me' && user) params.set('assignedToId', user.id);
   if (dq) params.set('q', dq);
   const { rows, meta, loading, reload } = useList<Lead>(`/leads?${params}`);
-  const filtered = !!(q || status || source);
-  const clearFilters = () => { setQ(''); setStatus(''); setSource(''); setPage(1); };
+  const filtered = !!(q || status || source || assignee);
+  const clearFilters = () => { setQ(''); setStatus(''); setSource(''); setAssignee(''); setPage(1); };
   // เรียงฝั่ง server แล้ว (sort ไป API → ถูกต้องข้ามหน้า) — MR-12 · รายละเอียด/การกระทำย้ายไปหน้า /leads/[id]
 
   // create walk-in lead
@@ -113,8 +115,11 @@ export default function LeadsPage() {
         <Segmented options={STATUS_OPTIONS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
       </div>
       <FilterBar
+        searchWide
         search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/เบอร์…' }}
         filters={[
+          // ผู้ดูแล: ของฉัน = โฟกัสงาน sales ตัวเอง (My leads · CRM ระดับโลก) — ใช้บ่อยกว่าแหล่งที่มา → มาก่อน
+          { key: 'assignee', label: 'ผู้ดูแล', value: assignee, onChange: (v) => { setPage(1); setAssignee(v); }, options: [{ value: '', label: 'ผู้ดูแลทั้งหมด' }, { value: 'me', label: 'ของฉัน' }] },
           { key: 'source', label: 'แหล่งที่มา', value: source, onChange: (v) => { setPage(1); setSource(v); }, options: [{ value: '', label: 'ทุกแหล่งที่มา' }, ...Object.entries(LEAD_SOURCE).map(([v, l]) => ({ value: v, label: l }))] },
         ]}
         sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: SORT_OPTIONS }}
