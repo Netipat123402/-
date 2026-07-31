@@ -205,7 +205,7 @@ export default function ContractsPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="ค่าเช่า/เดือน *" type="number" error={fe.monthlyRent} value={form.monthlyRent} onChange={(e) => setField('monthlyRent', e.target.value)} />
               <Field label="มัดจำ (บาท)" type="number" value={form.depositAmount} onChange={(e) => setField('depositAmount', e.target.value)} />
-              <Field label="ค่านายหน้า" type="number" value={form.commissionAmount} onChange={(e) => setField('commissionAmount', e.target.value)} />
+              <Field label="ค่านายหน้า (บาท)" type="number" value={form.commissionAmount} onChange={(e) => setField('commissionAmount', e.target.value)} />
             </div>
           </div>
 

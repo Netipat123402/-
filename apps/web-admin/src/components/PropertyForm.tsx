@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useSearchLookup } from '@/lib/lookups';
-import { Combobox } from '@/components/ui';
+import { Combobox, SectionLabel } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
 interface Master { code: string; labelTh: string }
@@ -211,35 +211,45 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
             <label><Label>เขต/อำเภอ</Label>
               <input className="field" value={f.district} onChange={(e) => set('district', e.target.value)} />
             </label>
-            <label><Label>ชั้น</Label>
-              <input className="field" value={f.floor} onChange={(e) => set('floor', e.target.value)} />
-            </label>
           </div>
         </div>
       )}
 
       {step === 2 && (
-        <div className="card p-5">
-          <h2 className="mb-4 font-semibold sm:hidden">ราคา & ห้อง</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <label><Label>ค่าเช่า/เดือน (บาท) *</Label>
-              <input className={`field ${fe.monthlyRent ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} type="number" placeholder="เช่น 15000" value={f.monthlyRent} onChange={(e) => set('monthlyRent', e.target.value)} />
-              {fe.monthlyRent && <span className="mt-1 block text-xs text-danger">{fe.monthlyRent}</span>}
-            </label>
-            <label><Label>มัดจำ (เดือน)</Label>
-              <input className="field" type="number" value={f.depositMonths ?? ''} onChange={(e) => set('depositMonths', Number(e.target.value))} />
-            </label>
-            <label><Label>พื้นที่ (ตร.ม.)</Label>
-              <input className="field" type="number" value={f.areaSqm} onChange={(e) => set('areaSqm', e.target.value)} />
-            </label>
-            <label><Label>ห้องนอน</Label>
-              <input className="field" type="number" value={f.bedrooms ?? ''} onChange={(e) => set('bedrooms', Number(e.target.value))} />
-            </label>
-            <label><Label>ห้องน้ำ</Label>
-              <input className="field" type="number" value={f.bathrooms ?? ''} onChange={(e) => set('bathrooms', Number(e.target.value))} />
-            </label>
-            <div className="sm:col-span-3"><Label>เฟอร์นิเจอร์</Label>
-              <ChipGroup options={FURNISHED} value={f.furnished} onChange={(v) => set('furnished', v)} />
+        <div className="card space-y-5 p-5">
+          <h2 className="font-semibold sm:hidden">ราคา & ห้อง</h2>
+          {/* กลุ่ม 1 — ราคา (แยกจาก "ห้อง" ตาม §10 · หัวข้อไม่มีไอคอน §10b) */}
+          <div className="space-y-3">
+            <SectionLabel>ราคา</SectionLabel>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label><Label>ค่าเช่า/เดือน (บาท) *</Label>
+                <input className={`field ${fe.monthlyRent ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} type="number" placeholder="เช่น 15000" value={f.monthlyRent} onChange={(e) => set('monthlyRent', e.target.value)} />
+                {fe.monthlyRent && <span className="mt-1 block text-xs text-danger">{fe.monthlyRent}</span>}
+              </label>
+              <label><Label>มัดจำ (เดือน)</Label>
+                <input className="field" type="number" value={f.depositMonths ?? ''} onChange={(e) => set('depositMonths', Number(e.target.value))} />
+              </label>
+            </div>
+          </div>
+          {/* กลุ่ม 2 — ห้อง & พื้นที่ (ชั้น ย้ายมาจาก "ทำเล" ให้ตรงกลุ่มหน้า detail) */}
+          <div className="space-y-3">
+            <SectionLabel>ห้อง & พื้นที่</SectionLabel>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label><Label>ห้องนอน</Label>
+                <input className="field" type="number" value={f.bedrooms ?? ''} onChange={(e) => set('bedrooms', Number(e.target.value))} />
+              </label>
+              <label><Label>ห้องน้ำ</Label>
+                <input className="field" type="number" value={f.bathrooms ?? ''} onChange={(e) => set('bathrooms', Number(e.target.value))} />
+              </label>
+              <label><Label>พื้นที่ (ตร.ม.)</Label>
+                <input className="field" type="number" value={f.areaSqm} onChange={(e) => set('areaSqm', e.target.value)} />
+              </label>
+              <label><Label>ชั้น</Label>
+                <input className="field" value={f.floor} onChange={(e) => set('floor', e.target.value)} />
+              </label>
+              <div className="sm:col-span-3"><Label>เฟอร์นิเจอร์</Label>
+                <ChipGroup options={FURNISHED} value={f.furnished} onChange={(v) => set('furnished', v)} />
+              </div>
             </div>
           </div>
         </div>
