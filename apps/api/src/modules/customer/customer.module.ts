@@ -21,8 +21,8 @@ class CustomerController {
   constructor(private readonly service: CustomerService) {}
 
   @Get() @RequirePermission('customer', 'read')
-  list(@CurrentUser() user: AuthenticatedUser, @Query('q') q?: string, @Query('page') page = '1', @Query('limit') limitRaw?: string, @Query('sort') sort?: string) {
-    return this.service.list(user, q, page, limitRaw, sort);
+  list(@CurrentUser() user: AuthenticatedUser, @Query('q') q?: string, @Query('page') page = '1', @Query('limit') limitRaw?: string, @Query('sort') sort?: string, @Query('renting') renting?: string) {
+    return this.service.list(user, q, page, limitRaw, sort, renting);
   }
 
   @Get(':id') @RequirePermission('customer', 'read')

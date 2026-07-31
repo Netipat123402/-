@@ -35,9 +35,14 @@ export class CustomerService {
     return user.branchId ? { ...base, branchId: user.branchId } : { ...base, ...NEVER_MATCH };
   }
 
-  async list(user: AuthenticatedUser, q?: string, page = '1', limitRaw?: string, sort?: string) {
+  async list(user: AuthenticatedUser, q?: string, page = '1', limitRaw?: string, sort?: string, renting?: string) {
     const where: Prisma.CustomerWhereInput = {
-      AND: [this.scopeWhere(user), q ? { OR: [{ fullName: { contains: q, mode: 'insensitive' } }, { phone: { contains: q } }] } : {}],
+      AND: [
+        this.scopeWhere(user),
+        q ? { OR: [{ fullName: { contains: q, mode: 'insensitive' } }, { phone: { contains: q } }] } : {},
+        // toggle "กำลังเช่าอยู่" — ลูกค้าที่มีสัญญา active อย่างน้อย 1 (relation some)
+        renting ? { contracts: { some: { deletedAt: null, status: 'active' } } } : {},
+      ],
     };
     const p = Math.max(1, Number(page)), limit = Math.min(100, Math.max(1, Number(limitRaw) || 20));
     const orderBy: Prisma.CustomerOrderByWithRelationInput =
