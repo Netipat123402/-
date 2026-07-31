@@ -31,10 +31,11 @@
 
 ## 3) 🎯 งานถัดไป (ทีละหน้า · จบแล้วหยุด · เสนอ+รูป 3 จอ ก่อนแก้เสมอ)
 ### ✅ A) เจ้าของ detail — เสร็จ `a1f678b` (detail ครบ 6/6 · verify authed 3 จอ)
-### ⭐ B) §10 แยกหมวด (category split) — DESIGN-SYSTEM §10 · [[ros-category-split-and-device-subset]]
-ไล่สแกน **detail/create form ทั้งหมด** หาชุดข้อความที่ควรแยกแต่ยังติดกัน (เช่น **นัด create form: วันเวลา+สถานที่ ติดกัน** · ฟอร์มอื่น ๆ) → เสนอ **before/after + รูป 3 จอ + เหตุผลตามกฎ** ก่อนแก้ · เสนอรวมทีเดียวได้
-### ⭐ C) §11 per-device data subset — DESIGN-SYSTEM §11
-เสนอต่อ**ทุกหน้า/ทุก responsive** ว่า **หัวข้อไหนควรโชว์บนมือถือ / iPad ตั้ง / iPad นอน / คอม** (ไม่ต้องครบทุก device — สุดท้ายจิ้มเข้า detail ดูเชิงลึกอยู่ดี) + **ถามก่อน + เหตุผล + รูป 3 จอ**
+### ✅ B) §10 แยกหมวดฟอร์ม — เสร็จครบ 6/6 · [[ros-category-split-and-device-subset]]
+เกณฑ์: สั้น ≤4 ช่อง = คงแบน · ยาว 6+/หลายความหมาย = แยกหมวด (หัวข้อ SectionLabel จางไม่มีไอคอน §10b) · space-y-5 คั่นหมวด/space-y-3 ในหมวด
+- นัด create `0dc01f8` (3 หมวด) · เจ้าของ edit `e59e5f9` (3 หมวด) · สัญญา `3b973d1` (audit ผ่าน+label) · ทรัพย์ wizard `3b973d1` (แยก ราคา/ห้อง+ย้ายชั้น) · ลีด `6b46840` (คงแบน+label) · ลูกค้า (คงแบน ไม่แก้)
+### ⭐ C) §11 per-device data subset — **เสนอเท่านั้น (owner สั่ง)** · DESIGN-SYSTEM §11
+เสนอต่อ**ทุกหน้า/ทุก responsive** ว่า **หัวข้อไหนควรโชว์บนมือถือ / iPad ตั้ง / iPad นอน / คอม** (ไม่ต้องครบทุก device — สุดท้ายจิ้มเข้า detail ดูเชิงลึกอยู่ดี) + **ถามก่อน + เหตุผล + รูป 3 จอ** · list ปัจจุบัน = ตาราง(mouse/คอม โชว์ทุกคอลัมน์) vs การ์ด(touch มือถือ+iPad โชว์ primary+sub+right เท่ากัน) → C = curate การ์ดมือถือ vs iPad
 
 ## 4) กฎ (source of truth) — **อ่าน `DESIGN-SYSTEM.md` เต็มก่อนแตะ UI**
 - **§8 Label-value ราง + ⭐ ระดับเดียว** — ทุกกลุ่ม detail = `InfoGroup`/`InfoRow` (label จางคอลัมน์คงที่ + value ชิดซ้ายใกล้ label sm+ / value ขวา มือถือ) · **ห้ามปนหลายระดับในการ์ดเดียว** (name หนา+rent ทอง+code mono = anti-pattern หน้าลูกค้าเดิม) · **stat cluster = กึ่งกลาง** · หน้าสัญญา = ต้นแบบ · [[ros-detail-text-layout-standard]]
