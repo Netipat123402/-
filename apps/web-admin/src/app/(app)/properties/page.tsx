@@ -42,6 +42,9 @@ export default function PropertiesPage() {
   const [rows, setRows] = useState<PropertyRow[]>([]);
   const [meta, setMeta] = useState<{ total?: number; page?: number; totalPages?: number }>({});
   const [status, setStatus] = useState(sp.get('status') ?? '');
+  // กรองตามเจ้าของ (มาจาก owner detail "ดูทั้งหมด") — ชื่อส่งมาใน url เพื่อโชว์ชิป ไม่ต้อง fetch ซ้ำ
+  const [ownerFilter, setOwnerFilter] = useState(sp.get('owner') ?? '');
+  const ownerName = sp.get('ownerName') ?? '';
   const [type, setType] = useState('');
   const [province, setProvince] = useState('');
   const [rentMin, setRentMin] = useState('');
@@ -74,19 +77,20 @@ export default function PropertiesPage() {
     if (dRentMin) params.set('rentMin', dRentMin);
     if (dRentMax) params.set('rentMax', dRentMax);
     if (dq) params.set('q', dq);
+    if (ownerFilter) params.set('ownerId', ownerFilter);
     try {
       const r = await api<PropertyRow[]>(`/properties?${params}`);
       setRows(r.data); setMeta(r.meta ?? {});
     } finally { setLoading(false); }
-  }, [api, page, status, type, province, dRentMin, dRentMax, dq, sort]);
+  }, [api, page, status, type, province, dRentMin, dRentMax, dq, sort, ownerFilter]);
 
   useEffect(() => { load(); }, [load]);
 
   // เรียงฝั่ง server แล้ว (ส่ง sort ไป API) — ใช้ rows ตรง ๆ
   const sorted = rows;
   // มีการกรอง/ค้นหาอยู่ไหม → ใช้เลือกข้อความ+ปุ่มของ empty state (ไม่เจอเพราะกรอง vs ยังไม่มีข้อมูลจริง)
-  const filtered = !!(q || status || type || province || rentMin || rentMax);
-  const clearFilters = () => { setQ(''); setStatus(''); setType(''); setProvince(''); setRentMin(''); setRentMax(''); setPage(1); };
+  const filtered = !!(q || status || type || province || rentMin || rentMax || ownerFilter);
+  const clearFilters = () => { setQ(''); setStatus(''); setType(''); setProvince(''); setRentMin(''); setRentMax(''); setOwnerFilter(''); setPage(1); router.replace('/properties'); };
 
   const thumb = (p: PropertyRow) => (
     p.media?.[0]
@@ -152,6 +156,16 @@ export default function PropertiesPage() {
         }}
         sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: SORT_OPTIONS }}
       />
+
+      {/* ชิปกรองเจ้าของ (มาจาก owner detail "ดูทั้งหมด") — กดกากบาทล้าง */}
+      {ownerFilter && (
+        <div className="mt-3">
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/10 px-3 py-1.5 text-sm text-gold-dark">
+            ทรัพย์ของ {ownerName || 'เจ้าของรายนี้'}
+            <button onClick={clearFilters} aria-label="ล้างตัวกรองเจ้าของ" className="ml-0.5 transition hover:text-ink"><Icon name="x" size={14} /></button>
+          </span>
+        </div>
+      )}
 
       <div className="mt-4 mouse:card mouse:overflow-hidden">
         <ListView items={sorted} cols={cols} keyOf={(p) => p.id} loading={loading} leading={thumb}

@@ -111,6 +111,7 @@ export class PropertyService {
     if (query.propertyType) filters.propertyType = query.propertyType;
     if (query.province) filters.province = query.province;
     if (query.assignedToId) filters.assignedToId = query.assignedToId;
+    if (query.ownerId) filters.ownerId = query.ownerId; // กรองทรัพย์ตามเจ้าของ (จากหน้า owner detail "ดูทั้งหมด")
     // ช่วงค่าเช่า: gte/lte (รับมาเป็นบาท · monthlyRent เป็น Decimal — Prisma รับ number ได้)
     if (query.rentMin != null || query.rentMax != null) {
       filters.monthlyRent = {

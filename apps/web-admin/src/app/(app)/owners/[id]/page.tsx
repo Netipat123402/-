@@ -123,7 +123,7 @@ export default function OwnerDetailPage() {
             ) : (
               <RailBlock className="py-1">
                 <div className="divide-y divide-border/60">
-                  {props.map((p) => (
+                  {props.slice(0, 6).map((p) => (
                     <button key={p.id} onClick={() => router.push(`/properties/${p.id}`)}
                       className="group flex w-full items-center gap-3 py-2.5 text-left outline-none transition hover:bg-raised/60 focus-visible:bg-raised focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold">
                       <div className="min-w-0 flex-1">
@@ -134,6 +134,13 @@ export default function OwnerDetailPage() {
                       <StatusBadge map={PROPERTY_STATUS} value={p.status} short outline />
                     </button>
                   ))}
+                  {/* ทรัพย์เยอะ → ไปหน้า list กรองเจ้าของ (ค้นหา/กรอง/จัดการได้เต็ม) แทนลิสต์ยาวรูดจอ */}
+                  {props.length > 6 && (
+                    <button onClick={() => router.push(`/properties?owner=${o.id}&ownerName=${encodeURIComponent(o.fullName)}`)}
+                      className="flex w-full items-center justify-center py-3 text-sm text-gold-dark transition hover:underline">
+                      ดูทั้งหมด {props.length} รายการ ›
+                    </button>
+                  )}
                 </div>
               </RailBlock>
             )}

@@ -23,6 +23,10 @@ export class QueryPropertyDto {
   @IsOptional() @IsUUID()
   assignedToId?: string;
 
+  /** กรองทรัพย์ตามเจ้าของ (owner detail → "ดูทั้งหมด") */
+  @IsOptional() @IsUUID()
+  ownerId?: string;
+
   /** ค้นหาข้อความ (ชื่อ/โครงการ) */
   @IsOptional() @IsString()
   q?: string;
