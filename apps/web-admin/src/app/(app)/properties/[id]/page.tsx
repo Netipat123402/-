@@ -243,12 +243,13 @@ export default function PropertyDetailPage() {
         {/* เนื้อหา — label-value ราง (กฎ 1) */}
         <div className="mt-6 xl:order-1 xl:mt-0">
           {hasRoomInfo && (
+            /* label-value ล้วน ไม่มีไอคอนหน้า field — ให้ตรงทุกหน้า (minimal · §8 รางระดับเดียว) */
             <InfoGroup label="ห้อง & พื้นที่" className="mb-4">
-              <InfoRow icon="bed" label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
-              <InfoRow icon="bath" label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
-              <InfoRow icon="area" label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
-              <InfoRow icon="floor" label="ชั้น" value={p.floor || undefined} hideEmpty />
-              <InfoRow icon="sofa" label="เฟอร์นิเจอร์" value={p.furnished ? (FURNISHED_TH[p.furnished] ?? p.furnished) : undefined} hideEmpty />
+              <InfoRow label="ห้องนอน" value={p.bedrooms != null ? `${p.bedrooms} ห้อง` : undefined} hideEmpty />
+              <InfoRow label="ห้องน้ำ" value={p.bathrooms != null ? `${p.bathrooms} ห้อง` : undefined} hideEmpty />
+              <InfoRow label="พื้นที่" value={p.areaSqm ? `${p.areaSqm} ตร.ม.` : undefined} hideEmpty />
+              <InfoRow label="ชั้น" value={p.floor || undefined} hideEmpty />
+              <InfoRow label="เฟอร์นิเจอร์" value={p.furnished ? (FURNISHED_TH[p.furnished] ?? p.furnished) : undefined} hideEmpty />
             </InfoGroup>
           )}
           {hasLocation && (
