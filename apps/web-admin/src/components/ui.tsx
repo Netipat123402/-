@@ -305,11 +305,11 @@ export function DetailHeader({
       )}
       <div className={`${backHref ? 'mt-3 ' : ''}sm:flex sm:items-start sm:justify-between sm:gap-4`}>
         <div className="min-w-0 flex-1">
-          {/* แถวชื่อ + ราคา — พระเอกเดี่ยว ราคาลอยขวาสุด (baseline เดียว) */}
-          <div className="flex items-baseline justify-between gap-x-4 gap-y-0.5">
-            <h1 className="min-w-0 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+          {/* แถวชื่อ + ราคา — คลัสเตอร์เดียวชิดซ้าย (ราคาเกาะหลังชื่อ baseline เดียว) ไม่ปักขอบขวา = ตาโฟกัสจุดเดียว ไม่ต้องกวาด */}
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-0.5">
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
             {price != null && price !== '' && (
-              <p className="shrink-0 whitespace-nowrap text-lg font-semibold tabular-nums text-gold-dark sm:text-xl">
+              <p className="whitespace-nowrap text-lg font-semibold tabular-nums text-gold-dark sm:text-xl">
                 ฿{price}
                 {priceSuffix && <span className="ml-0.5 text-xs font-normal text-muted">{priceSuffix}</span>}
               </p>
