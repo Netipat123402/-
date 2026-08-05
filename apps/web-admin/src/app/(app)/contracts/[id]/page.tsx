@@ -189,7 +189,7 @@ export default function ContractDetailPage() {
                   )}
                   {daysLeft != null && <span className="shrink-0 whitespace-nowrap text-xs text-gold-dark xl:text-center">เหลือ {daysLeft} วัน</span>}
                   <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 xl:grid xl:grid-cols-1">
-                    {can('contract', 'update') && <button className="btn-gold btn-sm" disabled={busy} onClick={openReceipt}>ออกใบเสร็จ</button>}
+                    {can('contract', 'sign') && <button className="btn-gold btn-sm" disabled={busy} onClick={openReceipt}>ออกใบเสร็จ</button>}
                     {can('contract', 'create') && <button className="btn-ghost btn-sm" disabled={busy} onClick={openRenew}>ต่อสัญญา</button>}
                   </div>
                 </div>

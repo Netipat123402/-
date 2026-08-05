@@ -27,6 +27,8 @@
 
 **I · Detail header ยกเครื่อง (Direction A "แคปชั่นเดียว") — shared `DetailHeader`:** `b458bfd` ลด 6 พื้นผิว→2 ระดับ (พระเอกชื่อ + แคปชั่นจางเส้นเดียว: จุดสถานะ·คำอธิบาย·รหัสจาง) · ทรัพย์ 4→2 บรรทัด · ยอดวิวย้ายลงราง · `statusMap`/`statusValue` แทน badge/meta · `37860ec` ราคาเกาะหลังชื่อ (คลัสเตอร์ชิดซ้าย ไม่ปักขอบขวา = ไม่กวาดตา) · กระทบ 6 หน้า detail (ทรัพย์/ลีด/นัด/สัญญา/เจ้าของ/ลูกค้า) · verify authed 3 จอ
 
+**K · RBAC money-gate (กันโกง · Agent ทำได้แต่เงินเข้าเจ้าของก่อน):** ตัด `contract:sign`+`change_status` ออกจาก `sales_agent` (ร่างสัญญาได้ · เปิดสัญญา/ใบเสร็จไม่ได้) · ใบเสร็จผูก `contract:sign` แทน `update` (controller) + ปุ่ม FE ตาม · เพิ่ม **reconcile** ใน roles seed (ลบสิทธิ์ที่ถอน = declarative) · apply DB แล้ว · verify: agent receipt/sign=403 read=200 · owner เห็นปุ่มออกใบเสร็จครบ · scope Agent = office (ไม่เปลี่ยน) · **บทบาท operating จริง = 2 (Owner=super_admin · Agent=sales_agent) · อีก 5 คงไว้ future/demo** (ยังไม่ purge — มี mock user ผูก)
+
 **J · Claude Code IA restructure (Blueprint B):** เพิ่ม `CLAUDE.md` (เราเตอร์ auto-load) · `.claude/rules/workflow-cycle.md` · `.claude/commands/` (verify-authed·reseed-check) · `.claude/hooks/block-dangerous.sh` · แยก `settings.json`(team)/`settings.local.json`(personal) + ล้าง 320→~30 บรรทัด · ตัด handover เหลือ state · **ไม่ย้าย DESIGN-SYSTEM/docs** (product docs + memory graph 9 ไฟล์อ้างอยู่ → คงที่, CLAUDE.md ชี้แทน)
 
 ## 3) 🎯 งานถัดไป

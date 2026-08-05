@@ -91,7 +91,7 @@ export const ROLES: RoleDef[] = [
   },
   {
     name: 'sales_agent',
-    description: 'พนักงานขาย — จัดการทรัพย์/lead/นัด/สัญญาในสำนักงานของตน',
+    description: 'พนักงานขาย — ขาย/หาทรัพย์/ร่างสัญญา ในสำนักงาน · เงิน(เปิดสัญญา/ใบเสร็จ)ให้เจ้าของยืนยัน',
     isSystem: true,
     // BRANCH: เห็น/อ้างอิงข้อมูลในสำนักงานเดียวกัน (เจ้าของ/ลูกค้า/ทรัพย์/lead รวม public ที่ยังไม่มอบหมาย)
     // เดิมเป็น OWN ทำให้เห็นแต่ของที่ตัวเองสร้าง → ทำสัญญา/นัดไม่ได้ (dropdown ว่าง)
@@ -103,7 +103,10 @@ export const ROLES: RoleDef[] = [
       lead: ['create', 'read', 'update', 'assign', 'change_status', 'convert'],
       customer: ['create', 'read', 'update'],
       appointment: ['create', 'read', 'update', 'change_status'],
-      contract: ['create', 'read', 'update', 'change_status', 'sign'],
+      // ⛔ money-gate (กันโกง): ตัด 'sign'(เปิดสัญญา active) + 'change_status'(→active) ออก
+      //   Agent ร่าง/แก้สัญญาได้ แต่ "เปิดสัญญา + ออกใบเสร็จ" = เจ้าของยืนยันเงินเข้าก่อนเท่านั้น
+      //   (ใบเสร็จผูกกับ contract:sign ที่ controller — ดู contract.controller.ts)
+      contract: ['create', 'read', 'update'],
       document: ['create', 'read', 'upload', 'download'],
       notification: ['read'], activity: ['read'], dashboard: ['read'],
     },
@@ -160,7 +163,8 @@ export async function seedRolesAndPermissions(prisma: PrismaClient): Promise<voi
       create: { name: role.name, description: role.description, isSystem: role.isSystem },
     });
 
-    // map grants → permissions ที่ scope ของ role
+    // map grants → permissions ที่ scope ของ role · เก็บ id ที่ควรมีไว้ reconcile
+    const grantedPermIds: string[] = [];
     for (const [resource, actions] of Object.entries(role.grants)) {
       const resolved = actions === '*' ? RESOURCE_ACTIONS[resource] : actions;
       for (const action of resolved) {
@@ -168,12 +172,21 @@ export async function seedRolesAndPermissions(prisma: PrismaClient): Promise<voi
           where: { resource_action_scope: { resource, action, scope: role.scope } },
         });
         if (!perm) continue;
+        grantedPermIds.push(perm.id);
         await prisma.rolePermission.upsert({
           where: { roleId_permissionId: { roleId: created.id, permissionId: perm.id } },
           update: {},
           create: { roleId: created.id, permissionId: perm.id },
         });
       }
+    }
+
+    // reconcile — ลบสิทธิ์ที่ "ไม่อยู่ใน grants แล้ว" (ทำให้ seed เป็น declarative · รองรับการเพิกถอน เช่น money-gate)
+    // guard: ต้องมี grant อย่างน้อย 1 ก่อนลบ (กันเผลอล้างทั้งบทบาทถ้า grants ว่าง)
+    if (grantedPermIds.length > 0) {
+      await prisma.rolePermission.deleteMany({
+        where: { roleId: created.id, permissionId: { notIn: grantedPermIds } },
+      });
     }
   }
 

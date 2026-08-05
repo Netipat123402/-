@@ -53,8 +53,9 @@ export class ContractController {
     return this.service.renew(u, id, dto, this.meta(req));
   }
 
-  // ออกใบเสร็จรับเงิน — สร้างเอกสาร receipt ผูกกับสัญญา
-  @Post(':id/receipt') @RequirePermission('contract', 'update')
+  // ออกใบเสร็จรับเงิน — money-gate: ผูก contract:sign (โมเมนต์เงินของเจ้าของ) ไม่ใช่ update
+  //   เดิม update ทำให้ Agent (ที่ต้องมี update เพื่อร่างสัญญา) ออกใบเสร็จเองได้ = ด่านเงินรั่ว
+  @Post(':id/receipt') @RequirePermission('contract', 'sign')
   receipt(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: GenerateReceiptDto, @Req() req: Request) {
     return this.service.generateReceipt(u, id, dto, this.meta(req));
   }
