@@ -107,8 +107,8 @@ export default function PropertyDetailPage() {
       <DetailHeader
         backHref="/properties"
         code={p.code}
-        badge={<StatusBadge map={PROPERTY_STATUS} value={p.status} />}
-        meta={<span className="inline-flex items-center gap-1 text-xs text-muted"><Icon name="search" size={12} className="opacity-60" /> ดู {p.viewCount ?? 0} ครั้ง</span>}
+        statusMap={PROPERTY_STATUS}
+        statusValue={p.status}
         title={p.projectName || p.titleTh}
         subtitle={p.projectName ? p.titleTh : undefined}
         price={bahtFormat(Number(p.monthlyRent))}
@@ -209,6 +209,8 @@ export default function PropertyDetailPage() {
                     ? <Link href={`/contracts/${activeContract.id}`} className="text-gold-dark hover:underline">ไม่ว่าง · ดูสัญญา ›</Link>
                     : <span className="text-faint">ไม่ว่าง (นอกระบบ)</span>)}
                 </div>
+                {/* telemetry (ยอดวิว) — ย้ายจากหัวมาไว้ในราง คู่กับสถานะเผยแพร่ */}
+                {(p.viewCount ?? 0) > 0 && <div className="mt-1 inline-flex items-center gap-1 text-xs text-faint"><Icon name="search" size={12} className="opacity-60" /> ดู {p.viewCount} ครั้ง</div>}
               </div>
               <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                 {p.status === 'draft' && can('property', 'approve') && (

@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { bahtFormat, CONTRACT_STATUS } from '@/lib/status';
 import { fmtDate } from '@/lib/format';
-import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, SectionLabel, StatusBadge } from '@/components/ui';
+import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, SectionLabel } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 import DocumentSection from '@/components/DocumentSection';
 
@@ -137,7 +137,8 @@ export default function ContractDetailPage() {
       <DetailHeader
         backHref="/contracts"
         code={c.code}
-        badge={<StatusBadge map={CONTRACT_STATUS} value={c.status} />}
+        statusMap={CONTRACT_STATUS}
+        statusValue={c.status}
         title={c.customer?.fullName || 'สัญญาเช่า'}
         subtitle={`สัญญาเช่า${c.property ? ` · ${c.property.titleTh}` : ''}`}
         price={bahtFormat(Number(c.monthlyRent))}

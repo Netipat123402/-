@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
-import { badgeClass, type Tone } from '@/lib/status';
+import { badgeClass, toneDot, type Tone } from '@/lib/status';
 import { formatPhone } from '@/lib/format';
 import { Icon, type IconName } from '@/components/Icon';
 import PriceRange from '@/components/PriceRange';
@@ -274,25 +274,28 @@ export function SectionTabs({ items, className = '' }: {
 }
 
 /**
- * DetailHeader — หัวหน้ารายละเอียดมาตรฐาน (R1: 1 บรรทัด 1 ข้อมูล, ไล่บน→ล่าง)
- * บรรทัด: [back] · code(mono จาง)+badge+meta · ชื่อ(display) · subtitle จาง · ราคา ฿(gold เด่น tabular)
- * ใช้ร่วมทุกโมดูล (ทรัพย์/สัญญา/…) — badge ส่งเป็น node ให้ generic ข้ามโมดูล
+ * DetailHeader — หัวหน้ารายละเอียดมาตรฐาน (Direction A "แคปชั่นเดียว" — 2 ระดับสายตา)
+ * บรรทัด 1 = ชื่อ(พระเอก) + ราคา฿ ลอยขวา (คนละสี/น้ำหนัก = เด่นแต่ไม่แย่งกัน)
+ * บรรทัด 2 = แคปชั่นจางเส้นเดียว: [จุดสถานะ+ข้อความ] · subtitle · รหัส(จาง) — ตาอ่านเป็นประโยคเดียว ไม่ใช่ชิปหลายชุด
+ * สถานะรับเป็น statusMap+statusValue (เรนเดอร์เป็นจุดสีในตัว) แทน badge node เดิม · telemetry(ยอดวิว)ย้ายออกจากหัว
  */
 export function DetailHeader({
-  backHref, backLabel = 'กลับ', code, badge, meta, title, subtitle, price, priceSuffix, actions, className = '',
+  backHref, backLabel = 'กลับ', code, statusMap, statusValue, title, subtitle, price, priceSuffix, actions, className = '',
 }: {
   backHref?: string;
   backLabel?: string;
   code?: React.ReactNode;
-  badge?: React.ReactNode;
-  meta?: React.ReactNode;
+  statusMap?: Record<string, { label: string; tone: Tone }>;
+  statusValue?: string;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   price?: React.ReactNode;
   priceSuffix?: React.ReactNode;
-  actions?: React.ReactNode; // ปุ่ม action — เดสก์ท็อป: ชิดขวาหัว (glance identifier + action) · มือถือ: stack ล่าง
+  actions?: React.ReactNode; // ปุ่ม action — เดสก์ท็อป: ชิดขวาหัว · มือถือ: stack ล่าง (ปกติ action อยู่ราง ไม่ใช้ที่นี่)
   className?: string;
 }) {
+  const st = statusMap && statusValue != null ? (statusMap[statusValue] ?? { label: statusValue, tone: 'neutral' as Tone }) : null;
+  const hasCaption = st || subtitle || code;
   return (
     <div className={className}>
       {backHref && (
@@ -301,22 +304,31 @@ export function DetailHeader({
         </Link>
       )}
       <div className={`${backHref ? 'mt-3 ' : ''}sm:flex sm:items-start sm:justify-between sm:gap-4`}>
-        <div className="min-w-0">
-          {(code || badge || meta) && (
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              {/* รหัสของ record = mono ทอง (owner lock · ตรง list variant C) — คีย์อ้างอิงเด่นบนหัว */}
-              {code && <span className="font-mono text-xs text-gold-dark">{code}</span>}
-              {badge}
-              {meta}
+        <div className="min-w-0 flex-1">
+          {/* แถวชื่อ + ราคา — พระเอกเดี่ยว ราคาลอยขวาสุด (baseline เดียว) */}
+          <div className="flex items-baseline justify-between gap-x-4 gap-y-0.5">
+            <h1 className="min-w-0 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
+            {price != null && price !== '' && (
+              <p className="shrink-0 whitespace-nowrap text-lg font-semibold tabular-nums text-gold-dark sm:text-xl">
+                ฿{price}
+                {priceSuffix && <span className="ml-0.5 text-xs font-normal text-muted">{priceSuffix}</span>}
+              </p>
+            )}
+          </div>
+          {/* แคปชั่นจางเส้นเดียว — สถานะ(จุด) · คำอธิบาย · รหัส */}
+          {hasCaption && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+              {st && (
+                <span className="inline-flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${toneDot(st.tone)}`} />
+                  {st.label}
+                </span>
+              )}
+              {st && subtitle && <span className="text-faint" aria-hidden>·</span>}
+              {subtitle && <span className="min-w-0">{subtitle}</span>}
+              {(st || subtitle) && code && <span className="text-faint" aria-hidden>·</span>}
+              {code && <span className="font-mono text-xs text-faint">{code}</span>}
             </div>
-          )}
-          <h1 className="mt-1.5 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h1>
-          {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
-          {price != null && price !== '' && (
-            <p className="mt-2 text-2xl font-bold tracking-tight tabular-nums text-gold-dark">
-              ฿{price}
-              {priceSuffix && <span className="ml-0.5 text-sm font-normal text-muted">{priceSuffix}</span>}
-            </p>
           )}
         </div>
         {actions && <div className="mt-4 shrink-0 sm:mt-0">{actions}</div>}

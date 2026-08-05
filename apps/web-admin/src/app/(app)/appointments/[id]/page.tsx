@@ -63,7 +63,8 @@ export default function AppointmentDetailPage() {
       <DetailHeader
         backHref="/appointments"
         code={appt.code}
-        badge={<StatusBadge map={APPOINTMENT_STATUS} value={appt.status} />}
+        statusMap={APPOINTMENT_STATUS}
+        statusValue={appt.status}
         title={subject}
         subtitle={appt.property ? 'นัดดูทรัพย์' : (appt.title ? 'นัดนอกรอบ' : undefined)}
       />

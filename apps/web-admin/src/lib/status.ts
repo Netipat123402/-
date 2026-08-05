@@ -83,6 +83,12 @@ export function badgeClass(tone: Tone, outline?: boolean): string {
   return outline ? `badge border ${TONE_OUTLINE[tone]}` : `badge ${TONE_CLASS[tone]}`;
 }
 
+// จุดสถานะทึบสีเดียว (ไม่มีกรอบ/พื้น) — ใช้ในแคปชั่นหัว detail (§ header 2 ระดับ) ให้สถานะเป็นพื้นผิวเดียวกับข้อความ
+const TONE_DOT: Record<Tone, string> = {
+  neutral: 'bg-faint', active: 'bg-success', done: 'bg-info', gold: 'bg-gold-dark', danger: 'bg-danger',
+};
+export function toneDot(tone: Tone): string { return TONE_DOT[tone]; }
+
 export function bahtFormat(n: number): string {
   return new Intl.NumberFormat('th-TH').format(n);
 }

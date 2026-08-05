@@ -62,7 +62,8 @@ export default function LeadDetailPage() {
       <DetailHeader
         backHref="/leads"
         code={lead.code}
-        badge={<StatusBadge map={LEAD_STATUS} value={lead.status} />}
+        statusMap={LEAD_STATUS}
+        statusValue={lead.status}
         title={lead.fullName}
         subtitle={lead.phone ? <PhoneLink phone={lead.phone} className="text-sm text-muted" /> : undefined}
       />
