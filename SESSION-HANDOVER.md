@@ -6,7 +6,7 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · design polish world-class **ครบแล้ว** (list/detail/form/filter/header).
-งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 2/6 เสร็จ · เหลือ Phase 3-6**.
+งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 3/6 เสร็จ · เหลือ Phase 4-6**.
 ⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
 
 ## 2) ⭐ RBAC + governance (งานหลักตอนนี้) — org จริง: **สำนักงานเดียว · คุณ=admin+เจ้าของคนเดียว · คนอื่น=ขาย/หาทรัพย์**
@@ -34,10 +34,15 @@
 - `ee1f2e6` **audit fixes:** label "ผู้จัดการ" · เซลแก้/ถอนเฉพาะของตัวเอง (own-scope) · withdraw
 - `a78210a` **2b frontend:** เมนู "คำขอทรัพย์"+badge · list+ฟอร์ม · detail+รางตามบทบาท (ผู้จัดการ=convert/reject · เซล=แก้/ถอน) · verify authed จริง (convert→CD draft prefill+owner+sourcing) · มือถือ card · fix 3 บั๊ก (limit whitelist·query→number·meta ซ้อน)
 
-## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /4 (Phase 3-6)
+**N · Phase 3 · ด่านอนุมัติเผยแพร่ + completeness gate:** `88f0eae`
+- **สถานะใหม่ `pending_review` (รอตรวจสอบ):** `draft →(ขอเผยแพร่ 7/7)→ pending_review →(เจ้าของอนุมัติ)→ available` · ตีกลับ/ถอนคำขอ → draft · migration 0014 (ALTER TYPE additive · manual+resolve เหมือน 0013) · lifecycle spec 20/20 · pending_review ไม่ public
+- **ต่อ engine completeness (2a) เข้า submit/approve** (`assertPublishReady` บล็อกถ้าจำเป็นไม่ครบ 7/7) · approve re-check ซ้ำ (defense-in-depth) · reject: pending_review→draft เหตุผลบังคับ+notify ผู้ส่ง / available→draft ถอนประกาศเดิม · `GET /:id/completeness` (map items→checklist เลี่ยง TransformInterceptor นึกว่าเป็น list — ⚠️ landmine)
+- **UI:** completeness panel ในราง (score+checklist+missing) · gated publish button · แถบอนุมัติเจ้าของ (อนุมัติ+ตีกลับ reason บังคับ) · ผู้จัดการ=ถอนคำขอ · badge/filter "รอตรวจสอบ" (tone done) · ConfirmDialog +reasonRequired
+- **verify authed 3 จอ จริง:** manager+owner pending view · gated incomplete draft (3/7·ปุ่มปิด·รายการแดง) · e2e flow ครอบ gate (409→เติมปก→available) · RBAC 7/7 เขียว
+
+## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /3 (Phase 4-6)
 > ทุกเฟส **reasoning-first**: เสนอดีไซน์+รูป → รอเคาะ → ทำ → verify authed → commit → หยุด (owner เคาะทีละเฟส "เคาะ N")
-- **Phase 3 · ด่านอนุมัติ + completeness:** เฉพาะเจ้าของ approve · reject+เหตุผล · **listing completeness panel + gate จำเป็น 7/7 ก่อน "ขอเผยแพร่"** (ใช้ engine จาก 2a) · โชว์รูปตอนอนุมัติ
-- **Phase 4 · แก้ live = รอตรวจ:** แก้ราคา/รูปทรัพย์ที่เผยแพร่แล้ว → เด้งกลับ "รอตรวจสอบ" ซ่อนจากเว็บจนอนุมัติใหม่ (`property.update` line ~150 · ตอนนี้ live ทันทีไม่ re-approve)
+- **Phase 4 · แก้ live = รอตรวจ:** แก้ราคา/รูปทรัพย์ที่เผยแพร่แล้ว → เด้งกลับ **`pending_review`** ซ่อนจากเว็บจนอนุมัติใหม่ (`property.update` · ตอนนี้ live ทันทีไม่ re-approve) — ⭐ ต่อยอดตรงจาก Phase 3 (สถานะ+ด่านพร้อมแล้ว)
 - **Phase 5 · แจ้งเตือนแก้ของสำคัญ:** notify เจ้าของเมื่อแก้ ราคา live / บัญชี-ติดต่อเจ้าของทรัพย์ / เงื่อนไขเงินสัญญา (ระบบ notification มีอยู่)
 - **Phase 6 · PII lock (+AI คัดรูป optional):** เลขบัตร idCardNo = เจ้าของเห็นคนเดียว (แยก perm) · (อนาคต) AI ตรวจรูป 18+ ก่อนถึงเจ้าของ
 
