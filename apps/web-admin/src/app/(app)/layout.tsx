@@ -16,7 +16,7 @@ import { useFocusTrap } from '@/lib/useFocusTrap';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Icon, type IconName } from '@/components/Icon';
 
-type NavItem = { href: string; label: string; icon: IconName; perm?: [string, string] };
+type NavItem = { href: string; label: string; icon: IconName; perm?: [string, string]; badgeKey?: 'propertyRequest' };
 // เรียงตาม flow ธุรกิจอสังหา: ตั้งต้นคลังทรัพย์ (เจ้าของ→ทรัพย์) → งานขาย (Lead→นัด→ปฏิทิน→ลูกค้า→สัญญา)
 const NAV: { group: string; items: NavItem[] }[] = [
   { group: 'ภาพรวม', items: [{ href: '/', label: 'แดชบอร์ด', icon: 'home' }] },
@@ -25,6 +25,7 @@ const NAV: { group: string; items: NavItem[] }[] = [
     items: [
       { href: '/owners', label: 'เจ้าของ', icon: 'key', perm: ['owner', 'read'] },
       { href: '/properties', label: 'ทรัพย์', icon: 'building', perm: ['property', 'read'] },
+      { href: '/property-requests', label: 'คำขอทรัพย์', icon: 'inbox', perm: ['property_request', 'read'], badgeKey: 'propertyRequest' },
     ],
   },
   {
@@ -62,9 +63,10 @@ const SLOTS: Slot[] = [
 const BOTTOM_HREFS = new Set(['/', '/appointments', '/properties']);
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, ready, can, logout } = useAuth();
+  const { user, ready, can, logout, api } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [prPending, setPrPending] = useState(0); // badge: จำนวนคำขอทรัพย์ที่รอตรวจ
   const [drawer, setDrawer] = useState(false);   // เมนูโปรไฟล์ (มือถือ)
   const [quickAdd, setQuickAdd] = useState(false); // ฟอร์มเพิ่มทรัพย์แบบลัด (ปุ่ม + มุมซ้ายบน)
   const [navCollapsed, setNavCollapsed] = useState(false); // bottom nav หุบตอนเลื่อนลง (แบบ IG)
@@ -76,6 +78,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (ready && !user) router.replace('/login');
   }, [ready, user, router]);
+
+  // badge คำขอทรัพย์ที่รอตรวจ — ดึงเมื่อมีสิทธิ์ (รีเฟรชตอนเปลี่ยนหน้า)
+  useEffect(() => {
+    if (!ready || !user || !can('property_request', 'read')) return;
+    let alive = true;
+    api<unknown[]>('/property-requests?status=pending&limit=1')
+      .then((r) => { if (alive) setPrPending((r as { meta?: { pendingCount?: number } }).meta?.pendingCount ?? 0); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [ready, user, can, api, pathname]);
 
   useEffect(() => { setDrawer(false); }, [pathname]);
 
@@ -181,7 +193,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-2xs leading-tight transition ${
                   isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
                 }`}>
-                <Icon name={it.icon} size={20} className={isActive(it.href) ? '' : 'opacity-80'} />
+                <span className="relative">
+                  <Icon name={it.icon} size={20} className={isActive(it.href) ? '' : 'opacity-80'} />
+                  {it.badgeKey === 'propertyRequest' && prPending > 0 && (
+                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold leading-none text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
+                  )}
+                </span>
                 <span>{it.label}</span>
               </Link>
             ))}
@@ -242,6 +259,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       }`}>
                       <Icon name={it.icon} size={18} className={isActive(it.href) ? '' : 'opacity-70'} />
                       {it.label}
+                      {it.badgeKey === 'propertyRequest' && prPending > 0 && (
+                        <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
+                      )}
                     </Link>
                   ))}
                 </div>

@@ -1,4 +1,5 @@
 import { PropertyType, PropertyRequestStatus } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min,
 } from 'class-validator';
@@ -54,5 +55,6 @@ export class ReviewNoteDto {
 export class QueryPropertyRequestDto {
   @IsOptional() @IsEnum(PropertyRequestStatus) status?: PropertyRequestStatus;
   @IsOptional() @IsString() @MaxLength(100) q?: string;
-  @IsOptional() @IsInt() @Min(1) page?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100) limit?: number;
 }

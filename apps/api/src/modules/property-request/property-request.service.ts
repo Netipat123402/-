@@ -117,7 +117,8 @@ export class PropertyRequestService {
       this.prisma.propertyRequest.count({ where }),
       this.prisma.propertyRequest.count({ where: { ...this.scopeWhere(user, scope), status: 'pending' } }),
     ]);
-    return { items, meta: { total, page, limit: PAGE_SIZE, pendingCount } };
+    // transform.interceptor spread { items, ...meta } → คืน pagination ที่ top-level (ไม่ห่อ meta ซ้อน)
+    return { items, total, page, limit: PAGE_SIZE, pendingCount };
   }
 
   private async getInScope(user: AuthenticatedUser, id: string, action: string): Promise<PropertyRequest> {

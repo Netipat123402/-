@@ -16,6 +16,7 @@ const ICONS = {
   key: (<><circle cx="8" cy="15.5" r="3.5" /><path d="M10.5 13 20 3.5" /><path d="M16.5 7l2.5 2.5" /><path d="M18.5 5l2 2" /></>),
   'file-text': (<><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z" /><path d="M14 3v4.5h4.5" /><path d="M9 13h6" /><path d="M9 16.5h6" /><path d="M9 9.5h2" /></>),
   image: (<><rect x="3.5" y="3.5" width="17" height="17" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M20 14.5 15.5 10 5 20.5" /></>),
+  inbox: (<><rect x="4" y="4.5" width="16" height="15" rx="2" /><path d="M4 13.5h4l1.5 2.5h5l1.5-2.5h4" /></>),
   menu: (<><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>),
   x: (<><path d="M6 6 18 18" /><path d="M18 6 6 18" /></>),
   'chevron-down': (<path d="M6 9.5 12 15.5 18 9.5" />),
