@@ -6,7 +6,7 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · design polish world-class **ครบแล้ว** (list/detail/form/filter/header).
-งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 5/6 เสร็จ · เหลือ Phase 6**.
+งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — **✅ ครบ roadmap 6/6 แล้ว** (Phase 1–6 + final system audit).
 ⭐ **owner ย้ำ: ระบบปฏิบัติงานจริง = 3 บทบาทเท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 = dormant (`isActive=false` · ปิดกันสับสน · เปิดคืนได้) — **ห้ามอ้าง dormant roles ในตรรกะ operating** (notify/gate) · ผู้รับแจ้งเตือนรวมที่ [`apps/api/src/common/auth/operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
 
@@ -52,11 +52,19 @@
 - **5a ปิด 5 dormant + ยึด 3 บทบาท:** `Role.isActive` (dormant=false · เปิดคืนได้) · `listRoles` กรอง active → picker เหลือ 3 · assign dormant→400 · รวม notify-roles ที่ [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts) (เลิก magic literal อ้าง dormant) refactor property×2/request/public/community · **FE จับบั๊ก:** users picker `CREATE_ROLES` เก่าซ่อน `property_manager` → เลิก filter + เพิ่มป้าย "ผู้จัดการ" · layout `isMod` ตรง backend
 - **5b alerts (แจ้งเจ้าของ · skip ถ้า super_admin แก้เอง):** owner แก้ ชื่อ/เบอร์/อีเมล/ที่อยู่ → แจ้ง+old→new · idCardNo แจ้ง "เปลี่ยน" ไม่โชว์ค่า · contract addTerm/removeTerm บน active → แจ้ง
 - **verify:** unit 96/96 · e2e 12/12 (listRoles=3·dormant assign=400·ผู้จัดการแก้เบอร์เจ้าของ→แจ้ง+skip-self) · role picker authed=3
-- 🔸 เก็บตก (ไม่บล็อก): seed มี test user `test.{role}@ros.local` ครบ 8 บทบาท (รวม dormant) — โชว์ในหน้า users อาจดูสับสน · ถ้าอยากสะอาดสุด trim seed เหลือ 3 (owner ตัดสิน)
+- 🔸 เก็บตก (ไม่บล็อก): seed มี test user `test.{role}@ros.local` ครบ 8 บทบาท (รวม dormant) — โชว์ในหน้า users อาจดูสับสน · ถ้าอยากสะอาดสุด trim seed เหลือ 3 (owner ตัดสิน) → **ทำแล้ว Phase 6 เก็บตก A**
 
-## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /1 (Phase 6)
+**Q · Phase 6 · PII reveal lock + เก็บตก + final audit:** `27d3427` + `3f57e83` (migration 0016: `property.content_dirty`)
+- **PII reveal (สมมาตร owner + customer):** สิทธิ์ `reveal_pii` (super_admin เท่านั้น ผ่าน '*') · `GET /{owners,customers}/:id/idcard` → decrypt + audit `reveal_pii` ทุกครั้ง (ไม่ลงค่าเลข) · FE owner detail ปุ่ม "แสดงเลขเต็ม" (mask→เต็ม→ซ่อน) · customer FE ยังไม่ surface idCard (endpoint พร้อม future)
+- **เก็บตก A:** soft-delete 5 dormant test users (ไม่ได้มาจาก seed · สร้างมือค้าง DB)
+- **เก็บตก B:** `contentDirty` — แก้เนื้อหาตอน rented → กลับ available เด้ง pending_review (manual changeStatus + **PropertySync สัญญาจบ** ครบทุกเส้นทางเข้า available) · เคลียร์ตอน approve
+- **⭐ final system audit** (`3f57e83`): permission matrix 3 บทบาท = maker-checker เป๊ะ · decrypt อยู่แค่ 2 reveal methods (gated) · status writes ผ่าน applyTransition · **เจอ+ปิด PropertySync ข้าม contentDirty** (edge สุดท้าย) · idCard ไม่รั่วผ่าน relation
+- **verify:** unit 96/96 · e2e 14/14 · reveal UI authed (mask→1103700123456→ซ่อน) · AI คัดรูป 18+ = เลื่อน future (คนละเรื่อง governance)
+
+## 4) 🎯 งานถัดไป — RBAC roadmap ✅ ครบ 6/6 (จบแล้ว)
 > ทุกเฟส **reasoning-first**: เสนอดีไซน์+รูป → รอเคาะ → ทำ → verify authed → commit → หยุด (owner เคาะทีละเฟส "เคาะ N")
-- **Phase 6 · PII lock (+AI คัดรูป optional):** เลขบัตร idCardNo = เจ้าของเห็นคนเดียว (แยก perm/reveal endpoint) · ⚠️ **สถานะปัจจุบัน:** idCardNo **mask ให้ทุกคนอยู่แล้ว** (`owner.service maskRow` · ไม่มีใครเห็นเลขเต็มผ่าน API) → Phase 6 = เพิ่ม **controlled reveal เฉพาะเจ้าของ** (ไม่ใช่ปะรู) · (อนาคต) AI ตรวจรูป 18+ ก่อนถึงเจ้าของ
+- **RBAC governance สมบูรณ์:** maker-checker + completeness gate + live-edit bounce + operational/governed split + 3-role hardening + sensitive-edit alerts + PII reveal lock + contentDirty (ทุกเส้นทางเข้า available)
+- **future (ยังไม่ทำ · คนละเรื่อง governance):** AI คัดรูป 18+ ก่อนถึงเจ้าของ (ต้อง vision model + pipeline) · customer idCard FE surface (endpoint reveal พร้อมแล้ว)
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
 - 🔑 **push commit ค้าง (~95 · ต้อง token)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
