@@ -90,15 +90,36 @@ export const ROLES: RoleDef[] = [
     },
   },
   {
-    name: 'sales_agent',
-    description: 'พนักงานขาย — ขาย/หาทรัพย์/ร่างสัญญา ในสำนักงาน · เงิน(เปิดสัญญา/ใบเสร็จ)ให้เจ้าของยืนยัน',
+    // ⭐ บทบาท operating จริง #2 (owner-approved) — "ผู้จัดการหลังบ้าน/คลังทรัพย์"
+    name: 'property_manager',
+    description: 'ผู้ดูแลทรัพย์ — จัดการคลังทรัพย์/หน้าเว็บ + operation เต็ม (lead/ลูกค้า/นัด/ร่างสัญญา) · เจ้าของถือ control (อนุมัติเผยแพร่/เงิน/ลบ/ระบบ)',
     isSystem: true,
-    // BRANCH: เห็น/อ้างอิงข้อมูลในสำนักงานเดียวกัน (เจ้าของ/ลูกค้า/ทรัพย์/lead รวม public ที่ยังไม่มอบหมาย)
-    // เดิมเป็น OWN ทำให้เห็นแต่ของที่ตัวเองสร้าง → ทำสัญญา/นัดไม่ได้ (dropdown ว่าง)
     scope: BRANCH,
     grants: {
+      // จัดการคลังทรัพย์ได้ แต่ "อนุมัติเผยแพร่เอง" ไม่ได้ (ไม่มี approve/reject) · ลบไม่ได้ (= control)
       property: ['create', 'read', 'update', 'change_status'],
       owner: ['create', 'read', 'update'],
+      // operation เต็มเหมือนเจ้าของ ยกเว้น delete (control กันกลบร่องรอย — เจ้าของเท่านั้น)
+      lead: ['create', 'read', 'update', 'assign', 'change_status', 'convert'],
+      customer: ['create', 'read', 'update'],
+      appointment: ['create', 'read', 'update', 'change_status'],
+      // ร่าง/แก้สัญญาได้ · เงิน(sign/เปิดสัญญา/ใบเสร็จ) = เจ้าของยืนยันเท่านั้น (money-gate เดียวกับ sales)
+      contract: ['create', 'read', 'update'],
+      document: ['create', 'read', 'upload', 'download'],
+      notification: ['read'], activity: ['read'], dashboard: ['read'],
+    },
+  },
+  {
+    name: 'sales_agent',
+    description: 'พนักงานขาย — ไปป์ไลน์ขาย (lead/ลูกค้า/นัด/ร่างสัญญา) · ทรัพย์=ดูอย่างเดียว (ขอเพิ่มทรัพย์ผ่าน property request) · เงินให้เจ้าของยืนยัน',
+    isSystem: true,
+    // BRANCH: เห็นข้อมูลทั้งสำนักงาน (อ้างอิงทรัพย์/เจ้าของ/ลูกค้า เพื่อทำสัญญา/นัด)
+    scope: BRANCH,
+    grants: {
+      // ⛔ ทรัพย์/เจ้าของทรัพย์ = อ่านอย่างเดียว (สินทรัพย์ร่วม · แก้ผ่านผู้ดูแลทรัพย์เท่านั้น · ข้อ ข)
+      //   เซลหาทรัพย์ได้ผ่าน "ขอเพิ่มทรัพย์" (property request · Phase 2) → ผู้ดูแลทรัพย์ลงจริง
+      property: ['read'],
+      owner: ['read'],
       // เพิ่ม 'assign' — ให้พนักงานขาย "รับ" lead ใหม่มาดูแลเองได้
       lead: ['create', 'read', 'update', 'assign', 'change_status', 'convert'],
       customer: ['create', 'read', 'update'],
