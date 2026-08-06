@@ -5,35 +5,43 @@
 > เริ่ม session ใหม่: CLAUDE.md โหลดเอง → อ่านไฟล์นี้เพื่อรู้สถานะ → รอรับงาน.
 
 ## 1) สถานะรวม
-โปรเจกต์ **~functional 100%** · งานตอนนี้ = **design polish world-class** (ยกเครื่อง detail/list/form/filter/header ให้เป็นระบบเดียว · ไม่ทำ feature ใหม่นอกจากที่เจ้าของสั่ง).
+โปรเจกต์ **~functional 100%** · design polish world-class **ครบแล้ว** (list/detail/form/filter/header).
+งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 2/6 เสร็จ · เหลือ Phase 3-6**.
 ⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
 
-## 2) ทำอะไรไปแล้ว (สะสมทุก session)
-**A · List pass 6 หน้า** — grid+subgrid ช่องไฟเท่ากันเต็มจอ · label-value · คอลัมน์ขวากึ่งกลาง
+## 2) ⭐ RBAC + governance (งานหลักตอนนี้) — org จริง: **สำนักงานเดียว · คุณ=admin+เจ้าของคนเดียว · คนอื่น=ขาย/หาทรัพย์**
+**บทบาท operating จริง = 3** (data-driven · อีก 5 เดิม dormant/demo คงไว้ future):
+- **Owner** (`super_admin`) — ทุกสิทธิ์ + control (อนุมัติ/เงิน/ลบ/ระบบ/PII)
+- **ผู้จัดการ** (`property_manager` · slug คงเดิม label="ผู้จัดการ") — operation เต็ม (ทรัพย์/lead/ลูกค้า/นัด/ร่างสัญญา) · **ไม่มี** approve/reject/sign/verify/delete/ระบบ · scope office
+- **เซล** (`sales_agent`) — ไปป์ไลน์ขาย (lead/ลูกค้า/นัด/ร่างสัญญา) · **ทรัพย์+เจ้าของทรัพย์=อ่านอย่างเดียว** · หาทรัพย์ผ่าน "ขอเพิ่มทรัพย์" · scope office
+- **test users:** `pm@ros.local` · `sale@ros.local` · รหัส `ChangeMe!2026`
 
-**B · Detail redesign "main + ราง" (เลิก SectionTabs) — ครบ 6/6:** สัญญา`73855a6` · ลูกค้า`c30b524` · นัด`b0380f9` · ลีด`7e4e120` · ทรัพย์`b33ca52` · เจ้าของ`a1f678b`
+**หลักที่ locked (เจ้าของเคาะแล้ว):** money-gate (เซ็น/ใบเสร็จ=เจ้าของ) · maker-checker (เซลขอ→ผู้จัดการลง→เจ้าของอนุมัติ) · completeness gate "จำเป็น 7/7" ก่อนขอเผยแพร่ · 3-tier edit governance (log→notify→re-approve) · เซลแก้/ถอนเฉพาะคำขอตัวเอง
 
-**C · แยกหมวดฟอร์ม — ครบ 6/6:** สั้น≤4ช่อง=คงแบน · ยาว6+=แยกหมวด (SectionLabel จางไม่มีไอคอน · space-y-5/-3) · นัด`0dc01f8` · เจ้าของ`e59e5f9` · สัญญา/ทรัพย์`3b973d1` · ลีด`6b46840`
+## 3) ทำอะไรไปแล้ว (สะสมทุก session)
+**A–H · Design polish (list/detail/form/filter):** ครบ 6/6 ทุกหมวด — grid+subgrid · main+ราง · แยกหมวดฟอร์ม · per-device · RailBlock · filter 6 หน้า (commit เดิมใน git log)
 
-**D · per-device list — ทบทวน 6/6:** การ์ด touch / ตาราง คอม · เจ้าของ C1`65b095e` (รวม 3 สถิติเป็นบรรทัดเดียวบนมือถือ)
+**I · Detail header (Direction A "แคปชั่นเดียว") — shared `DetailHeader`:** `b458bfd`+`37860ec` — พระเอกชื่อ+ราคาเกาะหลัง / แคปชั่นจางเส้นเดียว (จุดสถานะ·คำอธิบาย·รหัสจาง) · `statusMap`/`statusValue` · กระทบ 6 หน้า
 
-**E · เว้นวรรค "ขอบเนื้อเดียว" (RailBlock):** `fb30811`·`232c9a5`·`234a7d2` · ถอดออกจาก เอกสาร/ประวัติ `580f7a5` · empty state กึ่งกลาง ทุกหน้า
+**J · Claude Code IA (Blueprint B):** `339d959` — `CLAUDE.md`(auto-load) · `.claude/rules/workflow-cycle.md` · `.claude/commands/`(verify-authed·reseed-check) · `.claude/hooks/block-dangerous.sh` · แยก settings team/local · **`51e5739` เพิ่ม Operating Agreement §0** (reasoning-first·ทีละขั้นรอเคาะ·แจ้งเชิงรุก·บอกเฟส)
 
-**F · ราง (rail) กึ่งกลาง+ปุ่มเต็มกว้าง** `a276788` (เพิ่ม `xl:ml-0` แก้ ml-auto ขัด items-stretch)
+**K · RBAC money-gate:** `9bdd783` — ตัด `contract:sign`+`change_status` จาก sales · ใบเสร็จผูก `contract:sign` · reconcile ใน roles seed (declarative)
 
-**G · ลิสต์ยาว (เจ้าของ 10+ ทรัพย์)** `af0ea85` — โชว์ 6 + "ดูทั้งหมด N ›" → `/properties?owner=<id>`
+**L · Phase 1 · 3 บทบาท:** `7cc7865` — เพิ่ม `property_manager` · sales ทรัพย์=read · verify: grant audit + e2e 7/7 + live API (sales create=403 · pm approve/sign=403) + sales UI read-only
 
-**H · Filter redesign 6 list:** เจ้าของ`1289050` · ทรัพย์`53eaa41` · ลีด`0e91b15` · นัด`a5ab1cb` · ลูกค้า`e4fdd04` · สัญญา`78794ca` (ค้นหา=พระเอก · ใช้บ่อย=แรก · ลูกค้า/สัญญาไม่ยัด "ของฉัน")
+**M · Phase 2 · ขอเพิ่มทรัพย์ (property request) — ครบ 2a+audit+2b:**
+- `d5d99d3` **2a backend:** โมเดล `PropertyRequest` + migration 0013 + `sourcedById` ใน Property · resource `property_request` · endpoints (create/list/get/update/convert/request-info/reject/delete) · v2: dup-check·needs_info·consent·sourcing · **completeness engine** `property-completeness.ts` (พร้อมใช้ Phase 3)
+- `ee1f2e6` **audit fixes:** label "ผู้จัดการ" · เซลแก้/ถอนเฉพาะของตัวเอง (own-scope) · withdraw
+- `a78210a` **2b frontend:** เมนู "คำขอทรัพย์"+badge · list+ฟอร์ม · detail+รางตามบทบาท (ผู้จัดการ=convert/reject · เซล=แก้/ถอน) · verify authed จริง (convert→CD draft prefill+owner+sourcing) · มือถือ card · fix 3 บั๊ก (limit whitelist·query→number·meta ซ้อน)
 
-**I · Detail header ยกเครื่อง (Direction A "แคปชั่นเดียว") — shared `DetailHeader`:** `b458bfd` ลด 6 พื้นผิว→2 ระดับ (พระเอกชื่อ + แคปชั่นจางเส้นเดียว: จุดสถานะ·คำอธิบาย·รหัสจาง) · ทรัพย์ 4→2 บรรทัด · ยอดวิวย้ายลงราง · `statusMap`/`statusValue` แทน badge/meta · `37860ec` ราคาเกาะหลังชื่อ (คลัสเตอร์ชิดซ้าย ไม่ปักขอบขวา = ไม่กวาดตา) · กระทบ 6 หน้า detail (ทรัพย์/ลีด/นัด/สัญญา/เจ้าของ/ลูกค้า) · verify authed 3 จอ
+## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /4 (Phase 3-6)
+> ทุกเฟส **reasoning-first**: เสนอดีไซน์+รูป → รอเคาะ → ทำ → verify authed → commit → หยุด (owner เคาะทีละเฟส "เคาะ N")
+- **Phase 3 · ด่านอนุมัติ + completeness:** เฉพาะเจ้าของ approve · reject+เหตุผล · **listing completeness panel + gate จำเป็น 7/7 ก่อน "ขอเผยแพร่"** (ใช้ engine จาก 2a) · โชว์รูปตอนอนุมัติ
+- **Phase 4 · แก้ live = รอตรวจ:** แก้ราคา/รูปทรัพย์ที่เผยแพร่แล้ว → เด้งกลับ "รอตรวจสอบ" ซ่อนจากเว็บจนอนุมัติใหม่ (`property.update` line ~150 · ตอนนี้ live ทันทีไม่ re-approve)
+- **Phase 5 · แจ้งเตือนแก้ของสำคัญ:** notify เจ้าของเมื่อแก้ ราคา live / บัญชี-ติดต่อเจ้าของทรัพย์ / เงื่อนไขเงินสัญญา (ระบบ notification มีอยู่)
+- **Phase 6 · PII lock (+AI คัดรูป optional):** เลขบัตร idCardNo = เจ้าของเห็นคนเดียว (แยก perm) · (อนาคต) AI ตรวจรูป 18+ ก่อนถึงเจ้าของ
 
-**K · RBAC money-gate (กันโกง · Agent ทำได้แต่เงินเข้าเจ้าของก่อน):** ตัด `contract:sign`+`change_status` ออกจาก `sales_agent` (ร่างสัญญาได้ · เปิดสัญญา/ใบเสร็จไม่ได้) · ใบเสร็จผูก `contract:sign` แทน `update` (controller) + ปุ่ม FE ตาม · เพิ่ม **reconcile** ใน roles seed (ลบสิทธิ์ที่ถอน = declarative) · apply DB แล้ว · verify: agent receipt/sign=403 read=200 · owner เห็นปุ่มออกใบเสร็จครบ · scope Agent = office (ไม่เปลี่ยน) · **บทบาท operating จริง = 2 (Owner=super_admin · Agent=sales_agent) · อีก 5 คงไว้ future/demo** (ยังไม่ purge — มี mock user ผูก)
-
-**J · Claude Code IA restructure (Blueprint B):** เพิ่ม `CLAUDE.md` (เราเตอร์ auto-load) · `.claude/rules/workflow-cycle.md` · `.claude/commands/` (verify-authed·reseed-check) · `.claude/hooks/block-dangerous.sh` · แยก `settings.json`(team)/`settings.local.json`(personal) + ล้าง 320→~30 บรรทัด · ตัด handover เหลือ state · **ไม่ย้าย DESIGN-SYSTEM/docs** (product docs + memory graph 9 ไฟล์อ้างอยู่ → คงที่, CLAUDE.md ชี้แทน)
-
-## 3) 🎯 งานถัดไป
-- **polish phase ครบทั้งหมดแล้ว** (§8 label-value · §10 แยกหมวด · §11 per-device · §12 detail=main+ราง / list=grid+subgrid · filter 6 หน้า · header 6 หน้า) — **ไม่มีงานค้างเชิงระบบ**
-- ถ้าเจ้าของเจอจุดเฉพาะ = งานทีละหน้าตาม CYCLE (สแกน→ติ→เสนอ 3 จอ→รอเคาะ→ทำ)
-
-## 4) เหลือฝั่งเจ้าของ (ไม่บล็อก)
-- 🔑 **push commit ค้างทั้งหมด (~89 · ต้อง token)** · 🖼 วาง `apps/web-public/public/hero.jpg` (ถ้ายัง)
+## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
+- 🔑 **push commit ค้าง (~95 · ต้อง token)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- ⚠️ **schema drift:** DB มี trgm search index + `appointments.ends_at` ที่ไม่มีใน `schema.prisma` → **อย่ารัน `prisma migrate dev`** (มันจะเสนอ DROP) · ใช้ manual SQL + `migrate resolve --applied` (ทำแบบนี้ที่ 0013) · งานเก็บตก: sync model ให้ตรง DB
+- 🔸 polish เล็ก: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
