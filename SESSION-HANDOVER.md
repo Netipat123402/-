@@ -6,7 +6,7 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · design polish world-class **ครบแล้ว** (list/detail/form/filter/header).
-งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 3/6 เสร็จ · เหลือ Phase 4-6**.
+งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 4/6 เสร็จ · เหลือ Phase 5-6**.
 ⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
 
 ## 2) ⭐ RBAC + governance (งานหลักตอนนี้) — org จริง: **สำนักงานเดียว · คุณ=admin+เจ้าของคนเดียว · คนอื่น=ขาย/หาทรัพย์**
@@ -40,10 +40,16 @@
 - **UI:** completeness panel ในราง (score+checklist+missing) · gated publish button · แถบอนุมัติเจ้าของ (อนุมัติ+ตีกลับ reason บังคับ) · ผู้จัดการ=ถอนคำขอ · badge/filter "รอตรวจสอบ" (tone done) · ConfirmDialog +reasonRequired
 - **verify authed 3 จอ จริง:** manager+owner pending view · gated incomplete draft (3/7·ปุ่มปิด·รายการแดง) · e2e flow ครอบ gate (409→เติมปก→available) · RBAC 7/7 เขียว
 
-## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /3 (Phase 4-6)
+**O · Phase 4 · governance hardening + แก้ live เด้งกลับรอตรวจ:** `6830cf0` (ไม่มี migration — ใช้ enum เดิม)
+- **4a ปิดช่องรั่ว maker-checker:** เจอ generic `PATCH /:id/status` (change_status) ยิง draft→available ตรงได้ = ข้ามด่านอนุมัติ+gate (manager self-publish!) → แยก **operational** (ว่าง↔ไม่ว่าง ผ่าน changeStatus) vs **governed** (publish/approval ผ่าน submit/approve/reject เท่านั้น) · `isOperationalTransition()` · changeStatus นอก operational → 409
+- **4b แก้ live เด้งกลับ (Option A strict):** เพิ่ม transition available→pending_review (ระบบทริกเกอร์) · `update` แก้ material field (20 field เนื้อหาลูกค้าเห็น · value-diff กันเด้ง no-op) บน available → bounce pending_review + ซ่อนเว็บ + notify · addMedia/deleteMedia/setCover ก็ bounce · safe(ไม่เด้ง)=`isFeatured`+`assignedToId`
+- **UI:** PropertyForm banner เตือน (แก้ทรัพย์เผยแพร่→รอตรวจสอบ) · detail media heads-up + toast รู้การเด้ง
+- **verify:** e2e governance (draft→available ตรง=409·operational=ได้·governed ตรง=409·แก้ราคา live→pending+public 404) · lifecycle spec 28/28 · banner authed 3 จอ
+- ⚠️ **edge ที่ยังเปิด (future):** แก้เนื้อหา**ตอน rented** (off-market ไม่เด้ง) แล้ว rented→available กลับขึ้นเว็บพร้อมของยังไม่ตรวจ · ทางแก้ระดับโลก = primitive `contentReviewedAt` (set ตอน approve · clear ตอนแก้ material · ทุกเส้นเข้า available เช็ค) — ยังไม่ทำ
+
+## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /2 (Phase 5-6)
 > ทุกเฟส **reasoning-first**: เสนอดีไซน์+รูป → รอเคาะ → ทำ → verify authed → commit → หยุด (owner เคาะทีละเฟส "เคาะ N")
-- **Phase 4 · แก้ live = รอตรวจ:** แก้ราคา/รูปทรัพย์ที่เผยแพร่แล้ว → เด้งกลับ **`pending_review`** ซ่อนจากเว็บจนอนุมัติใหม่ (`property.update` · ตอนนี้ live ทันทีไม่ re-approve) — ⭐ ต่อยอดตรงจาก Phase 3 (สถานะ+ด่านพร้อมแล้ว)
-- **Phase 5 · แจ้งเตือนแก้ของสำคัญ:** notify เจ้าของเมื่อแก้ ราคา live / บัญชี-ติดต่อเจ้าของทรัพย์ / เงื่อนไขเงินสัญญา (ระบบ notification มีอยู่)
+- **Phase 5 · แจ้งเตือนแก้ของสำคัญ:** notify เจ้าของเมื่อแก้ ราคา live / บัญชี-ติดต่อเจ้าของทรัพย์ / เงื่อนไขเงินสัญญา (ระบบ notification มีอยู่) · หมายเหตุ: Phase 4b มี notify ตอนแก้ทรัพย์ live แล้ว (bounce) — Phase 5 = ขยายไป owner-contact/สัญญา + ปรับระดับความสำคัญ
 - **Phase 6 · PII lock (+AI คัดรูป optional):** เลขบัตร idCardNo = เจ้าของเห็นคนเดียว (แยก perm) · (อนาคต) AI ตรวจรูป 18+ ก่อนถึงเจ้าของ
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
