@@ -9,6 +9,8 @@ import type { PrismaClient, PermissionScope } from '@prisma/client';
 // resource:action — action ที่ทำได้ในแต่ละ resource
 const RESOURCE_ACTIONS: Record<string, string[]> = {
   property: ['create', 'read', 'update', 'delete', 'approve', 'reject', 'change_status'],
+  // คำขอเพิ่มทรัพย์ (Phase 2): เซล create/read/update · ผู้ดูแลทรัพย์ convert/reject
+  property_request: ['create', 'read', 'update', 'convert', 'reject', 'delete'],
   owner: ['create', 'read', 'update', 'delete'],
   lead: ['create', 'read', 'update', 'delete', 'assign', 'change_status', 'convert'],
   customer: ['create', 'read', 'update', 'delete'],
@@ -55,7 +57,7 @@ export const ROLES: RoleDef[] = [
     isSystem: true,
     scope: ALL,
     grants: {
-      property: '*', owner: '*', lead: '*', customer: '*', appointment: '*',
+      property: '*', property_request: '*', owner: '*', lead: '*', customer: '*', appointment: '*',
       contract: '*', document: '*', notification: '*', activity: '*',
       audit: ['read', 'export'], dashboard: '*',
       user: '*', role: ['read'], branch: '*', team: '*', setting: '*',
@@ -67,7 +69,7 @@ export const ROLES: RoleDef[] = [
     isSystem: true,
     scope: BRANCH,
     grants: {
-      property: '*', owner: '*', lead: '*', customer: '*', appointment: '*',
+      property: '*', property_request: '*', owner: '*', lead: '*', customer: '*', appointment: '*',
       contract: '*', document: '*', notification: ['read'], activity: ['read'],
       audit: ['read'], dashboard: ['read'],
       user: ['read'], team: ['read'], setting: ['read'],
@@ -80,6 +82,7 @@ export const ROLES: RoleDef[] = [
     scope: TEAM,
     grants: {
       property: ['create', 'read', 'update', 'approve', 'reject', 'change_status'],
+      property_request: ['create', 'read', 'update', 'convert', 'reject'],
       owner: ['create', 'read', 'update'],
       lead: ['create', 'read', 'update', 'assign', 'change_status', 'convert'],
       customer: ['create', 'read', 'update'],
@@ -98,6 +101,8 @@ export const ROLES: RoleDef[] = [
     grants: {
       // จัดการคลังทรัพย์ได้ แต่ "อนุมัติเผยแพร่เอง" ไม่ได้ (ไม่มี approve/reject) · ลบไม่ได้ (= control)
       property: ['create', 'read', 'update', 'change_status'],
+      // คำขอเพิ่มทรัพย์: ผู้ดูแลตรวจ+convert เป็นประกาศ / ตีกลับ
+      property_request: ['create', 'read', 'update', 'convert', 'reject'],
       owner: ['create', 'read', 'update'],
       // operation เต็มเหมือนเจ้าของ ยกเว้น delete (control กันกลบร่องรอย — เจ้าของเท่านั้น)
       lead: ['create', 'read', 'update', 'assign', 'change_status', 'convert'],
@@ -119,6 +124,8 @@ export const ROLES: RoleDef[] = [
       // ⛔ ทรัพย์/เจ้าของทรัพย์ = อ่านอย่างเดียว (สินทรัพย์ร่วม · แก้ผ่านผู้ดูแลทรัพย์เท่านั้น · ข้อ ข)
       //   เซลหาทรัพย์ได้ผ่าน "ขอเพิ่มทรัพย์" (property request · Phase 2) → ผู้ดูแลทรัพย์ลงจริง
       property: ['read'],
+      // ขอเพิ่มทรัพย์: เซลส่งคำขอ + แก้คำขอตัวเอง (ตอน needs_info)
+      property_request: ['create', 'read', 'update'],
       owner: ['read'],
       // เพิ่ม 'assign' — ให้พนักงานขาย "รับ" lead ใหม่มาดูแลเองได้
       lead: ['create', 'read', 'update', 'assign', 'change_status', 'convert'],
@@ -151,7 +158,7 @@ export const ROLES: RoleDef[] = [
     isSystem: true,
     scope: ALL,
     grants: {
-      property: ['read'], owner: ['read'], lead: ['read'], customer: ['read'],
+      property: ['read'], property_request: ['read'], owner: ['read'], lead: ['read'], customer: ['read'],
       appointment: ['read'], contract: ['read'], document: ['read', 'download'],
       activity: ['read'], audit: ['read', 'export'], dashboard: ['read'],
     },

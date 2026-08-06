@@ -62,6 +62,15 @@ enum PropertyStatus {
   @@map("property_status")
 }
 
+enum PropertyRequestStatus {
+  pending // เซลส่ง รอผู้ดูแลทรัพย์ตรวจ
+  needs_info // ผู้ดูแลตีกลับให้แก้ (soft) — เซลแก้แล้วส่งใหม่
+  converted // สร้างเป็นประกาศ (ร่าง) แล้ว
+  rejected // ปฏิเสธถาวร
+
+  @@map("property_request_status")
+}
+
 enum Furnished {
   fully
   partial
@@ -138,6 +147,7 @@ enum DocStatus {
 
 enum EntityType {
   property
+  property_request
   owner
   customer
   lead
@@ -256,6 +266,9 @@ model User {
   ledTeams           Team[]                   @relation("TeamLead")
   userRoles          UserRole[]
   assignedProperties Property[]               @relation("PropertyAssignee")
+  sourcedProperties  Property[]               @relation("PropertySourcer")
+  submittedRequests  PropertyRequest[]        @relation("PRSubmitter")
+  reviewedRequests   PropertyRequest[]        @relation("PRReviewer")
   assignedLeads      Lead[]                   @relation("LeadAssignee")
   agentAppointments  Appointment[]            @relation("AppointmentAgent")
   agentContracts     Contract[]               @relation("ContractAgent")
@@ -381,6 +394,7 @@ model Property {
   code         String         @unique @db.VarChar(30)
   ownerId      String         @map("owner_id") @db.Uuid
   assignedToId String?        @map("assigned_to") @db.Uuid
+  sourcedById  String?        @map("sourced_by") @db.Uuid // เซลผู้หาทรัพย์ (จาก property request · Phase 2) — เครดิต/ค่าคอม
   propertyType PropertyType   @map("property_type")
   status       PropertyStatus @default(draft)
 
@@ -421,6 +435,8 @@ model Property {
 
   owner         Owner                   @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   assignedTo    User?                   @relation("PropertyAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  sourcedBy     User?                   @relation("PropertySourcer", fields: [sourcedById], references: [id], onDelete: SetNull)
+  fromRequests  PropertyRequest[]       @relation("PropertyFromRequest")
   branch        Branch?                 @relation(fields: [branchId], references: [id], onDelete: SetNull)
   media         PropertyMedia[]
   statusHistory PropertyStatusHistory[]
@@ -436,6 +452,56 @@ model Property {
   @@index([province, district])
   @@index([monthlyRent])
   @@map("properties")
+}
+
+/// คำขอเพิ่มทรัพย์ (Phase 2) — เซลส่งทรัพย์ที่เจอ → ผู้ดูแลทรัพย์ตรวจ+convert เป็นประกาศ
+/// เซลไม่แตะตาราง properties เลย (สินทรัพย์ร่วม) · โครงลอก lead intake→convert
+model PropertyRequest {
+  id     String                @id @default(uuid(7)) @db.Uuid
+  code   String                @unique @db.VarChar(30) // PR-2026-0001
+  status PropertyRequestStatus @default(pending)
+
+  // ข้อมูลทรัพย์ที่เซลเจอ (subset — seed ประกาศตอน convert)
+  titleTh      String        @map("title_th") @db.VarChar(200)
+  propertyType PropertyType?  @map("property_type")
+  province     String?       @db.VarChar(100)
+  district     String?       @db.VarChar(100)
+  projectName  String?       @map("project_name") @db.VarChar(150)
+  expectedRent Decimal?      @map("expected_rent") @db.Decimal(12, 2)
+  bedrooms     Int?          @db.SmallInt
+  bathrooms    Int?          @db.SmallInt
+  areaSqm      Decimal?      @map("area_sqm") @db.Decimal(8, 2)
+  note         String?       @db.Text
+
+  // เจ้าของทรัพย์ (landlord) ที่เซลติดต่อ
+  ownerName  String? @map("owner_name") @db.VarChar(150)
+  ownerPhone String? @map("owner_phone") @db.VarChar(20)
+
+  // consent (v2) — เจ้าของทรัพย์ยินยอมให้ลงประกาศ (กฎหมาย/PDPA)
+  ownerConsent   Boolean   @default(false) @map("owner_consent")
+  ownerConsentAt DateTime? @map("owner_consent_at") @db.Timestamptz(6)
+
+  // review — reviewNote ใช้ทั้ง needs_info (ขอข้อมูลเพิ่ม) และ rejected (เหตุผล)
+  reviewNote          String? @map("review_note") @db.Text
+  convertedPropertyId String? @map("converted_property_id") @db.Uuid
+
+  branchId      String? @map("branch_id") @db.Uuid
+  submittedById String? @map("submitted_by") @db.Uuid // เซลผู้ขอ (เครดิต sourcing)
+  reviewedById  String? @map("reviewed_by") @db.Uuid // ผู้ดูแลทรัพย์ผู้ตรวจ
+
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+
+  submittedBy       User?     @relation("PRSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedBy        User?     @relation("PRReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  convertedProperty Property? @relation("PropertyFromRequest", fields: [convertedPropertyId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([submittedById])
+  @@index([branchId])
+  @@map("property_requests")
 }
 
 model PropertyMedia {
