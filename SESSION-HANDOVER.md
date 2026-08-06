@@ -5,17 +5,18 @@
 > เริ่ม session ใหม่: CLAUDE.md โหลดเอง → อ่านไฟล์นี้เพื่อรู้สถานะ → รอรับงาน.
 
 ## 1) สถานะรวม
-โปรเจกต์ **~functional 100%** · design polish world-class **ครบแล้ว** (list/detail/form/filter/header).
-งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — **✅ ครบ roadmap 6/6 แล้ว** (Phase 1–6 + final system audit).
-⭐ **owner ย้ำ: ระบบปฏิบัติงานจริง = 3 บทบาทเท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 = dormant (`isActive=false` · ปิดกันสับสน · เปิดคืนได้) — **ห้ามอ้าง dormant roles ในตรรกะ operating** (notify/gate) · ผู้รับแจ้งเตือนรวมที่ [`apps/api/src/common/auth/operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
-⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
+โปรเจกต์ **~functional 100%** · **RBAC + governance กันโกง ✅ ครบ roadmap 6/6** (Phase 1–6 + final system audit — commit `7cc7865`…`f4f3063`).
+🔥 **งานใหญ่ตอนนี้ = ออกแบบ UX แยกตามบทบาท** (owner จับได้: ปุ่มถูกซ่อนแล้วจริง แต่ UX "รูปทรง" เหมือนกันทุกบทบาท = ไม่ระดับโลก) → **กำลังทำแดชบอร์ดแยก 3 บทบาท** (ดู §6 · เสนอ design+รูปแล้ว รอเคาะวิธี endpoint vs client) · แล้วต่อ sidebar/เมนู · **เฟส C = แปลทั้งระบบเป็นอังกฤษ** (ค้าง · 56 ไฟล์ · ไม่มี i18n lib)
+📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
+⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
+⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
 
 ## 2) ⭐ RBAC + governance (งานหลักตอนนี้) — org จริง: **สำนักงานเดียว · คุณ=admin+เจ้าของคนเดียว · คนอื่น=ขาย/หาทรัพย์**
 **บทบาท operating จริง = 3** (data-driven · อีก 5 เดิม dormant/demo คงไว้ future):
 - **Owner** (`super_admin`) — ทุกสิทธิ์ + control (อนุมัติ/เงิน/ลบ/ระบบ/PII)
 - **ผู้จัดการ** (`property_manager` · slug คงเดิม label="ผู้จัดการ") — operation เต็ม (ทรัพย์/lead/ลูกค้า/นัด/ร่างสัญญา) · **ไม่มี** approve/reject/sign/verify/delete/ระบบ · scope office
 - **เซล** (`sales_agent`) — ไปป์ไลน์ขาย (lead/ลูกค้า/นัด/ร่างสัญญา) · **ทรัพย์+เจ้าของทรัพย์=อ่านอย่างเดียว** · หาทรัพย์ผ่าน "ขอเพิ่มทรัพย์" · scope office
-- **test users:** `pm@ros.local` · `sale@ros.local` · รหัส `ChangeMe!2026`
+- **⚠️ รหัสผ่าน (เปลี่ยนแล้ว!):** `admin@ros.local` = `ChangeMe!2026` · **`pm@ros.local` + `sale@ros.local` = `Xyz890011`** (ไม่ใช่ ChangeMe!2026 แล้ว — CLAUDE.md ยังเขียนเก่า ระวัง)
 
 **หลักที่ locked (เจ้าของเคาะแล้ว):** money-gate (เซ็น/ใบเสร็จ=เจ้าของ) · maker-checker (เซลขอ→ผู้จัดการลง→เจ้าของอนุมัติ) · completeness gate "จำเป็น 7/7" ก่อนขอเผยแพร่ · 3-tier edit governance (log→notify→re-approve) · เซลแก้/ถอนเฉพาะคำขอตัวเอง
 
@@ -61,10 +62,17 @@
 - **⭐ final system audit** (`3f57e83`): permission matrix 3 บทบาท = maker-checker เป๊ะ · decrypt อยู่แค่ 2 reveal methods (gated) · status writes ผ่าน applyTransition · **เจอ+ปิด PropertySync ข้าม contentDirty** (edge สุดท้าย) · idCard ไม่รั่วผ่าน relation
 - **verify:** unit 96/96 · e2e 14/14 · reveal UI authed (mask→1103700123456→ซ่อน) · AI คัดรูป 18+ = เลื่อน future (คนละเรื่อง governance)
 
-## 4) 🎯 งานถัดไป — RBAC roadmap ✅ ครบ 6/6 (จบแล้ว)
-> ทุกเฟส **reasoning-first**: เสนอดีไซน์+รูป → รอเคาะ → ทำ → verify authed → commit → หยุด (owner เคาะทีละเฟส "เคาะ N")
-- **RBAC governance สมบูรณ์:** maker-checker + completeness gate + live-edit bounce + operational/governed split + 3-role hardening + sensitive-edit alerts + PII reveal lock + contentDirty (ทุกเส้นทางเข้า available)
-- **future (ยังไม่ทำ · คนละเรื่อง governance):** AI คัดรูป 18+ ก่อนถึงเจ้าของ (ต้อง vision model + pipeline) · customer idCard FE surface (endpoint reveal พร้อมแล้ว)
+## 4) 🎯 งานถัดไป — ⭐ ออกแบบ UX แยกตามบทบาท (งานใหญ่ · ทำตาม CYCLE เต็ม)
+> owner สั่งชัด: **ทำตามทุกกฎ** (ติของเก่า → เสนอ+รูป 3 จอ show_widget → รอเคาะ → ทำ → verify authed 3จอ×3บทบาท → **self-check ถ้าไม่ดีติ+เสนอใหม่** → **เทส flow ซ้ำ** → commit → ทีละหน้า)
+> ⚠️ **RBAC backend เสร็จหมดแล้ว + ปุ่มถูก gate ถูกต้อง** (เซลไม่เห็นปุ่มเพิ่ม/แก้/ลบทรัพย์จริง) — งานที่เหลือคือ **"รูปทรง" UX ที่ยังเหมือนกันทุกบทบาท** (แดชบอร์ด/เมนู/หน้า read-only)
+- **🔵 กำลังทำ · เคาะแล้ว: แดชบอร์ดแยก 3 บทบาท** — design + รูปเทียบเสนอแล้ว (เซล=ไปป์ไลน์ของฉัน · ผจก=ปฏิบัติการ · ผู้บริหาร=คิวอนุมัติ/กันโกง) · **รอ owner เคาะ 1 จุด: วิธี implement** = (ก) `GET /dashboard` endpoint คำนวณตามบทบาท [แนะนำ ระดับโลก] หรือ (ข) client-fetch เลือกเมตริก+กรอง "ของฉัน" (assignedToId/agentId มีแล้ว · property ยังไม่มี sourcedById filter) · dashboard ปัจจุบัน = [`apps/web-admin/src/app/(app)/page.tsx`](apps/web-admin/src/app/(app)/page.tsx) (gate ด้วย can() แต่เมตริกทั้งออฟฟิศ)
+- **ถัดไป:** sidebar/เมนู แยกบทบาท (เซล=เน้นขาย) · หน้า read-only แต่งให้ "อ่านอย่างเดียว" ชัด
+- **🟢 เฟส C (ค้าง · ก้อนใหญ่สุด): แปลทั้งระบบเป็นอังกฤษ** — 56 ไฟล์ · **ไม่มี i18n lib** (สตริงไทย hardcode) · owner เคาะ direction แล้ว · **รอเคาะวิธี**: (ก) ติดตั้ง next-intl + แยก en.json [world-class สลับภาษาได้] หรือ (ข) replace ไทย→อังกฤษตรง · ขอบเขต web-admin หรือ +web-public
+- **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
+
+## 6) 🧪 เครื่องมือเทส/ข้อมูล (session นี้สร้าง)
+- **ลบ mock + populate จริง:** ทำผ่านสคริปต์ tsx ใน `db/` (login 3 บทบาท → เดิน flow จริงด้วย fetch → :4000) · idempotent (wipe ก่อน) · อัปรูปจริง multipart (1x1 PNG base64) · **`audit_logs` = append-only** (มี trigger กัน DELETE — ดีไซน์ถูก) → reset ใช้ `TRUNCATE audit_logs` (DDL ข้าม trigger · prod ห้าม)
+- **flow test 3 บทบาท:** เดินเต็มวงจร **0 error · สิทธิ์ 15/15 ผ่าน** (เซลขอ→ผจก convert+เติมทุกช่อง+อัปรูป→ผู้บริหารอนุมัติ→สัญญา verify+sign+receipt→rented) · เซลสร้าง/แก้ทรัพย์=403 · ผจกอนุมัติ/เปิดบัตร/ลบ=403 · bypass changeStatus=409 → **flow ไม่ชน ไม่เพี้ยน · backend production-ready**
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
 - 🔑 **push commit ค้าง (~95 · ต้อง token)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
