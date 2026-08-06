@@ -6,7 +6,8 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · design polish world-class **ครบแล้ว** (list/detail/form/filter/header).
-งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 4/6 เสร็จ · เหลือ Phase 5-6**.
+งานตอนนี้ = **RBAC 3 บทบาท + governance กันโกง (world-class)** — feature ใหม่ที่เจ้าของสั่ง. อยู่ **Phase 5/6 เสร็จ · เหลือ Phase 6**.
+⭐ **owner ย้ำ: ระบบปฏิบัติงานจริง = 3 บทบาทเท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 = dormant (`isActive=false` · ปิดกันสับสน · เปิดคืนได้) — **ห้ามอ้าง dormant roles ในตรรกะ operating** (notify/gate) · ผู้รับแจ้งเตือนรวมที่ [`apps/api/src/common/auth/operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 (dev ตัวเอง) — ค้างบ่อย hard refresh (Cmd+Shift+R).
 
 ## 2) ⭐ RBAC + governance (งานหลักตอนนี้) — org จริง: **สำนักงานเดียว · คุณ=admin+เจ้าของคนเดียว · คนอื่น=ขาย/หาทรัพย์**
@@ -47,10 +48,15 @@
 - **verify:** e2e governance (draft→available ตรง=409·operational=ได้·governed ตรง=409·แก้ราคา live→pending+public 404) · lifecycle spec 28/28 · banner authed 3 จอ
 - ⚠️ **edge ที่ยังเปิด (future):** แก้เนื้อหา**ตอน rented** (off-market ไม่เด้ง) แล้ว rented→available กลับขึ้นเว็บพร้อมของยังไม่ตรวจ · ทางแก้ระดับโลก = primitive `contentReviewedAt` (set ตอน approve · clear ตอนแก้ material · ทุกเส้นเข้า available เช็ค) — ยังไม่ทำ
 
-## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /2 (Phase 5-6)
+**P · Phase 5 · 3-role hardening + sensitive-edit alerts:** `fef8515` (migration 0015: `roles.is_active` + `owner` notif category)
+- **5a ปิด 5 dormant + ยึด 3 บทบาท:** `Role.isActive` (dormant=false · เปิดคืนได้) · `listRoles` กรอง active → picker เหลือ 3 · assign dormant→400 · รวม notify-roles ที่ [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts) (เลิก magic literal อ้าง dormant) refactor property×2/request/public/community · **FE จับบั๊ก:** users picker `CREATE_ROLES` เก่าซ่อน `property_manager` → เลิก filter + เพิ่มป้าย "ผู้จัดการ" · layout `isMod` ตรง backend
+- **5b alerts (แจ้งเจ้าของ · skip ถ้า super_admin แก้เอง):** owner แก้ ชื่อ/เบอร์/อีเมล/ที่อยู่ → แจ้ง+old→new · idCardNo แจ้ง "เปลี่ยน" ไม่โชว์ค่า · contract addTerm/removeTerm บน active → แจ้ง
+- **verify:** unit 96/96 · e2e 12/12 (listRoles=3·dormant assign=400·ผู้จัดการแก้เบอร์เจ้าของ→แจ้ง+skip-self) · role picker authed=3
+- 🔸 เก็บตก (ไม่บล็อก): seed มี test user `test.{role}@ros.local` ครบ 8 บทบาท (รวม dormant) — โชว์ในหน้า users อาจดูสับสน · ถ้าอยากสะอาดสุด trim seed เหลือ 3 (owner ตัดสิน)
+
+## 4) 🎯 งานถัดไป — RBAC roadmap เหลือ /1 (Phase 6)
 > ทุกเฟส **reasoning-first**: เสนอดีไซน์+รูป → รอเคาะ → ทำ → verify authed → commit → หยุด (owner เคาะทีละเฟส "เคาะ N")
-- **Phase 5 · แจ้งเตือนแก้ของสำคัญ:** notify เจ้าของเมื่อแก้ ราคา live / บัญชี-ติดต่อเจ้าของทรัพย์ / เงื่อนไขเงินสัญญา (ระบบ notification มีอยู่) · หมายเหตุ: Phase 4b มี notify ตอนแก้ทรัพย์ live แล้ว (bounce) — Phase 5 = ขยายไป owner-contact/สัญญา + ปรับระดับความสำคัญ
-- **Phase 6 · PII lock (+AI คัดรูป optional):** เลขบัตร idCardNo = เจ้าของเห็นคนเดียว (แยก perm) · (อนาคต) AI ตรวจรูป 18+ ก่อนถึงเจ้าของ
+- **Phase 6 · PII lock (+AI คัดรูป optional):** เลขบัตร idCardNo = เจ้าของเห็นคนเดียว (แยก perm/reveal endpoint) · ⚠️ **สถานะปัจจุบัน:** idCardNo **mask ให้ทุกคนอยู่แล้ว** (`owner.service maskRow` · ไม่มีใครเห็นเลขเต็มผ่าน API) → Phase 6 = เพิ่ม **controlled reveal เฉพาะเจ้าของ** (ไม่ใช่ปะรู) · (อนาคต) AI ตรวจรูป 18+ ก่อนถึงเจ้าของ
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
 - 🔑 **push commit ค้าง (~95 · ต้อง token)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
