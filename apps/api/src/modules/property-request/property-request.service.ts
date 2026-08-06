@@ -9,13 +9,14 @@ import { NotificationService } from '../notification/notification.service';
 import { resolveScope } from '../../common/auth/permissions.guard';
 import type { AuthenticatedUser, Scope } from '../../common/auth/authenticated-user';
 import type { RequestMeta } from '../../common/types/request-meta';
+import { REQUEST_REVIEW_ROLES } from '../../common/auth/operating-roles';
 import {
   CreatePropertyRequestDto, QueryPropertyRequestDto, UpdatePropertyRequestDto,
 } from './dto/property-request.dto';
 
 const PAGE_SIZE = 20;
-// บทบาทที่ควรได้แจ้งเตือน "มีคำขอเพิ่มทรัพย์ใหม่" (ผู้ตรวจ)
-const REVIEWER_ROLES = ['property_manager', 'team_lead', 'branch_manager', 'company_admin', 'super_admin'];
+// ผู้ตรวจคำขอเพิ่มทรัพย์ = ผู้จัดการ + เจ้าของ (operating จริง · ดู operating-roles.ts)
+const REVIEWER_ROLES = REQUEST_REVIEW_ROLES;
 const SUBMITTER_INCLUDE = { submittedBy: { select: { id: true, fullName: true } }, reviewedBy: { select: { id: true, fullName: true } } };
 
 @Injectable()

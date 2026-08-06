@@ -34,9 +34,13 @@ type RoleDef = {
   name: string;
   description: string;
   isSystem: boolean;
+  isActive?: boolean; // operating จริง = 3 บทบาท · อีก 5 = false (dormant · ปิดกันสับสน · เปิดคืนได้)
   scope: PermissionScope;
   grants: Record<string, string[] | '*'>;
 };
+
+// บทบาทที่ "ปฏิบัติงานจริง" ตอนนี้ = 3 (owner สั่ง: อีก 5 มีได้แต่ปิดไว้ก่อน) — ที่ไม่อยู่ในนี้ → isActive=false
+const OPERATING_ROLE_NAMES = new Set(['super_admin', 'property_manager', 'sales_agent']);
 
 const ALL: PermissionScope = 'all';
 const BRANCH: PermissionScope = 'branch';
@@ -186,10 +190,12 @@ export async function seedRolesAndPermissions(prisma: PrismaClient): Promise<voi
 
   console.log('  → seeding roles...');
   for (const role of ROLES) {
+    // operating จริง = 3 บทบาท → isActive true · อีก 5 → false (dormant · ปิดกันสับสน · flip เปิดคืนได้)
+    const isActive = role.isActive ?? OPERATING_ROLE_NAMES.has(role.name);
     const created = await prisma.role.upsert({
       where: { name: role.name },
-      update: { description: role.description, isSystem: role.isSystem },
-      create: { name: role.name, description: role.description, isSystem: role.isSystem },
+      update: { description: role.description, isSystem: role.isSystem, isActive },
+      create: { name: role.name, description: role.description, isSystem: role.isSystem, isActive },
     });
 
     // map grants → permissions ที่ scope ของ role · เก็บ id ที่ควรมีไว้ reconcile

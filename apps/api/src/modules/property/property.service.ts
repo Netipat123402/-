@@ -9,6 +9,7 @@ import { ContractStatus, Prisma, Property, PropertyStatus } from '@prisma/client
 import { PropertyRepository } from './property.repository';
 import { canTransition, isOperationalTransition } from './property.lifecycle';
 import { computePropertyCompleteness, type CompletenessResult } from './property-completeness';
+import { OWNER_ALERT_ROLES } from '../../common/auth/operating-roles';
 import { propertySmartWhere } from '../../common/search/property-search';
 import { extname } from 'node:path';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -333,7 +334,7 @@ export class PropertyService {
     }
     await this.assertPublishReady(p);
     const res = await this.applyTransition(user, p, PropertyStatus.pending_review, 'submit_review', undefined, meta);
-    await this.notifications.notifyRoles(['team_lead', 'branch_manager', 'company_admin', 'super_admin'], {
+    await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
       category: 'property', entityType: 'property', entityId: id,
       title: 'มีทรัพย์รออนุมัติเผยแพร่', body: `${p.code} ${p.titleTh} — โปรดตรวจและอนุมัติ`,
     });
@@ -498,7 +499,7 @@ export class PropertyService {
   ): Promise<Property | null> {
     if (property.status !== PropertyStatus.available) return null;
     const res = await this.applyTransition(user, property, PropertyStatus.pending_review, 'resubmit_review', what, meta);
-    await this.notifications.notifyRoles(['team_lead', 'branch_manager', 'company_admin', 'super_admin'], {
+    await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
       category: 'property', entityType: 'property', entityId: property.id,
       title: 'ทรัพย์ที่แก้ไขรอตรวจสอบอีกครั้ง',
       body: `${property.code} ${property.titleTh} — ${what} · ถูกซ่อนจากเว็บจนอนุมัติใหม่`,

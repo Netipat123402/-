@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { CommunityCategory, CommunityStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { BOARD_MOD_ROLES } from '../../common/auth/operating-roles';
 import type { AuthenticatedUser } from '../../common/auth/authenticated-user';
 
 // ชื่อสุ่ม (ไม่ระบุตัวตน) — โทนเป็นมิตร + เลขท้ายกันชนกัน
@@ -9,8 +10,8 @@ const ANON_NAMES = ['ผู้หาห้อง', 'คนรักคอนโ�
 function randomName(): string {
   return `${ANON_NAMES[Math.floor(Math.random() * ANON_NAMES.length)]} #${Math.floor(1000 + Math.random() * 9000)}`;
 }
-// อนุมัติได้เฉพาะระดับผู้ดูแล (gate ด้วย role — ไม่ต้อง seed permission ใหม่)
-export const MOD_ROLES = ['super_admin', 'company_admin', 'branch_manager'];
+// อนุมัติได้เฉพาะผู้ดูแล (gate ด้วย role) — operating จริง: เจ้าของ + ผู้จัดการ (ดู operating-roles.ts)
+export const MOD_ROLES = BOARD_MOD_ROLES;
 
 // ด่านแรกกรองคำไม่เหมาะสม/สแปม (ก่อนถึงแอดมิน)
 const BANNED_WORDS = ['เหี้ย', 'สัส', 'ควย', 'หี', 'เย็ด', 'ไอ้สัตว์', 'fuck', 'shit', 'bitch'];

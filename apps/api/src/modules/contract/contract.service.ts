@@ -14,6 +14,8 @@ import {
 } from './contract.lifecycle';
 import { ReceiptService } from './receipt.service';
 import { PropertySyncService } from './property-sync.service';
+import { NotificationService } from '../notification/notification.service';
+import { OWNER_ALERT_ROLES } from '../../common/auth/operating-roles';
 import { NEVER_MATCH } from '../../common/auth/scope.util';
 import type { AuthenticatedUser, Scope } from '../../common/auth/authenticated-user';
 import type { RequestMeta } from '../../common/types/request-meta';
@@ -29,6 +31,7 @@ export class ContractService {
     private readonly activity: ActivityService,
     private readonly receipts: ReceiptService,        // MR-29
     private readonly propertySync: PropertySyncService, // MR-29
+    private readonly notifications: NotificationService, // Phase 5: แจ้งแก้เงื่อนไขสัญญา active
   ) {}
 
   private scopeWhere(user: AuthenticatedUser, scope: Scope): Prisma.ContractWhereInput {
@@ -372,14 +375,31 @@ export class ContractService {
   }
 
   async addTerm(user: AuthenticatedUser, id: string, termKey: string, termValue: string) {
-    await this.requireInScope(user, id, 'update');
-    return this.prisma.contractTerm.create({ data: { contractId: id, termKey, termValue } });
+    const c = await this.requireInScope(user, id, 'update');
+    const term = await this.prisma.contractTerm.create({ data: { contractId: id, termKey, termValue } });
+    await this.notifyTermChange(user, c, `เพิ่มเงื่อนไข “${termKey}”`);
+    return term;
   }
 
   async removeTerm(user: AuthenticatedUser, id: string, termId: string) {
-    await this.requireInScope(user, id, 'update');
+    const c = await this.requireInScope(user, id, 'update');
     await this.prisma.contractTerm.deleteMany({ where: { id: termId, contractId: id } });
+    await this.notifyTermChange(user, c, 'ลบเงื่อนไข');
     return { success: true };
+  }
+
+  /**
+   * Phase 5: แจ้งเจ้าของระบบเมื่อแก้เงื่อนไขสัญญาที่ "เซ็นแล้ว (active)" — เปลี่ยนเงื่อนไขหลังเซ็น = อ่อนไหว
+   * draft = ร่างปกติ (ไม่แจ้ง) · เจ้าของแก้เอง (super_admin) = ไม่แจ้ง
+   */
+  private async notifyTermChange(user: AuthenticatedUser, contract: Contract, what: string) {
+    if (contract.status !== ContractStatus.active) return;
+    if (user.roles.includes('super_admin')) return;
+    await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
+      category: 'contract', entityType: 'contract', entityId: contract.id,
+      title: 'เปลี่ยนเงื่อนไขสัญญาที่เซ็นแล้ว',
+      body: `${user.fullName} ${what} ในสัญญา ${contract.code} (active)`,
+    });
   }
 
   private async requireInScope(user: AuthenticatedUser, id: string, action: string): Promise<Contract> {

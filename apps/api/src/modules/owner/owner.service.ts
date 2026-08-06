@@ -7,9 +7,11 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { AuditService } from '../../common/trail/audit.service';
 import { CryptoService } from '../../common/crypto/crypto.service';
+import { NotificationService } from '../notification/notification.service';
 import { assertDeletable } from '../../common/guards/deletion-guard';
 import { resolveScope } from '../../common/auth/permissions.guard';
 import { NEVER_MATCH } from '../../common/auth/scope.util';
+import { OWNER_ALERT_ROLES } from '../../common/auth/operating-roles';
 import type { AuthenticatedUser, Scope } from '../../common/auth/authenticated-user';
 import { CreateOwnerDto, QueryOwnerDto, UpdateOwnerDto } from './dto/owner.dto';
 import type { RequestMeta } from '../../common/types/request-meta';
@@ -22,6 +24,7 @@ export class OwnerService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly crypto: CryptoService,
+    private readonly notifications: NotificationService,
   ) {}
 
   /** ไม่คืน idCardNo เป็น plaintext — แสดงเป็น mask (เปิด 4 ตัวท้าย) เท่านั้น */
@@ -150,7 +153,7 @@ export class OwnerService {
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateOwnerDto, meta: RequestMeta) {
-    await this.requireInScope(user, id, 'update');
+    const existing = await this.requireInScope(user, id, 'update');
     const { idCardNo, ...rest } = dto;
     const owner = await this.prisma.owner.update({
       where: { id },
@@ -162,7 +165,30 @@ export class OwnerService {
       },
     });
     await this.audit.record(user, { action: 'update', entityType: 'owner', entityId: id, ...meta });
+    // Phase 5: แก้ข้อมูลติดต่อ/ตัวตนเจ้าของทรัพย์ → แจ้งเจ้าของระบบ (ช่องโหว่: เปลี่ยนเบอร์/บัญชีดักติดต่อ)
+    await this.notifySensitiveEdit(user, existing, dto);
     return this.maskRow(owner);
+  }
+
+  /**
+   * แจ้งเจ้าของระบบเมื่อ "คนที่ไม่ใช่เจ้าของ" แก้ข้อมูลอ่อนไหวของเจ้าของทรัพย์ (transparency กันโกง · ไม่บล็อก)
+   * - เจ้าของแก้เอง (super_admin) = ไม่เตือน (กัน noise)
+   * - idCardNo: แจ้งว่า "เปลี่ยน" แต่ไม่โชว์เลข (PII)
+   */
+  private async notifySensitiveEdit(user: AuthenticatedUser, before: { id: string; fullName: string; phone: string | null; email: string | null; address: string | null }, dto: UpdateOwnerDto) {
+    if (user.roles.includes('super_admin')) return;
+    const changes: string[] = [];
+    if (dto.fullName !== undefined && dto.fullName !== before.fullName) changes.push(`ชื่อ: ${before.fullName} → ${dto.fullName}`);
+    if (dto.phone !== undefined && dto.phone !== before.phone) changes.push(`เบอร์โทร: ${before.phone ?? '—'} → ${dto.phone ?? '—'}`);
+    if (dto.email !== undefined && dto.email !== before.email) changes.push(`อีเมล: ${before.email ?? '—'} → ${dto.email ?? '—'}`);
+    if (dto.address !== undefined && dto.address !== before.address) changes.push('ที่อยู่');
+    if (dto.idCardNo !== undefined) changes.push('เลขบัตรประชาชน (ไม่แสดงเลข)');
+    if (changes.length === 0) return;
+    await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
+      category: 'owner', entityType: 'owner', entityId: before.id,
+      title: 'มีการแก้ข้อมูลเจ้าของทรัพย์',
+      body: `${user.fullName} แก้ ${before.fullName} — ${changes.join(' · ')}`,
+    });
   }
 
   async remove(user: AuthenticatedUser, id: string, meta: RequestMeta) {

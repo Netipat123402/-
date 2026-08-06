@@ -13,11 +13,10 @@ interface User { id: string; email: string; fullName: string; phone?: string; st
 interface Role { name: string; description?: string; }
 
 const ROLE_TH: Record<string, string> = {
-  super_admin: 'ผู้ดูแลสูงสุด', company_admin: 'ผู้บริหาร', branch_manager: 'ผจก.สาขา',
-  team_lead: 'หัวหน้าทีม', sales_agent: 'พนักงานขาย', back_office: 'หลังบ้าน', auditor: 'ผู้ตรวจสอบ',
+  // operating จริง = 3 (owner สั่ง) · dormant คงป้ายไว้เพื่อแสดงผู้ใช้เดิมที่ยังผูกบทบาทนั้น
+  super_admin: 'ผู้ดูแลสูงสุด', property_manager: 'ผู้จัดการ', sales_agent: 'พนักงานขาย',
+  company_admin: 'ผู้บริหาร', branch_manager: 'ผจก.สาขา', team_lead: 'หัวหน้าทีม', back_office: 'หลังบ้าน', auditor: 'ผู้ตรวจสอบ',
 };
-// ข้อ 7: dropdown บทบาทเหลือ 4 (ตามที่ใช้จริง) — กรองที่ FE เท่านั้น · role อื่นยังอยู่ใน DB/RBAC ครบ (guard/seed พึ่งอยู่)
-const CREATE_ROLES = ['team_lead', 'sales_agent', 'back_office', 'super_admin'];
 const STATUS_TH: Record<string, { label: string; tone: Tone }> = {
   active: { label: 'ใช้งาน', tone: 'active' }, invited: { label: 'รอเปิดใช้', tone: 'gold' }, suspended: { label: 'ระงับ', tone: 'neutral' },
 };
@@ -121,10 +120,9 @@ export default function UsersPage() {
     return <span className={badgeClass(st.tone)}>{st.label}</span>;
   };
 
-  // บทบาทที่ให้เลือก = 4 บทบาทหลัก (กรองจากที่ backend อนุญาต) · ถ้ากรองแล้วว่าง fallback เป็นชุดเต็ม (กันเลือกไม่ได้)
+  // บทบาทที่ให้เลือก = ที่ backend อนุญาต (listRoles กรอง isActive = 3 บทบาท operating แล้ว) · ไม่ filter ซ้ำที่ FE
   const rolesBase = roles.length ? roles : [{ name: 'sales_agent' } as Role];
-  const filteredRoles = rolesBase.filter((r) => CREATE_ROLES.includes(r.name));
-  const roleOptions = (filteredRoles.length ? filteredRoles : rolesBase).map((r) => ({ value: r.name, label: ROLE_TH[r.name] ?? r.name }));
+  const roleOptions = rolesBase.map((r) => ({ value: r.name, label: ROLE_TH[r.name] ?? r.name }));
 
   // หลัก = ชื่อ · รอง(การ์ด+ตาราง) = บทบาท (key ของ user list — สแกน "ใครทำอะไรได้") · อีเมล = คอลัมน์เฉพาะตาราง (identity/login → การ์ด touch แคบไม่ยัด) · ขวา = สถานะ
   const cols: Col<User>[] = [

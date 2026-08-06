@@ -168,8 +168,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href));
   const slots = SLOTS.filter((s) => !('perm' in s) || !s.perm || can(s.perm[0], s.perm[1]));
-  // ชุมชน (moderation) เปิดเฉพาะระดับผู้ดูแล (role-gated ตรงกับ backend) — ไม่ใช่ permission แยก
-  const isMod = !!user?.roles?.some((r) => ['super_admin', 'company_admin', 'branch_manager'].includes(r));
+  // ชุมชน (moderation) เปิดเฉพาะผู้ดูแล — ตรงกับ backend BOARD_MOD_ROLES (operating จริง: เจ้าของ + ผู้จัดการ)
+  const isMod = !!user?.roles?.some((r) => ['super_admin', 'property_manager'].includes(r));
   const systemLinks = [
     ...SYSTEM.filter((it) => can(it.perm[0], it.perm[1])),
     ...(isMod ? [{ href: '/community', label: 'ชุมชน', icon: 'users' as IconName, perm: ['', ''] as [string, string] }] : []),

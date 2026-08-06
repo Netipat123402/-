@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { NotificationService } from '../notification/notification.service';
+import { LEAD_ALERT_ROLES } from '../../common/auth/operating-roles';
 import { toPublicCard, toPublicProperty } from './public.serializer';
 import { PublicLeadDto, PublicSearchDto } from './dto/public.dto';
 import { propertySmartWhere, trainWhere } from '../../common/search/property-search';
@@ -185,9 +186,9 @@ export class PublicService {
     await this.prisma.activityLog.create({
       data: { entityType: 'lead', entityId: lead.id, action: 'create', summary: `Lead ใหม่จากเว็บ: ${lead.fullName}` },
     });
-    // แจ้งทั้งหัวหน้า/แอดมิน และ "พนักงานขาย" ด้วย — ให้ agent เห็น lead ใหม่และรับไปดูแลเองได้
+    // แจ้งทีมขาย + ผู้จัดการ + เจ้าของ (operating จริง · ดู operating-roles.ts) — ให้ agent รับ lead ใหม่เองได้
     await this.notifications.notifyRoles(
-      ['sales_agent', 'team_lead', 'branch_manager', 'company_admin', 'super_admin'],
+      LEAD_ALERT_ROLES,
       {
         category: 'lead', entityType: 'lead', entityId: lead.id,
         title: 'Lead ใหม่จากเว็บไซต์',

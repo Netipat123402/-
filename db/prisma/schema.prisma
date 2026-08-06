@@ -171,6 +171,7 @@ enum NotificationCategory {
   lead
   appointment
   property
+  owner
   contract
   system
 
@@ -310,6 +311,9 @@ model Role {
   name        String  @unique @db.VarChar(50)
   description String? @db.Text
   isSystem    Boolean @default(false) @map("is_system")
+  // operating จริง = 3 บทบาท (super_admin/property_manager/sales_agent) · อีก 5 = dormant (isActive=false)
+  // ปิดไว้ก่อนกันสับสน · เปิดคืนได้ (flip เป็น true) — ไม่โผล่ใน role picker เมื่อ false
+  isActive    Boolean @default(true) @map("is_active")
 
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)

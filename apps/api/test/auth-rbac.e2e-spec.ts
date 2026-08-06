@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, login, ADMIN } from './utils';
+import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 
 /**
  * Integration (MR-14): auth · RBAC · no-orphan · validation guards
@@ -48,6 +49,47 @@ describe('Auth + RBAC + guards (e2e)', () => {
 
     // cleanup (soft-delete)
     await http.delete(`/api/v1/users/${created.body.data.id}`).set('Authorization', `Bearer ${adminToken}`);
+  });
+
+  // ---- Phase 5: 3 บทบาท operating + sensitive-edit alerts ----
+  it('roles: listRoles คืนเฉพาะ 3 บทบาท operating (dormant 5 ตัวถูกปิด)', async () => {
+    const r = await http.get('/api/v1/users/roles').set('Authorization', `Bearer ${adminToken}`).expect(200);
+    // envelope: controller คืน { items } → TransformInterceptor แปลงเป็น data:[...] (list)
+    const names = (r.body.data as { name: string }[]).map((x) => x.name).sort();
+    expect(names).toEqual(['property_manager', 'sales_agent', 'super_admin']);
+  });
+
+  it('roles: มอบหมายบทบาท dormant (team_lead) → 400', async () => {
+    const r = await http.post('/api/v1/users').set('Authorization', `Bearer ${adminToken}`)
+      .send({ email: `e2e-dormant-${Date.now()}@ros.local`, fullName: 'X', password: 'DormantPass!2026', roleNames: ['team_lead'] });
+    expect(r.status).toBe(400);
+  });
+
+  it('Phase 5: ผู้จัดการแก้เบอร์เจ้าของทรัพย์ → แจ้งเจ้าของ (category owner) · เจ้าของแก้เอง = ไม่แจ้ง', async () => {
+    const prisma = app.get(PrismaService);
+    const pmEmail = `e2e-pm-${Date.now()}@ros.local`; const pmPass = 'MgrPass!2026';
+    const pm = await http.post('/api/v1/users').set('Authorization', `Bearer ${adminToken}`)
+      .send({ email: pmEmail, fullName: 'E2E ผู้จัดการ', password: pmPass, roleNames: ['property_manager'] });
+    expect([200, 201]).toContain(pm.status);
+    const pmToken = await login(http, pmEmail, pmPass);
+    // pm สร้าง owner เอง (branch ตรงกับ pm แน่นอน)
+    const owner = await http.post('/api/v1/owners').set('Authorization', `Bearer ${pmToken}`)
+      .send({ fullName: 'P5 เจ้าของบ้าน', phone: '0810000001' });
+    const ownerId = owner.body.data.id;
+
+    // (ก) ผู้จัดการแก้เบอร์ → แจ้งเจ้าของระบบ (super_admin) พร้อม old→new
+    await http.patch(`/api/v1/owners/${ownerId}`).set('Authorization', `Bearer ${pmToken}`).send({ phone: '0999999999' }).expect(200);
+    const alerts = await prisma.notification.findMany({ where: { category: 'owner', entityId: ownerId } });
+    expect(alerts.length).toBeGreaterThan(0);
+    expect(alerts[0].body).toContain('เบอร์โทร');
+    const countAfterPm = alerts.length;
+
+    // (ข) เจ้าของแก้เอง (super_admin) → ไม่เพิ่มการแจ้งเตือน (skip self)
+    await http.patch(`/api/v1/owners/${ownerId}`).set('Authorization', `Bearer ${adminToken}`).send({ phone: '0888888888' }).expect(200);
+    const countAfterAdmin = await prisma.notification.count({ where: { category: 'owner', entityId: ownerId } });
+    expect(countAfterAdmin).toBe(countAfterPm);
+
+    await http.delete(`/api/v1/users/${pm.body.data.id}`).set('Authorization', `Bearer ${adminToken}`);
   });
 
   // ---- no-orphan / validation ----

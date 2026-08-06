@@ -90,8 +90,9 @@ export class UserService {
 
   async listRoles(user: AuthenticatedUser) {
     this.require(user, 'read');
+    // เฉพาะบทบาท operating (isActive) — dormant 5 ตัวถูกปิด กันสับสนตอนมอบหมาย (เปิดคืนได้ที่ data)
     const roles = await this.prisma.role.findMany({
-      where: { deletedAt: null }, orderBy: { name: 'asc' },
+      where: { deletedAt: null, isActive: true }, orderBy: { name: 'asc' },
       select: { name: true, description: true },
     });
     return { items: roles };
@@ -102,8 +103,9 @@ export class UserService {
     const exists = await this.prisma.user.findFirst({ where: { email: dto.email } });
     if (exists) throw new ConflictException('อีเมลนี้ถูกใช้แล้ว');
 
-    const roles = await this.prisma.role.findMany({ where: { name: { in: dto.roleNames } } });
-    if (roles.length !== dto.roleNames.length) throw new BadRequestException('บทบาทไม่ถูกต้อง');
+    // isActive: มอบหมายได้เฉพาะบทบาท operating (dormant ถูกปิด — ไม่ให้ผูกแม้ยิง API ตรง)
+    const roles = await this.prisma.role.findMany({ where: { name: { in: dto.roleNames }, isActive: true } });
+    if (roles.length !== dto.roleNames.length) throw new BadRequestException('บทบาทไม่ถูกต้องหรือถูกปิดใช้งาน');
     this.assertAssignable(actor, dto.roleNames);
 
     const user = await this.prisma.user.create({
@@ -151,7 +153,8 @@ export class UserService {
     });
 
     if (dto.roleNames) {
-      const roles = await this.prisma.role.findMany({ where: { name: { in: dto.roleNames } } });
+      const roles = await this.prisma.role.findMany({ where: { name: { in: dto.roleNames }, isActive: true } });
+      if (roles.length !== dto.roleNames.length) throw new BadRequestException('บทบาทไม่ถูกต้องหรือถูกปิดใช้งาน');
       await this.prisma.$transaction([
         this.prisma.userRole.deleteMany({ where: { userId: id } }),
         this.prisma.userRole.createMany({ data: roles.map((r) => ({ userId: id, roleId: r.id })) }),
