@@ -6,6 +6,7 @@ import { AuditService } from '../../common/trail/audit.service';
 import { resolveScope } from '../../common/auth/permissions.guard';
 import { NEVER_MATCH } from '../../common/auth/scope.util';
 import type { AuthenticatedUser } from '../../common/auth/authenticated-user';
+import type { RequestMeta } from '../../common/types/request-meta';
 
 export interface UpdateCustomerInput {
   fullName?: string; phone?: string; email?: string; address?: string; idCardNo?: string;
@@ -88,6 +89,21 @@ export class CustomerService {
           property: { select: { id: true, code: true, titleTh: true } }, owner: { select: { fullName: true } } } } },
     });
     return this.mask(c);
+  }
+
+  /**
+   * Phase 6: เปิดดูเลขบัตรเต็ม (decrypt) — เฉพาะ customer:reveal_pii (super_admin/เจ้าของ) + audit ทุกครั้ง
+   * (สมมาตรกับ owner · ปกป้อง PII ฝั่งลูกค้าให้เท่ากันแม้ FE ยังไม่ surface)
+   */
+  async revealIdCard(user: AuthenticatedUser, id: string, meta: RequestMeta): Promise<{ idCardNo: string | null }> {
+    if (!resolveScope(user, 'customer', 'reveal_pii')) throw new ForbiddenException('ไม่มีสิทธิ์เปิดดูเลขบัตร');
+    const c = await this.prisma.customer.findFirst({
+      where: { AND: [this.scopeWhere(user, 'reveal_pii'), { id }] },
+      select: { id: true, idCardNo: true },
+    });
+    if (!c) throw new NotFoundException('ไม่พบลูกค้า');
+    await this.audit.record(user, { action: 'reveal_pii', entityType: 'customer', entityId: id, ...meta });
+    return { idCardNo: this.crypto.decrypt(c.idCardNo) };
   }
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateCustomerInput) {

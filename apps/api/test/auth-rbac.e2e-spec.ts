@@ -92,6 +92,29 @@ describe('Auth + RBAC + guards (e2e)', () => {
     await http.delete(`/api/v1/users/${pm.body.data.id}`).set('Authorization', `Bearer ${adminToken}`);
   });
 
+  it('Phase 6: reveal เลขบัตร — เจ้าของ (super_admin) เห็นเต็ม+audit · เซล = 403', async () => {
+    const prisma = app.get(PrismaService);
+    const owner = await http.post('/api/v1/owners').set('Authorization', `Bearer ${adminToken}`)
+      .send({ fullName: 'P6 เจ้าของ', phone: '0810000006', idCardNo: '1103700123456' });
+    const ownerId = owner.body.data.id;
+    // อ่านปกติ = mask (ไม่เห็นเลขเต็ม)
+    const masked = await http.get(`/api/v1/owners/${ownerId}`).set('Authorization', `Bearer ${adminToken}`).expect(200);
+    expect(masked.body.data.idCardNo).not.toBe('1103700123456');
+    // เจ้าของ reveal → เลขเต็ม (decrypt)
+    const revealed = await http.get(`/api/v1/owners/${ownerId}/idcard`).set('Authorization', `Bearer ${adminToken}`).expect(200);
+    expect(revealed.body.data.idCardNo).toBe('1103700123456');
+    // บันทึก audit การเปิดดู PII
+    const auditCount = await prisma.auditLog.count({ where: { action: 'reveal_pii', entityId: ownerId } });
+    expect(auditCount).toBeGreaterThan(0);
+    // เซล (ไม่มี reveal_pii) → 403
+    const email = `e2e-sale-p6-${Date.now()}@ros.local`; const password = 'SalePass!2026';
+    const sale = await http.post('/api/v1/users').set('Authorization', `Bearer ${adminToken}`)
+      .send({ email, fullName: 'E2E Sale', password, roleNames: ['sales_agent'] });
+    const saleToken = await login(http, email, password);
+    await http.get(`/api/v1/owners/${ownerId}/idcard`).set('Authorization', `Bearer ${saleToken}`).expect(403);
+    await http.delete(`/api/v1/users/${sale.body.data.id}`).set('Authorization', `Bearer ${adminToken}`);
+  });
+
   // ---- no-orphan / validation ----
   it('no-orphan: register document ขาด entityId/entityType → 400', async () => {
     const r = await http.post('/api/v1/documents').set('Authorization', `Bearer ${adminToken}`)

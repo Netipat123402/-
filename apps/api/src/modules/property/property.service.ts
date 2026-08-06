@@ -164,6 +164,8 @@ export class PropertyService {
       ...dto,
       amenities: dto.amenities as Prisma.InputJsonValue,
       updatedBy: user.id,
+      // Phase 6: แก้เนื้อหา = dirty ตั้งแต่อนุมัติล่าสุด (สำคัญตอน rented → กันกลับขึ้นเว็บพร้อมของยังไม่ตรวจ)
+      ...(materialChanged ? { contentDirty: true } : {}),
     });
 
     await this.activity.log({
@@ -349,6 +351,8 @@ export class PropertyService {
     }
     await this.assertPublishReady(p);
     const res = await this.applyTransition(user, p, PropertyStatus.available, 'approve', undefined, meta);
+    // Phase 6: อนุมัติ = "เนื้อหาถูกตรวจแล้ว" → เคลียร์ dirty
+    if (p.contentDirty) await this.prisma.property.update({ where: { id }, data: { contentDirty: false } });
     await this.notifications.notifyUser(p.assignedToId, {
       category: 'property', entityType: 'property', entityId: id,
       title: 'ทรัพย์ของคุณเผยแพร่แล้ว', body: `${p.code} ${p.titleTh} ขึ้นเว็บแล้ว`,
@@ -396,7 +400,12 @@ export class PropertyService {
         'เปลี่ยนสถานะนี้ต้องผ่านด่านอนุมัติ (ขอเผยแพร่ / อนุมัติ / ตีกลับ / ถอนประกาศ) — เปลี่ยนตรงไม่ได้',
       );
     }
-    return this.applyTransition(user, p, toStatus, 'change_status', reason, meta);
+    const res = await this.applyTransition(user, p, toStatus, 'change_status', reason, meta);
+    // Phase 6 (เก็บตก B): กลับมาว่างทั้งที่แก้เนื้อหาตอนไม่ว่าง → เด้งไปตรวจใหม่ (ไม่ให้ขึ้นเว็บพร้อมของยังไม่ตรวจ)
+    if (p.status === PropertyStatus.rented && toStatus === PropertyStatus.available && p.contentDirty) {
+      return (await this.bounceLiveToReview(user, res, 'มีการแก้ไขระหว่างไม่ว่าง — โปรดตรวจก่อนขึ้นเว็บ', meta)) ?? res;
+    }
+    return res;
   }
 
   // --- helpers --------------------------------------------------------------

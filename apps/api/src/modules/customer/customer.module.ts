@@ -1,7 +1,8 @@
 import {
   Body, Controller, Delete, Get, Module,
-  Param, ParseUUIDPipe, Patch, Query,
+  Param, ParseUUIDPipe, Patch, Query, Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
 import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
 import { CustomerService } from './customer.service';
 import { CurrentUser, RequirePermission } from '../../common/auth/decorators';
@@ -28,6 +29,12 @@ class CustomerController {
   @Get(':id') @RequirePermission('customer', 'read')
   get(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.service.get(user, id);
+  }
+
+  // Phase 6: เปิดดูเลขบัตรเต็ม — customer:reveal_pii (super_admin) เท่านั้น + audit (สมมาตรกับ owner)
+  @Get(':id/idcard') @RequirePermission('customer', 'reveal_pii')
+  revealIdCard(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    return this.service.revealIdCard(user, id, { ip: req.ip, userAgent: req.headers['user-agent'] });
   }
 
   @Patch(':id') @RequirePermission('customer', 'update')

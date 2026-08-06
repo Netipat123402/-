@@ -157,4 +157,32 @@ describe('Full rental flow (e2e)', () => {
     expect(edited.status).toBe('pending_review');
     await http.get(`/api/v1/public/properties/${prop.code}`).expect(404);
   });
+
+  it('Phase 6 (เก็บตก B): แก้เนื้อหาตอน rented → กลับมาว่างต้องตรวจใหม่ (contentDirty)', async () => {
+    const prisma = app.get(PrismaService);
+    const owner = expectOk(await http.post('/api/v1/owners').set(auth()).send({ fullName: 'P6B เจ้าของ', phone: '0810000007' }), 'owner');
+    const prop = expectOk(
+      await http.post('/api/v1/properties').set(auth()).send({
+        ownerId: owner.id, propertyType: 'condo', titleTh: 'P6B คอนโด', monthlyRent: 18000,
+        province: 'กรุงเทพมหานคร', district: 'บางรัก', bedrooms: 1, bathrooms: 1,
+        descriptionTh: 'คอนโดทดสอบ contentDirty phase 6 ใกล้รถไฟฟ้า เฟอร์นิเจอร์ครบ พร้อมเข้าอยู่',
+      }),
+      'create property',
+    );
+    await prisma.propertyMedia.create({ data: { propertyId: prop.id, storageKey: 'p6b/cover.jpg', mediaType: 'image', isCover: true } });
+
+    // publish → available → rented (ปล่อยเช่า)
+    expectOk(await http.post(`/api/v1/properties/${prop.id}/approve`).set(auth()).send({}), 'approve');
+    const rented = expectOk(await http.patch(`/api/v1/properties/${prop.id}/status`).set(auth()).send({ toStatus: 'rented' }), 'rent');
+    expect(rented.status).toBe('rented');
+
+    // แก้ราคาตอน rented (off-market ไม่เด้ง แต่ mark dirty)
+    const edited = expectOk(await http.patch(`/api/v1/properties/${prop.id}`).set(auth()).send({ monthlyRent: 21000 }), 'edit while rented');
+    expect(edited.status).toBe('rented');
+
+    // กลับมาว่าง → เด้งไป pending_review (ไม่ขึ้นเว็บพร้อมของยังไม่ตรวจ) + public 404
+    const relisted = expectOk(await http.patch(`/api/v1/properties/${prop.id}/status`).set(auth()).send({ toStatus: 'available' }), 're-list');
+    expect(relisted.status).toBe('pending_review');
+    await http.get(`/api/v1/public/properties/${prop.code}`).expect(404);
+  });
 });

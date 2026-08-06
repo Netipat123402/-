@@ -429,6 +429,8 @@ model Property {
   viewCount  Int     @default(0) @map("view_count")      // ยอดเข้าชม (สำหรับ "ทรัพย์ดูเยอะ")
 
   publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  // Phase 6: เนื้อหาถูกแก้ตั้งแต่อนุมัติล่าสุด (แก้ตอน rented) — rented→available ที่ dirty จะเด้งไปตรวจใหม่ · เคลียร์ตอน approve
+  contentDirty Boolean  @default(false) @map("content_dirty")
   branchId    String?   @map("branch_id") @db.Uuid
 
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)

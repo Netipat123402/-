@@ -207,6 +207,16 @@ export class OwnerService {
     return { success: true };
   }
 
+  /**
+   * Phase 6: เปิดดูเลขบัตรเต็ม (decrypt) — เฉพาะผู้มีสิทธิ์ owner:reveal_pii (super_admin/เจ้าของ)
+   * บันทึก audit ทุกครั้ง (ใครเปิดดูบัตรใคร เมื่อไหร่) · ไม่บันทึกค่าเลขลง audit
+   */
+  async revealIdCard(user: AuthenticatedUser, id: string, meta: RequestMeta): Promise<{ idCardNo: string | null }> {
+    const owner = await this.requireInScope(user, id, 'reveal_pii');
+    await this.audit.record(user, { action: 'reveal_pii', entityType: 'owner', entityId: id, ...meta });
+    return { idCardNo: this.crypto.decrypt(owner.idCardNo) };
+  }
+
   private async requireInScope(user: AuthenticatedUser, id: string, action: string) {
     const scope = this.require(user, action);
     const owner = await this.prisma.owner.findFirst({

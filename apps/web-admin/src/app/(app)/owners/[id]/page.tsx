@@ -29,6 +29,13 @@ export default function OwnerDetailPage() {
   const [form, setForm] = useState<Owner>({ id: '', fullName: '' });
   const [idCardInput, setIdCardInput] = useState(''); // เลขบัตรใหม่ (ว่าง = ไม่เปลี่ยน) — ไม่ prefill ค่า mask
   const [saving, setSaving] = useState(false);
+  const [revealedId, setRevealedId] = useState<string | null>(null); // Phase 6: เลขบัตรเต็ม (เปิดดูแล้ว)
+
+  // Phase 6: เปิดดูเลขบัตรเต็ม (เจ้าของเท่านั้น · บันทึก audit ที่ backend)
+  async function revealIdCard() {
+    try { const r = await api<{ idCardNo: string | null }>(`/owners/${id}/idcard`); setRevealedId(r.data.idCardNo || '—'); }
+    catch { toast.error('เปิดดูเลขบัตรไม่สำเร็จ'); }
+  }
 
   function startEdit() { if (o) setForm(o); setIdCardInput(''); setEdit(true); }
   function closeEdit() { setEdit(false); if (o) setForm(o); setIdCardInput(''); }
@@ -157,9 +164,16 @@ export default function OwnerDetailPage() {
             </InfoGroup>
           )}
 
-          {/* ระบุตัวตน — view/edit parity (ว่าง = —) */}
+          {/* ระบุตัวตน — view/edit parity (ว่าง = —) · PII: mask ทุกคน · เจ้าของกด "แสดงเลขเต็ม" (audit) */}
           <InfoGroup label="ระบุตัวตน" className="mb-4">
-            <InfoRow label="เลขบัตรประชาชน" value={o.idCardNo || undefined} mono />
+            <InfoRow label="เลขบัตรประชาชน" mono value={o.idCardNo ? (
+              <span className="inline-flex items-center gap-2.5">
+                {revealedId ?? o.idCardNo}
+                {revealedId !== null
+                  ? <button type="button" className="font-sans text-xs text-muted transition hover:text-ink" onClick={() => setRevealedId(null)}>ซ่อน</button>
+                  : can('owner', 'reveal_pii') && <button type="button" className="font-sans text-xs text-gold-dark transition hover:underline" onClick={revealIdCard}>แสดงเลขเต็ม</button>}
+              </span>
+            ) : undefined} />
           </InfoGroup>
 
           {/* โน้ตภายใน */}

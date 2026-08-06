@@ -11,9 +11,10 @@ const RESOURCE_ACTIONS: Record<string, string[]> = {
   property: ['create', 'read', 'update', 'delete', 'approve', 'reject', 'change_status'],
   // คำขอเพิ่มทรัพย์ (Phase 2): เซล create/read/update · ผู้ดูแลทรัพย์ convert/reject
   property_request: ['create', 'read', 'update', 'convert', 'reject', 'delete'],
-  owner: ['create', 'read', 'update', 'delete'],
+  // reveal_pii (Phase 6): เปิดดูเลขบัตร (decrypt) — เจ้าของ (super_admin ผ่าน '*') เท่านั้น + audit ทุกครั้ง
+  owner: ['create', 'read', 'update', 'delete', 'reveal_pii'],
   lead: ['create', 'read', 'update', 'delete', 'assign', 'change_status', 'convert'],
-  customer: ['create', 'read', 'update', 'delete'],
+  customer: ['create', 'read', 'update', 'delete', 'reveal_pii'],
   appointment: ['create', 'read', 'update', 'delete', 'change_status'],
   contract: ['create', 'read', 'update', 'delete', 'change_status', 'sign'],
   document: ['create', 'read', 'update', 'delete', 'upload', 'download', 'verify'],
