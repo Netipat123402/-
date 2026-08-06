@@ -93,9 +93,10 @@ export const ROLES: RoleDef[] = [
     },
   },
   {
-    // ⭐ บทบาท operating จริง #2 (owner-approved) — "ผู้จัดการหลังบ้าน/คลังทรัพย์"
+    // ⭐ บทบาท operating จริง #2 (owner-approved) — "ผู้จัดการ" (operation เต็ม + คลังทรัพย์)
+    // NOTE: slug คง 'property_manager' เพื่อเสถียร (code/notify อ้างถึง) · label ที่ผู้ใช้เห็น = "ผู้จัดการ"
     name: 'property_manager',
-    description: 'ผู้ดูแลทรัพย์ — จัดการคลังทรัพย์/หน้าเว็บ + operation เต็ม (lead/ลูกค้า/นัด/ร่างสัญญา) · เจ้าของถือ control (อนุมัติเผยแพร่/เงิน/ลบ/ระบบ)',
+    description: 'ผู้จัดการ — จัดการงานปฏิบัติการเต็ม (ทรัพย์/lead/ลูกค้า/นัด/ร่างสัญญา) + คลังทรัพย์/หน้าเว็บ · เจ้าของถือ control (อนุมัติเผยแพร่/เงิน/ลบ/ระบบ)',
     isSystem: true,
     scope: BRANCH,
     grants: {

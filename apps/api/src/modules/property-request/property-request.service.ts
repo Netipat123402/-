@@ -41,6 +41,12 @@ export class PropertyRequestService {
     return scope;
   }
 
+  // "ผู้ตรวจ" = มีสิทธิ์ convert (ผู้จัดการ/เจ้าของ) → แก้/จัดการคำขอได้ทุกอัน
+  // เซลไม่มี convert → แก้/ถอน ได้เฉพาะคำขอของตัวเอง (อ่านได้ทั้งออฟฟิศ)
+  private isReviewer(user: AuthenticatedUser): boolean {
+    return !!resolveScope(user, 'property_request', 'convert');
+  }
+
   private async genCode(): Promise<string> {
     const head = `PR-${new Date().getFullYear()}-`;
     const last = await this.prisma.propertyRequest.findFirst({ where: { code: { startsWith: head } }, orderBy: { code: 'desc' }, select: { code: true } });
@@ -129,6 +135,9 @@ export class PropertyRequestService {
   // เซลแก้คำขอ (ตอน needs_info) → กลับเป็น pending + แจ้งผู้ตรวจ
   async update(user: AuthenticatedUser, id: string, dto: UpdatePropertyRequestDto, meta: RequestMeta) {
     const req = await this.getInScope(user, id, 'update');
+    if (!this.isReviewer(user) && req.submittedById !== user.id) {
+      throw new ForbiddenException('แก้ได้เฉพาะคำขอของตัวเอง');
+    }
     if (req.status === 'converted' || req.status === 'rejected') {
       throw new ConflictException('คำขอนี้ปิดแล้ว แก้ไขไม่ได้');
     }
@@ -146,6 +155,16 @@ export class PropertyRequestService {
       await this.notifications.notifyRoles(REVIEWER_ROLES, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอถูกแก้ไขและส่งใหม่', body: `${updated.titleTh} — พร้อมตรวจอีกครั้ง` });
     }
     return updated;
+  }
+
+  // เซลถอนคำขอของตัวเอง (ตอนยัง pending/needs_info) — soft-delete · gate ด้วย update perm + own-check
+  async withdraw(user: AuthenticatedUser, id: string, meta: RequestMeta) {
+    const req = await this.getInScope(user, id, 'update');
+    if (req.submittedById !== user.id) throw new ForbiddenException('ถอนได้เฉพาะคำขอของตัวเอง');
+    if (req.status === 'converted' || req.status === 'rejected') throw new ConflictException('คำขอนี้ปิดแล้ว');
+    await this.prisma.propertyRequest.update({ where: { id }, data: { deletedAt: new Date(), deletedBy: user.id } });
+    await this.audit.record(user, { action: 'withdraw', entityType: 'property_request', entityId: id, ...meta });
+    return { ok: true };
   }
 
   // ผู้ดูแลทรัพย์: convert → สร้าง Property (ร่าง) prefill + เครดิต sourcing

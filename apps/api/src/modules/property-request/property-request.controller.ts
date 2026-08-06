@@ -37,6 +37,12 @@ export class PropertyRequestController {
     return this.service.update(u, id, dto, this.meta(req));
   }
 
+  // เซล: ถอนคำขอของตัวเอง (own-check ที่ service)
+  @Post(':id/withdraw') @RequirePermission('property_request', 'update')
+  withdraw(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    return this.service.withdraw(u, id, this.meta(req));
+  }
+
   // ผู้ดูแลทรัพย์: convert → สร้างประกาศ (ร่าง)
   @Post(':id/convert') @RequirePermission('property_request', 'convert')
   convert(@CurrentUser() u: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
