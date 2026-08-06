@@ -52,7 +52,7 @@ export default function PropertyDetailPage() {
 
   const [amenityLabels, setAmenityLabels] = useState<Record<string, string>>({});
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (): Promise<Property | null> => {
     try {
       const r = await api<Property>(`/properties/${id}`);
       setP(r.data);
@@ -61,8 +61,9 @@ export default function PropertyDetailPage() {
         try { const c = await api<Completeness>(`/properties/${id}/completeness`); setComp(c.data); }
         catch { setComp(null); }
       } else setComp(null);
+      return r.data;
     }
-    catch { setP(null); }
+    catch { setP(null); return null; }
     finally { setLoading(false); }
   }, [api, id]);
   useEffect(() => { load(); }, [load]);
@@ -86,12 +87,15 @@ export default function PropertyDetailPage() {
   }
 
   async function uploadImage(file: File) {
+    const wasLive = p?.status === 'available'; // Phase 4: แก้รูป live → เด้งกลับรอตรวจ
     const fd = new FormData(); fd.append('file', file);
     setUploadPct(0);
     try {
       await upload(`/properties/${id}/media`, fd, setUploadPct);
-      await load();
-      toast.success('เพิ่มรูปแล้ว');
+      const fresh = await load();
+      toast.success(wasLive && fresh?.status === 'pending_review'
+        ? 'เพิ่มรูปแล้ว — ทรัพย์กลับไปรอตรวจสอบ ซ่อนจากเว็บจนอนุมัติใหม่'
+        : 'เพิ่มรูปแล้ว');
     } catch (e) {
       toast.error((e as { message?: string }).message || 'อัปโหลดไม่สำเร็จ');
     } finally {
@@ -150,6 +154,12 @@ export default function PropertyDetailPage() {
             <button className="btn-ghost h-9" disabled={busy || uploadPct !== null} onClick={() => fileRef.current?.click()}><Icon name="plus" size={16} /> เพิ่มรูป</button>
           )}
         </div>
+        {p.status === 'available' && can('property', 'update') && (
+          <p className="mb-3 flex items-start gap-1.5 text-xs text-muted">
+            <Icon name="alert-triangle" size={13} className="mt-0.5 shrink-0 text-warning" />
+            แก้ไขรูป (เพิ่ม/ลบ/ตั้งปก) จะทำให้ทรัพย์กลับไปรอตรวจสอบ และซ่อนจากเว็บจนเจ้าของอนุมัติใหม่
+          </p>
+        )}
         {uploadPct !== null && (
           <div className="mb-3"><ProgressBar value={uploadPct} /><p className="mt-1 text-xs text-muted">กำลังอัปโหลดรูป {uploadPct}%</p></div>
         )}
@@ -359,7 +369,14 @@ export default function PropertyDetailPage() {
         {editInitial && (
           <PropertyForm mode="edit" initial={editInitial}
             onClose={() => setEditInitial(null)}
-            onSaved={() => { setEditInitial(null); load(); toast.success('บันทึกการแก้ไขแล้ว'); }} />
+            onSaved={async () => {
+              const wasLive = p?.status === 'available'; // Phase 4: แก้เนื้อหา live → เด้งกลับรอตรวจ
+              setEditInitial(null);
+              const fresh = await load();
+              toast.success(wasLive && fresh?.status === 'pending_review'
+                ? 'บันทึกแล้ว — ทรัพย์กลับไปรอตรวจสอบ ซ่อนจากเว็บจนเจ้าของอนุมัติใหม่'
+                : 'บันทึกการแก้ไขแล้ว');
+            }} />
         )}
       </Modal>
 

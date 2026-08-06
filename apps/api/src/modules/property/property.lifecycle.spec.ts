@@ -2,6 +2,7 @@ import { PropertyStatus } from '@prisma/client';
 import {
   allowedTransitions,
   canTransition,
+  isOperationalTransition,
   isPubliclyVisible,
 } from './property.lifecycle';
 
@@ -12,11 +13,30 @@ describe('Property Lifecycle (4 สถานะ: draft → pending_review → av
       ['draft', 'available'], // เจ้าของเผยแพร่ร่างตัวเองตรง ๆ
       ['pending_review', 'available'], // เจ้าของอนุมัติ
       ['pending_review', 'draft'], // เจ้าของตีกลับ / ผู้ส่งถอนคำขอ
+      ['available', 'pending_review'], // Phase 4: แก้เนื้อหา live → เด้งกลับรอตรวจ
       ['available', 'draft'],
       ['available', 'rented'],
       ['rented', 'available'],
     ])('อนุญาต %s → %s', (from, to) => {
       expect(canTransition(from as PropertyStatus, to as PropertyStatus)).toBe(true);
+    });
+  });
+
+  // ⭐ Phase 4a — generic changeStatus ทำได้เฉพาะ operational (ว่าง↔ไม่ว่าง)
+  describe('isOperationalTransition — กัน change_status ข้ามด่านอนุมัติ', () => {
+    it('operational (ผ่าน changeStatus ได้): available↔rented', () => {
+      expect(isOperationalTransition(PropertyStatus.available, PropertyStatus.rented)).toBe(true);
+      expect(isOperationalTransition(PropertyStatus.rented, PropertyStatus.available)).toBe(true);
+    });
+    it.each([
+      ['draft', 'available'], // publish ตรง = ต้องผ่าน approve (มี gate)
+      ['draft', 'pending_review'], // = ต้องผ่าน submit-review
+      ['pending_review', 'available'], // = ต้องผ่าน approve
+      ['pending_review', 'draft'], // = ต้องผ่าน reject
+      ['available', 'draft'], // = ต้องผ่าน reject (ถอนประกาศ)
+      ['available', 'pending_review'], // = ระบบเด้งเอง (แก้ live) ไม่ใช่ changeStatus
+    ])('governed (changeStatus ทำตรงไม่ได้): %s → %s', (from, to) => {
+      expect(isOperationalTransition(from as PropertyStatus, to as PropertyStatus)).toBe(false);
     });
   });
 

@@ -12,6 +12,7 @@ interface Owner { id: string; fullName: string }
 
 export interface PropertyInitial {
   id?: string;
+  status?: string; // Phase 4: ถ้า available → เตือนว่าแก้แล้วเด้งกลับรอตรวจสอบ
   propertyType?: string; ownerId?: string;
   owner?: { id: string; fullName: string }; // แก้ทรัพย์: เจ้าของเดิมอาจไม่อยู่ในผลค้นหาเริ่มต้น (ต้องโชว์ชื่อได้แม้ field ถูก disable)
   titleTh?: string; titleEn?: string; descriptionTh?: string;
@@ -172,6 +173,14 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
         <div className="flex items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
           <span>โหลดรายชื่อเจ้าของ/ตัวเลือกไม่สำเร็จ (เซสชันอาจหมดอายุ)</span>
           <button type="button" onClick={loadData} className="shrink-0 font-medium underline">ลองใหม่</button>
+        </div>
+      )}
+
+      {/* Phase 4: แก้ทรัพย์ที่เผยแพร่อยู่ → เด้งกลับรอตรวจสอบ + ซ่อนจากเว็บจนอนุมัติใหม่ */}
+      {mode === 'edit' && initial?.status === 'available' && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-warning/40 bg-warning/10 px-3.5 py-2.5 text-sm text-warning">
+          <Icon name="alert-triangle" size={16} className="mt-0.5 shrink-0" />
+          <span>ทรัพย์นี้<b className="font-medium">เผยแพร่อยู่บนเว็บลูกค้า</b> — การแก้ไขราคา รายละเอียด หรือทำเล จะทำให้กลับไป <b className="font-medium">รอตรวจสอบ</b> และถูกซ่อนจากเว็บจนเจ้าของอนุมัติใหม่</span>
         </div>
       )}
 

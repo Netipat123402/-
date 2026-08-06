@@ -116,4 +116,45 @@ describe('Full rental flow (e2e)', () => {
     );
     expect(receipt.receiptNo).toBeTruthy();
   });
+
+  it('Phase 4 · governance: publish/review เปลี่ยนตรงไม่ได้ (4a) + แก้ live เด้งกลับรอตรวจ (4b)', async () => {
+    const prisma = app.get(PrismaService);
+    const owner = expectOk(
+      await http.post('/api/v1/owners').set(auth()).send({ fullName: 'P4 เจ้าของ', phone: '0810000009' }),
+      'create owner',
+    );
+    const prop = expectOk(
+      await http.post('/api/v1/properties').set(auth()).send({
+        ownerId: owner.id, propertyType: 'condo', titleTh: 'P4 คอนโด governance', monthlyRent: 20000,
+        province: 'กรุงเทพมหานคร', district: 'สาทร', bedrooms: 2, bathrooms: 1,
+        descriptionTh: 'คอนโดทดสอบ governance phase 4 ใกล้รถไฟฟ้า เฟอร์นิเจอร์ครบ พร้อมเข้าอยู่',
+      }),
+      'create property',
+    );
+    await prisma.propertyMedia.create({
+      data: { propertyId: prop.id, storageKey: 'p4/cover.jpg', mediaType: 'image', isCover: true },
+    });
+
+    // 4a) publish ตรงผ่าน change_status ไม่ได้ (draft→available ต้องผ่าน approve ที่มี gate)
+    await http.patch(`/api/v1/properties/${prop.id}/status`).set(auth()).send({ toStatus: 'available' }).expect(409);
+
+    // เผยแพร่ผ่านด่านที่ถูกต้อง → available → เห็นบน public
+    const published = expectOk(await http.post(`/api/v1/properties/${prop.id}/approve`).set(auth()).send({}), 'approve');
+    expect(published.status).toBe('available');
+    await http.get(`/api/v1/public/properties/${prop.code}`).expect(200);
+
+    // 4a) operational (available↔rented) ผ่าน change_status ได้
+    const rented = expectOk(await http.patch(`/api/v1/properties/${prop.id}/status`).set(auth()).send({ toStatus: 'rented' }), 'mark rented');
+    expect(rented.status).toBe('rented');
+    const backAvail = expectOk(await http.patch(`/api/v1/properties/${prop.id}/status`).set(auth()).send({ toStatus: 'available' }), 'mark available');
+    expect(backAvail.status).toBe('available');
+
+    // 4a) governed (available→draft = ถอนประกาศ) ผ่าน change_status ไม่ได้ (ต้องผ่าน reject)
+    await http.patch(`/api/v1/properties/${prop.id}/status`).set(auth()).send({ toStatus: 'draft' }).expect(409);
+
+    // 4b) แก้ราคา (material) บนทรัพย์ที่เผยแพร่อยู่ → เด้งกลับ pending_review + ซ่อนจากเว็บ
+    const edited = expectOk(await http.patch(`/api/v1/properties/${prop.id}`).set(auth()).send({ monthlyRent: 25000 }), 'edit live price');
+    expect(edited.status).toBe('pending_review');
+    await http.get(`/api/v1/public/properties/${prop.code}`).expect(404);
+  });
 });

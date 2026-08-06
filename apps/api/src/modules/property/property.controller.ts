@@ -125,8 +125,9 @@ export class PropertyController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Param('mediaId', ParseUUIDPipe) mediaId: string,
+    @Req() req: Request,
   ) {
-    return this.service.setCover(user, id, mediaId);
+    return this.service.setCover(user, id, mediaId, this.meta(req));
   }
 
   @Get(':id/completeness')

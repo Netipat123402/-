@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ContractStatus, Prisma, Property, PropertyStatus } from '@prisma/client';
 import { PropertyRepository } from './property.repository';
-import { canTransition } from './property.lifecycle';
+import { canTransition, isOperationalTransition } from './property.lifecycle';
 import { computePropertyCompleteness, type CompletenessResult } from './property-completeness';
 import { propertySmartWhere } from '../../common/search/property-search';
 import { extname } from 'node:path';
@@ -156,6 +156,8 @@ export class PropertyService {
     meta: RequestMeta,
   ) {
     const existing = await this.requireInScope(user, id, 'update');
+    // Phase 4b: ตรวจ "แก้เนื้อหาที่ลูกค้าเห็น" ก่อนเขียน (เทียบค่าเก่า/ใหม่)
+    const materialChanged = this.hasMaterialChange(existing, dto);
 
     const updated = await this.repo.update(id, {
       ...dto,
@@ -178,8 +180,12 @@ export class PropertyService {
       newValue: this.snapshot(updated),
       ...meta,
     });
+    // Phase 4b: แก้เนื้อหาทรัพย์ที่เผยแพร่อยู่ → เด้งกลับรอตรวจสอบ + ซ่อนจากเว็บจนอนุมัติใหม่
+    const bounced = materialChanged
+      ? await this.bounceLiveToReview(user, updated, 'แก้ไขข้อมูลทรัพย์', meta)
+      : null;
     this.revalidation.revalidatePublicProperties(existing.code); // ข้อมูลที่โชว์บนเว็บเปลี่ยน
-    return updated;
+    return bounced ?? updated;
   }
 
   // --- DELETE (soft) --------------------------------------------------------
@@ -240,6 +246,7 @@ export class PropertyService {
     });
     await this.audit.record(user, { action: 'upload', entityType: 'property', entityId: id, ...meta });
     this.revalidation.revalidatePublicProperties(prop.code); // รูปใหม่ขึ้นเว็บ
+    await this.bounceLiveToReview(user, prop, 'เพิ่มรูปทรัพย์', meta); // Phase 4b
     return media;
   }
 
@@ -253,10 +260,11 @@ export class PropertyService {
     if (res.count === 0) throw new NotFoundException('ไม่พบรูปภาพของทรัพย์นี้');
     await this.audit.record(user, { action: 'delete', entityType: 'property', entityId: id, ...meta });
     this.revalidation.revalidatePublicProperties(prop.code);
+    await this.bounceLiveToReview(user, prop, 'ลบรูปทรัพย์', meta); // Phase 4b
     return { success: true };
   }
 
-  async setCover(user: AuthenticatedUser, id: string, mediaId: string) {
+  async setCover(user: AuthenticatedUser, id: string, mediaId: string, meta: RequestMeta) {
     const prop = await this.requireInScope(user, id, 'update');
     // กัน IDOR: ตั้งปกได้เฉพาะรูปของทรัพย์ id นี้จริง
     const media = await this.prisma.propertyMedia.findFirst({ where: { id: mediaId, propertyId: id, deletedAt: null } });
@@ -266,6 +274,7 @@ export class PropertyService {
       this.prisma.propertyMedia.update({ where: { id: mediaId }, data: { isCover: true } }),
     ]);
     this.revalidation.revalidatePublicProperties(prop.code);
+    await this.bounceLiveToReview(user, prop, 'เปลี่ยนรูปปกทรัพย์', meta); // Phase 4b
     return { success: true };
   }
 
@@ -378,6 +387,14 @@ export class PropertyService {
     meta: RequestMeta,
   ) {
     const p = await this.requireInScope(user, id, 'change_status');
+    // ⭐ Phase 4a — generic endpoint นี้ทำได้เฉพาะ transition ปฏิบัติการ (ว่าง↔ไม่ว่าง)
+    // publish/approval (draft→available, pending→available, available→draft ฯลฯ) ต้องผ่านด่านที่มี gate
+    // (ขอเผยแพร่/อนุมัติ/ตีกลับ/ถอน) เท่านั้น — กัน change_status ข้าม maker-checker
+    if (!isOperationalTransition(p.status, toStatus)) {
+      throw new ConflictException(
+        'เปลี่ยนสถานะนี้ต้องผ่านด่านอนุมัติ (ขอเผยแพร่ / อนุมัติ / ตีกลับ / ถอนประกาศ) — เปลี่ยนตรงไม่ได้',
+      );
+    }
     return this.applyTransition(user, p, toStatus, 'change_status', reason, meta);
   }
 
@@ -441,6 +458,52 @@ export class PropertyService {
     // ทรัพย์ขึ้น/ลงเว็บ (published/reserved ↔ อื่น ๆ) → ล้าง cache เว็บ public ทันที
     this.revalidation.revalidatePublicProperties(property.code);
     return updated;
+  }
+
+  // --- Phase 4b: re-review เมื่อแก้ทรัพย์ที่เผยแพร่แล้ว --------------------------
+  /**
+   * field "เนื้อหาที่ลูกค้าเห็น" — แก้ field พวกนี้บนทรัพย์ live → เด้งกลับรอตรวจสอบ (Option A strict)
+   * ที่ "ไม่อยู่" = ภายใน ไม่เด้ง: isFeatured (ดาวแนะนำ) · assignedToId (มอบหมายผู้ดูแล)
+   */
+  private static readonly MATERIAL_FIELDS = [
+    'titleTh', 'titleEn', 'propertyType', 'descriptionTh', 'descriptionEn', 'address',
+    'province', 'district', 'subdistrict', 'projectName', 'latitude', 'longitude',
+    'monthlyRent', 'depositMonths', 'bedrooms', 'bathrooms', 'areaSqm', 'floor', 'furnished', 'amenities',
+  ] as const;
+
+  /** normalize เทียบค่าเก่า/ใหม่ (Decimal→string · object→JSON คีย์เรียง) → กันเด้งตอนเซฟค่าเดิม (no-op) */
+  private normalizeValue(v: unknown): string | null {
+    if (v === null || v === undefined) return null;
+    if (v instanceof Prisma.Decimal) return v.toString();
+    if (typeof v === 'object') return JSON.stringify(v, Object.keys(v as object).sort());
+    return String(v);
+  }
+
+  private hasMaterialChange(existing: Property, dto: UpdatePropertyDto): boolean {
+    return PropertyService.MATERIAL_FIELDS.some((key) => {
+      if (!(key in dto)) return false;
+      const nv = (dto as Record<string, unknown>)[key];
+      if (nv === undefined) return false;
+      const ov = (existing as unknown as Record<string, unknown>)[key];
+      return this.normalizeValue(ov) !== this.normalizeValue(nv);
+    });
+  }
+
+  /** เด้งทรัพย์ที่ "เผยแพร่อยู่" กลับไปรอตรวจสอบ (ซ่อนจากเว็บ) + แจ้งผู้อนุมัติ — ใช้ตอนแก้เนื้อหา/รูป */
+  private async bounceLiveToReview(
+    user: AuthenticatedUser,
+    property: Property,
+    what: string,
+    meta: RequestMeta,
+  ): Promise<Property | null> {
+    if (property.status !== PropertyStatus.available) return null;
+    const res = await this.applyTransition(user, property, PropertyStatus.pending_review, 'resubmit_review', what, meta);
+    await this.notifications.notifyRoles(['team_lead', 'branch_manager', 'company_admin', 'super_admin'], {
+      category: 'property', entityType: 'property', entityId: property.id,
+      title: 'ทรัพย์ที่แก้ไขรอตรวจสอบอีกครั้ง',
+      body: `${property.code} ${property.titleTh} — ${what} · ถูกซ่อนจากเว็บจนอนุมัติใหม่`,
+    });
+    return res;
   }
 
   private async requireInScope(
