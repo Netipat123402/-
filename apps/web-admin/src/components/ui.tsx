@@ -525,21 +525,22 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
  */
 export function ConfirmDialog({
   open, onClose, title, message, confirmLabel = 'ยืนยัน', tone = 'default',
-  withReason, reasonLabel = 'เหตุผล (ถ้ามี)', reasonPlaceholder, busy, onConfirm,
+  withReason, reasonRequired, reasonLabel = 'เหตุผล (ถ้ามี)', reasonPlaceholder, busy, onConfirm,
 }: {
   open: boolean; onClose: () => void; title: string; message?: React.ReactNode;
   confirmLabel?: string; tone?: 'default' | 'danger'; withReason?: boolean;
-  reasonLabel?: string; reasonPlaceholder?: string; busy?: boolean;
+  reasonRequired?: boolean; reasonLabel?: string; reasonPlaceholder?: string; busy?: boolean;
   onConfirm: (reason?: string) => void;
 }) {
   const [reason, setReason] = useState('');
   useEffect(() => { if (open) setReason(''); }, [open]);
+  const reasonMissing = !!(withReason && reasonRequired && !reason.trim());
   return (
     <Modal open={open} onClose={onClose} title={title}
       footer={
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>ยกเลิก</button>
-          <button type="button" disabled={busy} className={tone === 'danger' ? 'btn-danger' : 'btn-gold'}
+          <button type="button" disabled={busy || reasonMissing} className={tone === 'danger' ? 'btn-danger' : 'btn-gold'}
             onClick={() => onConfirm(withReason ? (reason.trim() || undefined) : undefined)}>
             {busy ? 'กำลังทำ…' : confirmLabel}
           </button>

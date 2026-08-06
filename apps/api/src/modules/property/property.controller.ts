@@ -129,6 +129,15 @@ export class PropertyController {
     return this.service.setCover(user, id, mediaId);
   }
 
+  @Get(':id/completeness')
+  @RequirePermission('property', 'read')
+  completeness(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.service.completeness(user, id);
+  }
+
   // --- lifecycle transitions ---
   @Post(':id/submit-review')
   @RequirePermission('property', 'change_status')

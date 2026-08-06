@@ -18,6 +18,7 @@ interface PropertyRow {
 
 const STATUS_OPTIONS = [
   { value: '', label: 'ทั้งหมด' },
+  { value: 'pending_review', label: 'รอตรวจ' },
   { value: 'available', label: 'ว่าง' },
   { value: 'rented', label: 'ไม่ว่าง' },
   { value: 'draft', label: 'ร่าง' },

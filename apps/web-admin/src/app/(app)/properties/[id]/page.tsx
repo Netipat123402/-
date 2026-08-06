@@ -26,6 +26,11 @@ interface Property {
   owner?: { id?: string; fullName: string; phone?: string; email?: string; _count?: { properties: number } };
   contracts?: { id: string; code: string }[]; // สัญญา active (Phase 13) — โชว์ลิงก์แทนทางตัน
 }
+interface CompletenessItem { key: string; label: string; required: boolean; done: boolean }
+interface Completeness {
+  checklist: CompletenessItem[]; requiredDone: number; requiredTotal: number;
+  score: number; canPublish: boolean; missingRequired: string[];
+}
 
 export default function PropertyDetailPage() {
   const { api, upload, can } = useAuth();
@@ -40,14 +45,23 @@ export default function PropertyDetailPage() {
   const [imgIdx, setImgIdx] = useState(0); // รูปที่กำลังดู (gallery แบบหน้าเว็บ)
   // มือถือ/แท็บเล็ต = ปัดนิ้วเปลี่ยนรูป (แทนลูกศรที่บังจอ; ลูกศรเหลือเฉพาะเดสก์ท็อป) — ให้ interaction ตรงกับหน้า public
   const gallerySwipe = useSwipe((dir) => { const len = p?.media.length ?? 0; if (len > 1) setImgIdx((v) => (v + dir + len) % len); });
-  const [confirm, setConfirm] = useState<null | 'reject' | 'delete' | 'markRented'>(null);
+  const [confirm, setConfirm] = useState<null | 'reject' | 'sendback' | 'delete' | 'markRented'>(null);
+  const [comp, setComp] = useState<Completeness | null>(null);
   const [editInitial, setEditInitial] = useState<PropertyInitial | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [amenityLabels, setAmenityLabels] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
-    try { const r = await api<Property>(`/properties/${id}`); setP(r.data); }
+    try {
+      const r = await api<Property>(`/properties/${id}`);
+      setP(r.data);
+      // completeness = ด่านก่อนขอเผยแพร่/อนุมัติ — โหลดเฉพาะสถานะที่เกี่ยวข้อง (ร่าง/รอตรวจสอบ)
+      if (r.data.status === 'draft' || r.data.status === 'pending_review') {
+        try { const c = await api<Completeness>(`/properties/${id}/completeness`); setComp(c.data); }
+        catch { setComp(null); }
+      } else setComp(null);
+    }
     catch { setP(null); }
     finally { setLoading(false); }
   }, [api, id]);
@@ -95,6 +109,17 @@ export default function PropertyDetailPage() {
   const hasLocation = !!p.projectName || !!p.province || !!p.district;
   const activeContract = p.contracts?.[0]; // ไม่ว่าง → ลิงก์สัญญา
   const webUrl = `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:3000/properties/${p.code}`;
+
+  // Phase 3 · ด่านเผยแพร่ + สิทธิ์ตามสถานะ (maker-checker)
+  const notReady = !!comp && !comp.canPublish; // ยังไม่ครบจำเป็น 7/7 → ปิดปุ่มขอเผยแพร่/อนุมัติ
+  const isGated = p.status === 'draft' || p.status === 'pending_review';
+  const canSendback = p.status === 'pending_review' && can('property', 'reject');      // เจ้าของตีกลับให้แก้
+  const canWithdraw = p.status === 'pending_review' && !can('property', 'approve') && can('property', 'change_status'); // ผู้ส่งถอนคำขอ
+  const canUnpublish = p.status === 'available' && can('property', 'reject');
+  const canMarkRented = p.status === 'available' && can('property', 'change_status');
+  const canMarkAvail = p.status === 'rented' && !activeContract && can('property', 'change_status');
+  const canDelete = p.status === 'draft' && can('property', 'delete');
+  const showSecondary = canSendback || canWithdraw || canUnpublish || canMarkRented || canMarkAvail || canDelete;
 
   // โหลดข้อมูลเต็มแล้วเปิด modal แก้ไข (ใช้ร่วมทั้ง primary/secondary ตามสถานะ) — ใช้ route id (คงที่)
   async function openEdit() {
@@ -204,6 +229,7 @@ export default function PropertyDetailPage() {
                 <StatusBadge map={PROPERTY_STATUS} value={p.status} />
                 <div className="mt-1 text-xs">
                   {p.status === 'draft' && <span className="text-faint">ยังไม่ขึ้นเว็บลูกค้า</span>}
+                  {p.status === 'pending_review' && <span className="text-info">รอเจ้าของอนุมัติเผยแพร่</span>}
                   {p.status === 'available' && <a href={webUrl} target="_blank" rel="noreferrer" className="text-gold-dark hover:underline">เผยแพร่แล้ว · ดูบนเว็บ ›</a>}
                   {p.status === 'rented' && (activeContract
                     ? <Link href={`/contracts/${activeContract.id}`} className="text-gold-dark hover:underline">ไม่ว่าง · ดูสัญญา ›</Link>
@@ -214,10 +240,13 @@ export default function PropertyDetailPage() {
               </div>
               <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                 {p.status === 'draft' && can('property', 'approve') && (
-                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
+                  <button className="btn-gold btn-sm" disabled={busy || notReady} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
                 )}
                 {p.status === 'draft' && !can('property', 'approve') && can('property', 'change_status') && (
-                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/submit-review`, { method: 'POST', body: '{}' }), 'ส่งให้หัวหน้าเผยแพร่แล้ว')}>ขอเผยแพร่</button>
+                  <button className="btn-gold btn-sm" disabled={busy || notReady} onClick={() => run(() => api(`/properties/${p.id}/submit-review`, { method: 'POST', body: '{}' }), 'ส่งขอเผยแพร่แล้ว — รอเจ้าของอนุมัติ')}>ขอเผยแพร่</button>
+                )}
+                {p.status === 'pending_review' && can('property', 'approve') && (
+                  <button className="btn-gold btn-sm" disabled={busy || notReady} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'อนุมัติแล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>อนุมัติเผยแพร่</button>
                 )}
                 {can('property', 'update') && (
                   <button className={`btn-sm ${p.status === 'draft' ? 'btn-ghost' : 'btn-gold'}`} disabled={busy} onClick={openEdit}>แก้ไขข้อมูล</button>
@@ -230,13 +259,40 @@ export default function PropertyDetailPage() {
                 )}
               </div>
             </div>
+            {/* Phase 3 · แผงความครบถ้วน (ร่าง/รอตรวจสอบ) — ด่านก่อนขอเผยแพร่/อนุมัติ */}
+            {isGated && comp && (
+              <div className="mt-3 border-t border-border pt-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-ink-soft">ความครบถ้วนประกาศ</span>
+                  <span className={`text-xs font-medium ${comp.canPublish ? 'text-success' : 'text-gold-dark'}`}>
+                    {comp.canPublish ? 'พร้อมเผยแพร่' : `${comp.score}%`}
+                  </span>
+                </div>
+                <div className="mt-2"><ProgressBar value={comp.score} /></div>
+                <div className="mt-1.5 text-2xs text-faint">
+                  จำเป็น {comp.requiredDone}/{comp.requiredTotal}
+                  {(() => { const rec = comp.checklist.filter((i) => !i.required); return ` · แนะนำ ${rec.filter((i) => i.done).length}/${rec.length}`; })()}
+                </div>
+                <ul className="mt-2 space-y-1">
+                  {comp.checklist.filter((i) => i.required).map((i) => (
+                    <li key={i.key} className="flex items-center gap-1.5 text-xs">
+                      <Icon name={i.done ? 'check' : 'alert-triangle'} size={13} className={i.done ? 'text-success' : 'text-danger'} />
+                      <span className={i.done ? 'text-ink-soft' : 'text-danger'}>{i.label}</span>
+                    </li>
+                  ))}
+                </ul>
+                {notReady && <p className="mt-2 text-2xs leading-relaxed text-faint">ต้องครบข้อจำเป็นทั้งหมดก่อน{p.status === 'pending_review' ? 'อนุมัติเผยแพร่' : 'ขอเผยแพร่'}</p>}
+              </div>
+            )}
             {/* action รอง — quiet */}
-            {((p.status === 'available' && (can('property', 'change_status') || can('property', 'reject'))) || (p.status === 'rented' && !activeContract && can('property', 'change_status')) || (p.status === 'draft' && can('property', 'delete'))) && (
+            {showSecondary && (
               <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
-                {p.status === 'available' && can('property', 'change_status') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => setConfirm('markRented')}>ทำเครื่องหมายไม่ว่าง</button>}
-                {p.status === 'available' && can('property', 'reject') && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('reject')}>ถอนประกาศ</button>}
-                {p.status === 'rented' && !activeContract && can('property', 'change_status') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'available' }) }), 'ทำเครื่องหมายว่างแล้ว — ทรัพย์กลับขึ้นเว็บ')}>ทำเครื่องหมายว่าง</button>}
-                {p.status === 'draft' && can('property', 'delete') && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('delete')}>ลบทรัพย์</button>}
+                {canWithdraw && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'draft' }) }), 'ถอนคำขอกลับเป็นร่างแล้ว')}>ถอนคำขอกลับไปแก้</button>}
+                {canSendback && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('sendback')}>ตีกลับให้แก้</button>}
+                {canMarkRented && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => setConfirm('markRented')}>ทำเครื่องหมายไม่ว่าง</button>}
+                {canUnpublish && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('reject')}>ถอนประกาศ</button>}
+                {canMarkAvail && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => run(() => api(`/properties/${p.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'available' }) }), 'ทำเครื่องหมายว่างแล้ว — ทรัพย์กลับขึ้นเว็บ')}>ทำเครื่องหมายว่าง</button>}
+                {canDelete && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setConfirm('delete')}>ลบทรัพย์</button>}
               </div>
             )}
           </div>
@@ -312,6 +368,12 @@ export default function PropertyDetailPage() {
         message={<>ถอนประกาศ <b>{p.code}</b> กลับเป็นฉบับร่าง? ลูกค้าจะไม่เห็นทรัพย์นี้บนเว็บ</>}
         reasonPlaceholder="เหตุผลที่ถอน (ถ้ามี)"
         onConfirm={(reason) => { setConfirm(null); run(() => api(`/properties/${p.id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }), 'ถอนประกาศแล้ว — กลับเป็นร่าง'); }} />
+      <ConfirmDialog open={confirm === 'sendback'} onClose={() => setConfirm(null)} busy={busy}
+        title="ตีกลับให้แก้" tone="danger" confirmLabel="ตีกลับให้แก้" withReason reasonRequired
+        reasonLabel="เหตุผลที่ตีกลับ (จำเป็น)"
+        message={<>ตีกลับ <b>{p.code}</b> ให้ผู้จัดการแก้ไข? ทรัพย์จะกลับเป็นฉบับร่าง และผู้ส่งจะได้รับการแจ้งเตือน</>}
+        reasonPlaceholder="ระบุสิ่งที่ต้องแก้ เช่น รูปไม่ชัด / ราคาไม่ตรง"
+        onConfirm={(reason) => { setConfirm(null); run(() => api(`/properties/${p.id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }), 'ตีกลับให้แก้แล้ว — แจ้งผู้ส่งแล้ว'); }} />
       <ConfirmDialog open={confirm === 'delete'} onClose={() => setConfirm(null)} busy={busy}
         title="ลบทรัพย์" tone="danger" confirmLabel="ลบทรัพย์"
         message={<>ลบทรัพย์ <b>{p.code}</b>? การลบไม่สามารถย้อนกลับได้</>}

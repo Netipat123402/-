@@ -11,6 +11,7 @@ const TONE_CLASS: Record<Tone, string> = {
 
 export const PROPERTY_STATUS: Record<string, { label: string; tone: Tone }> = {
   draft: { label: 'ฉบับร่าง', tone: 'neutral' },
+  pending_review: { label: 'รอตรวจสอบ', tone: 'done' },
   available: { label: 'ว่าง · ลงประกาศ', tone: 'active' },
   rented: { label: 'ไม่ว่าง', tone: 'gold' },
 };

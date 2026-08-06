@@ -1,6 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { createTestApp, login, ADMIN } from './utils';
+import { PrismaService } from '../src/infrastructure/prisma/prisma.service';
 
 /**
  * E2E happy path (MR-14): owner → property → publish → public เห็น → lead → convert customer
@@ -35,16 +36,26 @@ describe('Full rental flow (e2e)', () => {
       'create owner',
     );
 
-    // 2) property (draft)
+    // 2) property (draft) — เติมข้อมูลจำเป็นเกือบครบ (ยังขาดรูปปก)
     const prop = expectOk(
       await http.post('/api/v1/properties').set(auth()).send({
         ownerId: owner.id, propertyType: 'condo', titleTh: 'E2E คอนโดทดสอบ', monthlyRent: 15000,
+        province: 'กรุงเทพมหานคร', district: 'วัฒนา', bedrooms: 1, bathrooms: 1,
+        descriptionTh: 'คอนโดทดสอบ e2e ใกล้รถไฟฟ้า เฟอร์นิเจอร์ครบ พร้อมเข้าอยู่ทันที',
       }),
       'create property',
     );
     expect(prop.status).toBe('draft');
 
-    // 3) publish: draft → available
+    // 3) ด่านความครบถ้วน (Phase 3): เผยแพร่ไม่ได้ถ้ายังไม่มีรูปปก (จำเป็น 7/7 ไม่ครบ → 409)
+    await http.post(`/api/v1/properties/${prop.id}/approve`).set(auth()).send({}).expect(409);
+
+    // 3b) เติมรูปปก → ครบ 7/7 แล้วจึงเผยแพร่ได้
+    await app.get(PrismaService).propertyMedia.create({
+      data: { propertyId: prop.id, storageKey: 'e2e/cover.jpg', mediaType: 'image', isCover: true },
+    });
+
+    // 3c) publish: draft → available
     const published = expectOk(
       await http.post(`/api/v1/properties/${prop.id}/approve`).set(auth()).send({}),
       'approve property',

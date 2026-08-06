@@ -5,10 +5,13 @@ import {
   isPubliclyVisible,
 } from './property.lifecycle';
 
-describe('Property Lifecycle (3 สถานะ: draft → available → rented)', () => {
+describe('Property Lifecycle (4 สถานะ: draft → pending_review → available → rented)', () => {
   describe('canTransition — เส้นทางที่ถูกต้อง', () => {
     it.each([
-      ['draft', 'available'],
+      ['draft', 'pending_review'], // ผู้จัดการขอเผยแพร่ → เข้าคิว
+      ['draft', 'available'], // เจ้าของเผยแพร่ร่างตัวเองตรง ๆ
+      ['pending_review', 'available'], // เจ้าของอนุมัติ
+      ['pending_review', 'draft'], // เจ้าของตีกลับ / ผู้ส่งถอนคำขอ
       ['available', 'draft'],
       ['available', 'rented'],
       ['rented', 'available'],
@@ -22,6 +25,10 @@ describe('Property Lifecycle (3 สถานะ: draft → available → rented)
       expect(canTransition(PropertyStatus.draft, PropertyStatus.rented)).toBe(false);
     });
 
+    it('pending_review ห้ามข้ามไป rented โดยตรง', () => {
+      expect(canTransition(PropertyStatus.pending_review, PropertyStatus.rented)).toBe(false);
+    });
+
     it('เปลี่ยนเป็นสถานะเดิมไม่ได้', () => {
       expect(canTransition(PropertyStatus.available, PropertyStatus.available)).toBe(false);
     });
@@ -30,8 +37,8 @@ describe('Property Lifecycle (3 สถานะ: draft → available → rented)
       expect(canTransition(PropertyStatus.rented, PropertyStatus.draft)).toBe(false);
     });
 
-    it('draft มีทางออกเดียว = available', () => {
-      expect(allowedTransitions(PropertyStatus.draft)).toEqual(['available']);
+    it('draft ออกได้ 2 ทาง = pending_review (ขอเผยแพร่) หรือ available (เจ้าของเผยแพร่เอง)', () => {
+      expect(allowedTransitions(PropertyStatus.draft)).toEqual(['pending_review', 'available']);
     });
   });
 
@@ -40,8 +47,9 @@ describe('Property Lifecycle (3 สถานะ: draft → available → rented)
       expect(isPubliclyVisible(PropertyStatus.available)).toBe(true);
     });
 
-    it('draft / rented → ไม่เห็น', () => {
+    it('draft / pending_review / rented → ไม่เห็น', () => {
       expect(isPubliclyVisible(PropertyStatus.draft)).toBe(false);
+      expect(isPubliclyVisible(PropertyStatus.pending_review)).toBe(false);
       expect(isPubliclyVisible(PropertyStatus.rented)).toBe(false);
     });
   });

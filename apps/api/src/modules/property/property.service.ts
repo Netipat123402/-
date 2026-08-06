@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -7,6 +8,7 @@ import {
 import { ContractStatus, Prisma, Property, PropertyStatus } from '@prisma/client';
 import { PropertyRepository } from './property.repository';
 import { canTransition } from './property.lifecycle';
+import { computePropertyCompleteness, type CompletenessResult } from './property-completeness';
 import { propertySmartWhere } from '../../common/search/property-search';
 import { extname } from 'node:path';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
@@ -267,31 +269,75 @@ export class PropertyService {
     return { success: true };
   }
 
-  // --- LIFECYCLE TRANSITIONS (3 สถานะ) --------------------------------------
-  /** ขอเผยแพร่ — สำหรับผู้ที่ไม่มีสิทธิ์เผยแพร่เอง: ไม่เปลี่ยนสถานะ แค่แจ้งหัวหน้า */
+  // --- COMPLETENESS (Phase 3) -----------------------------------------------
+  /**
+   * อ่าน "ความครบถ้วน" ของประกาศ (เลี้ยง panel + ด่านก่อนขอเผยแพร่)
+   * NOTE: map `items` → `checklist` เพื่อเลี่ยง TransformInterceptor ที่เห็น key 'items'
+   *       แล้วเข้าใจผิดว่าเป็น paginated list (จะ hoist items เป็น data + ยัด field อื่นลง meta)
+   */
+  async completeness(user: AuthenticatedUser, id: string) {
+    const p = await this.requireInScope(user, id, 'read');
+    const { items, ...rest } = await this.computeCompleteness(p);
+    return { checklist: items, ...rest };
+  }
+
+  /** รวม snapshot ของทรัพย์ + จำนวนรูป → คำนวณผ่าน pure engine */
+  private async computeCompleteness(p: Property): Promise<CompletenessResult> {
+    const mediaCount = await this.prisma.propertyMedia.count({
+      where: { propertyId: p.id, deletedAt: null },
+    });
+    return computePropertyCompleteness({
+      titleTh: p.titleTh,
+      propertyType: p.propertyType,
+      province: p.province,
+      district: p.district,
+      monthlyRent: p.monthlyRent,
+      bedrooms: p.bedrooms,
+      bathrooms: p.bathrooms,
+      descriptionTh: p.descriptionTh,
+      ownerId: p.ownerId,
+      areaSqm: p.areaSqm,
+      floor: p.floor,
+      furnished: p.furnished,
+      amenities: p.amenities as Record<string, unknown> | null,
+      depositMonths: p.depositMonths,
+      mediaCount,
+    });
+  }
+
+  /** ด่านความครบถ้วน — ต้องครบจำเป็น 7/7 ก่อนเข้าสู่คิวเผยแพร่/อนุมัติ */
+  private async assertPublishReady(p: Property): Promise<void> {
+    const c = await this.computeCompleteness(p);
+    if (!c.canPublish) {
+      throw new ConflictException(
+        `ข้อมูลจำเป็นยังไม่ครบ (${c.requiredDone}/${c.requiredTotal}) — ขาด: ${c.missingRequired.join(', ')}`,
+      );
+    }
+  }
+
+  // --- LIFECYCLE TRANSITIONS (4 สถานะ · Phase 3) ----------------------------
+  /** ขอเผยแพร่ (draft → pending_review) — ผู้จัดการส่งเข้าคิวรอเจ้าของอนุมัติ · ด่านครบ 7/7 */
   async submitReview(user: AuthenticatedUser, id: string, meta: RequestMeta) {
     const p = await this.requireInScope(user, id, 'change_status');
     if (p.status !== PropertyStatus.draft) {
       throw new ConflictException('ขอเผยแพร่ได้เฉพาะทรัพย์ที่เป็นฉบับร่าง');
     }
+    await this.assertPublishReady(p);
+    const res = await this.applyTransition(user, p, PropertyStatus.pending_review, 'submit_review', undefined, meta);
     await this.notifications.notifyRoles(['team_lead', 'branch_manager', 'company_admin', 'super_admin'], {
       category: 'property', entityType: 'property', entityId: id,
-      title: 'มีทรัพย์รอการเผยแพร่', body: `${p.code} ${p.titleTh} — โปรดตรวจและเผยแพร่`,
+      title: 'มีทรัพย์รออนุมัติเผยแพร่', body: `${p.code} ${p.titleTh} — โปรดตรวจและอนุมัติ`,
     });
-    await this.activity.log({
-      entityType: 'property', entityId: id, action: 'submit_review', actorId: user.id,
-      summary: `ขอเผยแพร่ทรัพย์ ${p.code}`,
-    });
-    await this.audit.record(user, { action: 'submit_review', entityType: 'property', entityId: id, ...meta });
-    return p;
+    return res;
   }
 
-  /** เผยแพร่ทรัพย์ขึ้นเว็บ (draft → available) */
+  /** อนุมัติเผยแพร่ (draft/pending_review → available) — เจ้าของเท่านั้น · re-check ครบ 7/7 กัน data เปลี่ยนหลังส่ง */
   async approve(user: AuthenticatedUser, id: string, meta: RequestMeta) {
     const p = await this.requireInScope(user, id, 'approve');
-    if (p.status !== PropertyStatus.draft) {
-      throw new ConflictException('เผยแพร่ได้เฉพาะทรัพย์ที่เป็นฉบับร่าง');
+    if (p.status !== PropertyStatus.draft && p.status !== PropertyStatus.pending_review) {
+      throw new ConflictException('อนุมัติเผยแพร่ได้เฉพาะทรัพย์ที่เป็นร่างหรือรอตรวจสอบ');
     }
+    await this.assertPublishReady(p);
     const res = await this.applyTransition(user, p, PropertyStatus.available, 'approve', undefined, meta);
     await this.notifications.notifyUser(p.assignedToId, {
       category: 'property', entityType: 'property', entityId: id,
@@ -300,13 +346,28 @@ export class PropertyService {
     return res;
   }
 
-  /** ถอนประกาศกลับเป็นร่าง (available → draft) */
+  /**
+   * ตีกลับ / ถอนประกาศ — เจ้าของเท่านั้น (property:reject)
+   * - pending_review → draft : ตีกลับให้แก้ (เหตุผล "บังคับ") + แจ้งผู้ส่ง
+   * - available → draft       : ถอนประกาศกลับมาแก้ไข (เหตุผลไม่บังคับ)
+   */
   async reject(user: AuthenticatedUser, id: string, reason: string | undefined, meta: RequestMeta) {
     const p = await this.requireInScope(user, id, 'reject');
-    if (p.status !== PropertyStatus.available) {
-      throw new ConflictException('ถอนประกาศได้เฉพาะทรัพย์ที่เผยแพร่อยู่');
+    if (p.status === PropertyStatus.pending_review) {
+      if (!reason || !reason.trim()) {
+        throw new BadRequestException('การตีกลับให้แก้ต้องระบุเหตุผล');
+      }
+      const res = await this.applyTransition(user, p, PropertyStatus.draft, 'reject', reason, meta);
+      await this.notifications.notifyUser(p.assignedToId, {
+        category: 'property', entityType: 'property', entityId: id,
+        title: 'ทรัพย์ถูกตีกลับให้แก้', body: `${p.code} ${p.titleTh} — เหตุผล: ${reason}`,
+      });
+      return res;
     }
-    return this.applyTransition(user, p, PropertyStatus.draft, 'reject', reason, meta);
+    if (p.status === PropertyStatus.available) {
+      return this.applyTransition(user, p, PropertyStatus.draft, 'reject', reason, meta);
+    }
+    throw new ConflictException('ตีกลับ/ถอนได้เฉพาะทรัพย์ที่รอตรวจสอบหรือเผยแพร่อยู่');
   }
 
   async changeStatus(
