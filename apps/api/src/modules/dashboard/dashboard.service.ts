@@ -20,8 +20,9 @@ export type DashAgendaItem = {
   secondary?: string | null;
   scheduledAt?: Date | null;
   endDate?: Date | null;
+  href?: string; // ลิงก์รายตัว (ถ้าไม่มี → ใช้ href ของ section)
 };
-export type DashAgenda = { key: string; title: string; icon: string; href: string; items: DashAgendaItem[] };
+export type DashAgenda = { key: string; title: string; icon: string; href: string; items: DashAgendaItem[]; tone?: 'alert' };
 export type DashboardPayload = { role: OperatingRole; kpis: DashKpi[]; agenda: DashAgenda[] };
 
 function pickRole(roles: string[]): OperatingRole {
@@ -38,7 +39,7 @@ export class DashboardService {
     const role = pickRole(user.roles);
     if (role === 'sales_agent') return this.sales(user);
     if (role === 'property_manager') return this.manager();
-    return this.owner();
+    return this.owner(user);
   }
 
   private todayRange() {
@@ -138,8 +139,8 @@ export class DashboardService {
   }
 
   // ---- เจ้าของ: คิวที่ต้องตัดสิน + สุขภาพธุรกิจ ----------------------------
-  private async owner(): Promise<DashboardPayload> {
-    const [pendingReview, awaitingSign, pendingRequests, activeContracts, reviewItems, signItems] = await Promise.all([
+  private async owner(user: AuthenticatedUser): Promise<DashboardPayload> {
+    const [pendingReview, awaitingSign, pendingRequests, activeContracts, reviewItems, signItems, alertItems] = await Promise.all([
       this.prisma.property.count({ where: { deletedAt: null, status: 'pending_review' } }),
       this.prisma.contract.count({ where: { deletedAt: null, status: 'draft' } }),
       this.prisma.propertyRequest.count({ where: { deletedAt: null, status: 'pending' } }),
@@ -154,7 +155,23 @@ export class DashboardService {
         orderBy: { createdAt: 'desc' }, take: 5,
         select: { id: true, code: true, endDate: true, customer: { select: { fullName: true } }, property: { select: { titleTh: true } } },
       }),
+      // กันโกง (Phase 4): alert แก้ข้อมูลอ่อนไหว (Phase 5 · category owner · ส่งถึง super_admin คนนี้)
+      this.prisma.notification.findMany({
+        where: { recipientUserId: user.id, category: 'owner' },
+        orderBy: { createdAt: 'desc' }, take: 5,
+        select: { id: true, title: true, body: true, entityType: true, entityId: true, createdAt: true },
+      }),
     ]);
+    const alertSection: DashAgenda[] = alertItems.length > 0 ? [{
+      key: 'alerts', title: 'แจ้งเตือนอ่อนไหว (กันโกง)', icon: 'alert-triangle', href: '/audit', tone: 'alert',
+      items: alertItems.map((n) => ({
+        id: n.id,
+        primary: n.title,
+        secondary: n.body,
+        scheduledAt: n.createdAt, // ช่องเวลา = "เมื่อไร"
+        href: n.entityType === 'owner' && n.entityId ? `/owners/${n.entityId}` : undefined,
+      })),
+    }] : [];
     return {
       role: 'super_admin',
       kpis: [
@@ -164,6 +181,7 @@ export class DashboardService {
         { key: 'activeContracts', label: 'สัญญามีผล', value: activeContracts, href: '/contracts?status=active', icon: 'file-text' },
       ],
       agenda: [
+        ...alertSection, // กันโกงขึ้นก่อน (เด่นสุด)
         {
           key: 'properties', title: 'ทรัพย์รอตรวจสอบ', icon: 'inbox', href: '/properties?status=pending_review',
           items: reviewItems.map((p) => ({ id: p.id, code: p.code, primary: p.titleTh })),
