@@ -15,6 +15,7 @@ import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Icon, type IconName } from '@/components/Icon';
+import { resolveNav } from '@/lib/nav';
 
 type NavItem = { href: string; label: string; icon: IconName; perm?: [string, string]; badgeKey?: 'propertyRequest' };
 // เรียงตาม flow ธุรกิจอสังหา: ตั้งต้นคลังทรัพย์ (เจ้าของ→ทรัพย์) → งานขาย (Lead→นัด→ปฏิทิน→ลูกค้า→สัญญา)
@@ -179,32 +180,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     (it) => !BOTTOM_HREFS.has(it.href) && (!it.perm || can(it.perm[0], it.perm[1])),
   );
 
-  // Sidebar เดสก์ท็อป = ราง (rail) แคบ: ไอคอนบน + ป้ายเล็กล่าง · คั่นกลุ่มด้วยเส้นบาง (ไม่ใส่ข้อความกลุ่มในรางแคบ)
+  // Sidebar เดสก์ท็อป = ราง (rail) แคบ: ไอคอนบน + ป้ายเล็กล่าง · โครง/ลำดับตามบทบาท (lib/nav.ts)
+  // คั่นกลุ่มด้วยเส้นบาง · ป้ายกลุ่มโชว์เฉพาะกลุ่มที่ต้องสื่อความหมาย (ค้นทรัพย์/ระบบ) · กลุ่ม pinBottom ดันลงล่าง
+  const navGroups = resolveNav(user.roles, can);
   const NavLinks = () => (
-    <nav className="flex flex-col px-1.5 py-2">
-      {NAV.map((sec, gi) => {
-        const items = sec.items.filter((it) => !it.perm || can(it.perm[0], it.perm[1]));
-        if (items.length === 0) return null;
-        return (
-          <div key={sec.group} className={`space-y-1 ${gi > 0 ? 'mt-2 border-t border-border pt-2' : ''}`}>
-            {items.map((it) => (
-              <Link key={it.href} href={it.href}
-                aria-current={isActive(it.href) ? 'page' : undefined}
-                className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-2xs leading-tight transition ${
-                  isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
-                }`}>
+    <nav className="flex flex-1 flex-col px-1.5 py-2">
+      {navGroups.map((sec, gi) => (
+        <div key={sec.key} className={`space-y-1 ${
+          sec.pinBottom ? 'mt-auto border-t border-border pt-2' : gi > 0 ? 'mt-2 border-t border-border pt-2' : ''
+        }`}>
+          {sec.label && <p className="px-1 pb-1 text-center text-2xs text-muted">{sec.label}</p>}
+          {sec.items.map((it) => {
+            const active = isActive(it.href);
+            const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
+            return (
+              <Link key={it.label} href={it.href}
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-2xs leading-tight transition ${tone}`}>
                 <span className="relative">
-                  <Icon name={it.icon} size={20} className={isActive(it.href) ? '' : 'opacity-80'} />
+                  <Icon name={it.icon} size={20} className={active || it.accent ? '' : 'opacity-80'} />
                   {it.badgeKey === 'propertyRequest' && prPending > 0 && (
                     <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold leading-none text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
                   )}
                 </span>
                 <span>{it.label}</span>
               </Link>
-            ))}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 
@@ -223,7 +227,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen mouse:grid mouse:grid-cols-[84px_1fr]">
       {/* Sidebar — เฉพาะอุปกรณ์ที่มีเมาส์/แทร็กแพด (เดสก์ท็อป/โน้ตบุ๊ก) · ไอแพด/แท็บเล็ตสัมผัส = ใช้ mobile shell */}
       <aside className="hidden border-r border-border bg-surface mouse:block">
-        <div className="sticky top-0">
+        <div className="sticky top-0 flex h-screen flex-col overflow-y-auto">
           <Brand />
           <NavLinks />
         </div>
