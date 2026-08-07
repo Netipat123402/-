@@ -62,12 +62,16 @@
 - **⭐ final system audit** (`3f57e83`): permission matrix 3 บทบาท = maker-checker เป๊ะ · decrypt อยู่แค่ 2 reveal methods (gated) · status writes ผ่าน applyTransition · **เจอ+ปิด PropertySync ข้าม contentDirty** (edge สุดท้าย) · idCard ไม่รั่วผ่าน relation
 - **verify:** unit 96/96 · e2e 14/14 · reveal UI authed (mask→1103700123456→ซ่อน) · AI คัดรูป 18+ = เลื่อน future (คนละเรื่อง governance)
 
-## 4) 🎯 งานถัดไป — ⭐ ออกแบบ UX แยกตามบทบาท (งานใหญ่ · ทำตาม CYCLE เต็ม)
-> owner สั่งชัด: **ทำตามทุกกฎ** (ติของเก่า → เสนอ+รูป 3 จอ show_widget → รอเคาะ → ทำ → verify authed 3จอ×3บทบาท → **self-check ถ้าไม่ดีติ+เสนอใหม่** → **เทส flow ซ้ำ** → commit → ทีละหน้า)
-> ⚠️ **RBAC backend เสร็จหมดแล้ว + ปุ่มถูก gate ถูกต้อง** (เซลไม่เห็นปุ่มเพิ่ม/แก้/ลบทรัพย์จริง) — งานที่เหลือคือ **"รูปทรง" UX ที่ยังเหมือนกันทุกบทบาท** (แดชบอร์ด/เมนู/หน้า read-only)
-- **🔵 กำลังทำ · เคาะแล้ว: แดชบอร์ดแยก 3 บทบาท** — design + รูปเทียบเสนอแล้ว (เซล=ไปป์ไลน์ของฉัน · ผจก=ปฏิบัติการ · ผู้บริหาร=คิวอนุมัติ/กันโกง) · **รอ owner เคาะ 1 จุด: วิธี implement** = (ก) `GET /dashboard` endpoint คำนวณตามบทบาท [แนะนำ ระดับโลก] หรือ (ข) client-fetch เลือกเมตริก+กรอง "ของฉัน" (assignedToId/agentId มีแล้ว · property ยังไม่มี sourcedById filter) · dashboard ปัจจุบัน = [`apps/web-admin/src/app/(app)/page.tsx`](apps/web-admin/src/app/(app)/page.tsx) (gate ด้วย can() แต่เมตริกทั้งออฟฟิศ)
-- **ถัดไป:** sidebar/เมนู แยกบทบาท (เซล=เน้นขาย) · หน้า read-only แต่งให้ "อ่านอย่างเดียว" ชัด
-- **🟢 เฟส C (ค้าง · ก้อนใหญ่สุด): แปลทั้งระบบเป็นอังกฤษ** — 56 ไฟล์ · **ไม่มี i18n lib** (สตริงไทย hardcode) · owner เคาะ direction แล้ว · **รอเคาะวิธี**: (ก) ติดตั้ง next-intl + แยก en.json [world-class สลับภาษาได้] หรือ (ข) replace ไทย→อังกฤษตรง · ขอบเขต web-admin หรือ +web-public
+## 4) 🎯 งานถัดไป — ⭐ ออกแบบ UX แยกตามบทบาท (งานใหญ่ · owner ขยายสโคป: ไม่ใช่แค่ dashboard แต่ทั้งระบบ · แบ่งเฟส)
+> owner สั่งชัด: **ทำตามทุกกฎ** (ติของเก่า → เสนอ+รูป 3 จอ show_widget → รอเคาะ → ทำ → verify authed 3จอ×3บทบาท → self-check → เทส flow ซ้ำ → commit → ทีละหน้า) · **ระดับโลก เผื่อโต** · **ห้ามทำ nav item จาง (=ดูปิดใช้งาน)** → [[ros-dim-reads-as-disabled]]
+> ⚠️ RBAC backend + ปุ่ม gate เสร็จหมดแล้ว — งานที่เหลือคือ **"รูปทรง" UX แยกบทบาท** (nav/dashboard/หน้า read-only/surface เจ้าของ)
+> **Roadmap เคาะแล้ว (4 เฟส + track C):** 1 Navigation · 2 Dashboard · 3 หน้าอ้างอิงเซล · 4 surface เจ้าของ · C แปลอังกฤษ
+
+- **✅ เฟส 1 · Navigation แยกบทบาท เสร็จ (1a `6ea827d` + 1b `600d500`):** รากฐาน [`lib/nav.ts`](apps/web-admin/src/lib/nav.ts) = `roleNav`/`resolveBottomSlots` single source of truth (ราง+แถบล่าง+drawer · เพิ่มบทบาทใหม่แก้ที่เดียว) · เซล=งานขายนำ+กลุ่ม "ค้นทรัพย์"(สีปกติกดได้) · ผจก/เจ้าของ=คลังทรัพย์นำ · เจ้าของ+ระบบปักล่าง · แถบล่างช่องกลาง=signature (เซลนัด/ผจก·เจ้าของคำขอ) · verify 3จอ×3บทบาทผ่าน
+- **🔵 ถัดไป · เฟส 2 · Dashboard แยก 3 บทบาท** — design+รูปเทียบเสนอแล้ว (เซล=ไปป์ไลน์ของฉัน · ผจก=ปฏิบัติการ · เจ้าของ=คิวอนุมัติ/กันโกง) · **รอ owner เคาะวิธี implement** = (ก) `GET /dashboard` endpoint คำนวณตามบทบาท [แนะนำ] หรือ (ข) client-fetch (property ยังไม่มี sourcedById filter) · ปัจจุบัน [`page.tsx`](apps/web-admin/src/app/(app)/page.tsx) gate ด้วย can() แต่เมตริกทั้งออฟฟิศ
+- **เฟส 3 · หน้าอ้างอิงเซล** (ทรัพย์+เจ้าของ ให้ "อ่านอย่างเดียว" ชัดด้วยดีไซน์ · CTA=ขอเพิ่มทรัพย์) · **เฟส 4 · surface เจ้าของ** (คิวอนุมัติ+widget กันโกง)
+- **🔸 ค้าง (owner ถาม · รอเคาะ):** ป้ายสถานะคำขอ `converted` = "สร้างประกาศแล้ว" สื่อผิด (ชนกับ "เผยแพร่") → เสนอเปลี่ยนเป็น **"แปลงเป็นทรัพย์แล้ว"** ที่ [`property-requests/page.tsx:26`](apps/web-admin/src/app/(app)/property-requests/page.tsx) · ยืนยันแล้ว: คำขอ(convert→ทรัพย์ร่าง) กับ เผยแพร่(draft→pending_review→available) = 2 วงจรแยกกัน · ผจก=เจ้าของ ตรวจคำขอเหมือนกัน ต่างที่ขั้นอนุมัติเผยแพร่ (เจ้าของเท่านั้น)
+- **🟢 track C (ก้อนใหญ่สุด): แปลทั้งระบบเป็นอังกฤษ** — 56 ไฟล์ · ไม่มี i18n lib · owner เคาะ direction แล้ว · **รอเคาะวิธี**: (ก) next-intl+en.json หรือ (ข) replace ตรง · ขอบเขต web-admin หรือ +web-public
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
 ## 6) 🧪 เครื่องมือเทส/ข้อมูล (session นี้สร้าง)
