@@ -283,7 +283,7 @@ export function SectionTabs({ items, className = '' }: {
  * สถานะรับเป็น statusMap+statusValue (เรนเดอร์เป็นจุดสีในตัว) แทน badge node เดิม · telemetry(ยอดวิว)ย้ายออกจากหัว
  */
 export function DetailHeader({
-  backHref, backLabel = 'Back', code, statusMap, statusValue, title, subtitle, price, priceSuffix, actions, className = '',
+  backHref, backLabel, code, statusMap, statusValue, title, subtitle, price, priceSuffix, actions, className = '',
 }: {
   backHref?: string;
   backLabel?: string;
@@ -305,7 +305,7 @@ export function DetailHeader({
     <div className={className}>
       {backHref && (
         <Link href={backHref} className="inline-flex items-center gap-1 text-sm text-muted hover:text-ink">
-          <Icon name="arrow-left" size={16} /> {backLabel}
+          <Icon name="arrow-left" size={16} /> {backLabel ?? t('common.back')}
         </Link>
       )}
       <div className={`${backHref ? 'mt-3 ' : ''}sm:flex sm:items-start sm:justify-between sm:gap-4`}>

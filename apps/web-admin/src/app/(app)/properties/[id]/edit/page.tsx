@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import PropertyForm, { type PropertyInitial } from '@/components/PropertyForm';
 import { PageHeader } from '@/components/ui';
 
 export default function EditPropertyPage() {
+  const t = useTranslations();
   const { api } = useAuth();
   const { id } = useParams<{ id: string }>();
   const [initial, setInitial] = useState<PropertyInitial | null>(null);
@@ -20,7 +22,7 @@ export default function EditPropertyPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="แก้ไขทรัพย์" />
+      <PageHeader title={t('propertyDetail.editTitle')} />
       <div className="mt-6">
         {initial ? <PropertyForm mode="edit" initial={initial} />
           : <div className="h-64 animate-pulse rounded-card bg-canvas" />}

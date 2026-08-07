@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useSearchLookup } from '@/lib/lookups';
 import { Combobox, SectionLabel } from '@/components/ui';
@@ -22,19 +23,19 @@ export interface PropertyInitial {
   amenities?: Record<string, boolean>;
 }
 
-const FURNISHED = [
-  { code: 'fully', labelTh: 'เฟอร์ครบ' }, { code: 'partial', labelTh: 'เฟอร์บางส่วน' }, { code: 'unfurnished', labelTh: 'ไม่มีเฟอร์' },
-];
-const STEPS = ['ข้อมูลหลัก', 'ทำเล', 'ราคา & ห้อง', 'สิ่งอำนวยความสะดวก'];
+// labels → i18n (propertyForm.furnish.* / .steps.* / .amenityGroup.*) แปลตอน render
+const FURNISHED = ['fully', 'partial', 'unfurnished'] as const;
+const STEP_KEYS = ['main', 'location', 'priceRooms', 'amenities'] as const;
 
-// จัดกลุ่มสิ่งอำนวยความสะดวกให้ไม่ลายตา (โค้ดที่ไม่อยู่ในกลุ่ม → "อื่น ๆ" อัตโนมัติ)
+// จัดกลุ่มสิ่งอำนวยความสะดวก (title = key แปลตอน render · code นอกกลุ่ม → 'other' อัตโนมัติ)
 const AMENITY_GROUPS: { title: string; codes: string[] }[] = [
-  { title: 'ส่วนกลาง & สันทนาการ', codes: ['pool', 'gym', 'sauna', 'garden', 'co_working', 'playground'] },
-  { title: 'ความปลอดภัย', codes: ['security', 'cctv', 'keycard'] },
-  { title: 'เดินทาง & ที่จอดรถ', codes: ['parking', 'near_bts', 'near_mrt', 'shuttle'] },
+  { title: 'common', codes: ['pool', 'gym', 'sauna', 'garden', 'co_working', 'playground'] },
+  { title: 'security', codes: ['security', 'cctv', 'keycard'] },
+  { title: 'transport', codes: ['parking', 'near_bts', 'near_mrt', 'shuttle'] },
 ];
 
 export default function PropertyForm({ initial, mode, onClose, onSaved }: { initial?: PropertyInitial; mode: 'create' | 'edit'; onClose?: () => void; onSaved?: (id: string) => void }) {
+  const t = useTranslations();
   const { api } = useAuth();
   const router = useRouter();
   const [types, setTypes] = useState<Master[]>([]);
@@ -82,10 +83,10 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
   function stepErrors(s: number) {
     const v: typeof fe = {};
     if (s === 0) {
-      if (mode === 'create' && !f.ownerId) v.ownerId = 'กรุณาเลือกเจ้าของทรัพย์';
-      if (!f.titleTh?.trim()) v.titleTh = 'กรุณากรอกชื่อทรัพย์ (ไทย)';
+      if (mode === 'create' && !f.ownerId) v.ownerId = t('propertyForm.v.owner');
+      if (!f.titleTh?.trim()) v.titleTh = t('propertyForm.v.title');
     } else if (s === 2) {
-      if (!(Number(f.monthlyRent) > 0)) v.monthlyRent = 'กรุณากรอกค่าเช่าให้ถูกต้อง';
+      if (!(Number(f.monthlyRent) > 0)) v.monthlyRent = t('propertyForm.v.rent');
     }
     return v;
   }
@@ -93,12 +94,12 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
   function next() {
     const v = stepErrors(step);
     if (Object.keys(v).length) { setFe(v); return; }
-    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    setStep((s) => Math.min(STEP_KEYS.length - 1, s + 1));
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (step < STEPS.length - 1) { next(); return; }
+    if (step < STEP_KEYS.length - 1) { next(); return; }
     const v = { ...stepErrors(0), ...stepErrors(2) };
     if (Object.keys(v).length) { setFe(v); setStep((v.ownerId || v.titleTh) ? 0 : 2); return; }
     setErr(''); setSaving(true);
@@ -124,7 +125,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
         if (onSaved) onSaved(initial!.id!); else router.push(`/properties/${initial!.id}`);
       }
     } catch (e2) {
-      setErr((e2 as { message?: string; details?: unknown }).message || 'บันทึกไม่สำเร็จ');
+      setErr((e2 as { message?: string; details?: unknown }).message || t('propertyForm.v.saveFailed'));
       setSaving(false);
     }
   }
@@ -156,23 +157,23 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
     <form onSubmit={submit} className="space-y-5">
       {/* ตัวบอกขั้นตอน (PDF น.19 — ฟอร์มยาวแบ่งสเต็ป + โชว์ progress) */}
       <div className="flex items-center gap-1">
-        {STEPS.map((label, i) => (
-          <button type="button" key={label} onClick={() => setStep(i)}
+        {STEP_KEYS.map((key, i) => (
+          <button type="button" key={key} onClick={() => setStep(i)}
             className={`flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition ${i === step ? 'bg-canvas' : ''}`}>
             <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
               i === step ? 'bg-gold text-[#1c1b18]' : i < step ? 'bg-gold/30 text-gold-dark' : 'bg-canvas text-muted ring-1 ring-border'
             }`}>
               {i < step ? <Icon name="check" size={15} /> : i + 1}
             </span>
-            <span className={`hidden truncate text-sm sm:inline ${i === step ? 'font-medium text-ink' : 'text-muted'}`}>{label}</span>
+            <span className={`hidden truncate text-sm sm:inline ${i === step ? 'font-medium text-ink' : 'text-muted'}`}>{t(`propertyForm.steps.${key}`)}</span>
           </button>
         ))}
       </div>
 
       {loadErr && (
         <div className="flex items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
-          <span>โหลดรายชื่อเจ้าของ/ตัวเลือกไม่สำเร็จ (เซสชันอาจหมดอายุ)</span>
-          <button type="button" onClick={loadData} className="shrink-0 font-medium underline">ลองใหม่</button>
+          <span>{t('propertyForm.loadErr')}</span>
+          <button type="button" onClick={loadData} className="shrink-0 font-medium underline">{t('common.retry')}</button>
         </div>
       )}
 
@@ -180,28 +181,28 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
       {mode === 'edit' && initial?.status === 'available' && (
         <div className="flex items-start gap-2.5 rounded-lg border border-warning/40 bg-warning/10 px-3.5 py-2.5 text-sm text-warning">
           <Icon name="alert-triangle" size={16} className="mt-0.5 shrink-0" />
-          <span>ทรัพย์นี้<b className="font-medium">เผยแพร่อยู่บนเว็บลูกค้า</b> — การแก้ไขราคา รายละเอียด หรือทำเล จะทำให้กลับไป <b className="font-medium">รอตรวจสอบ</b> และถูกซ่อนจากเว็บจนเจ้าของอนุมัติใหม่</span>
+          <span>{t.rich('propertyForm.liveWarning', { b: (c) => <b className="font-medium">{c}</b> })}</span>
         </div>
       )}
 
       {step === 0 && (
         <div className="card p-5">
-          <h2 className="mb-4 font-semibold sm:hidden">ข้อมูลหลัก</h2>
+          <h2 className="mb-4 font-semibold sm:hidden">{t('propertyForm.steps.main')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2"><Label>ประเภท *</Label>
-              <ChipGroup options={types.length ? types : [{ code: 'condo', labelTh: 'คอนโด' }]} value={f.propertyType} onChange={(v) => set('propertyType', v)} />
+            <div className="sm:col-span-2"><Label>{t('propertyForm.type')} *</Label>
+              <ChipGroup options={types.length ? types : [{ code: 'condo', labelTh: t('propertyType.condo') }]} value={f.propertyType} onChange={(v) => set('propertyType', v)} />
             </div>
             <div className="sm:col-span-2">
-              <Combobox label={`เจ้าของทรัพย์${mode === 'create' ? ' *' : ''}`} placeholder="— เลือกเจ้าของ —" error={fe.ownerId}
+              <Combobox label={`${t('propertyForm.owner')}${mode === 'create' ? ' *' : ''}`} placeholder={t('propertyForm.ownerPlaceholder')} error={fe.ownerId}
                 disabled={mode === 'edit'} value={f.ownerId ?? ''} onChange={(v) => set('ownerId', v)}
                 options={ownerOptions} onSearch={owners.setQuery} loading={owners.loading}
                 loadError={owners.error} onRetry={owners.reload} />
             </div>
-            <label className="sm:col-span-2"><Label>ชื่อทรัพย์ (ไทย) *</Label>
-              <input className={`field ${fe.titleTh ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} placeholder="เช่น เดอะ เบส สุขุมวิท — 1 นอน วิวเมือง" value={f.titleTh} onChange={(e) => set('titleTh', e.target.value)} />
+            <label className="sm:col-span-2"><Label>{t('propertyForm.titleTh')} *</Label>
+              <input className={`field ${fe.titleTh ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} placeholder={t('propertyForm.titlePlaceholder')} value={f.titleTh} onChange={(e) => set('titleTh', e.target.value)} />
               {fe.titleTh && <span className="mt-1 block text-xs text-danger">{fe.titleTh}</span>}
             </label>
-            <label className="sm:col-span-2"><Label>ชื่อทรัพย์ (อังกฤษ)</Label>
+            <label className="sm:col-span-2"><Label>{t('propertyForm.titleEn')}</Label>
               <input className="field" placeholder="e.g. The Base Sukhumvit — 1BR City View" value={f.titleEn} onChange={(e) => set('titleEn', e.target.value)} />
             </label>
           </div>
@@ -210,14 +211,14 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
 
       {step === 1 && (
         <div className="card p-5">
-          <h2 className="mb-4 font-semibold sm:hidden">ทำเล</h2>
+          <h2 className="mb-4 font-semibold sm:hidden">{t('propertyForm.steps.location')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="sm:col-span-2"><Label>โครงการ</Label>
-              <input className="field" placeholder="เช่น เดอะ เบส" value={f.projectName} onChange={(e) => set('projectName', e.target.value)} />
+            <label className="sm:col-span-2"><Label>{t('propertyForm.project')}</Label>
+              <input className="field" placeholder={t('propertyForm.projectPlaceholder')} value={f.projectName} onChange={(e) => set('projectName', e.target.value)} />
             </label>
-            <Combobox label="จังหวัด" value={f.province ?? ''} onChange={(v) => set('province', v)}
+            <Combobox label={t('common.province')} value={f.province ?? ''} onChange={(v) => set('province', v)}
               options={provinces.map((p) => ({ value: p.labelTh, label: p.labelTh }))} />
-            <label><Label>เขต/อำเภอ</Label>
+            <label><Label>{t('propertyForm.district')}</Label>
               <input className="field" value={f.district} onChange={(e) => set('district', e.target.value)} />
             </label>
           </div>
@@ -226,38 +227,38 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
 
       {step === 2 && (
         <div className="card space-y-5 p-5">
-          <h2 className="font-semibold sm:hidden">ราคา & ห้อง</h2>
+          <h2 className="font-semibold sm:hidden">{t('propertyForm.steps.priceRooms')}</h2>
           {/* กลุ่ม 1 — ราคา (แยกจาก "ห้อง" ตาม §10 · หัวข้อไม่มีไอคอน §10b) */}
           <div className="space-y-3">
-            <SectionLabel>ราคา</SectionLabel>
+            <SectionLabel>{t('propertyForm.price')}</SectionLabel>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label><Label>ค่าเช่า/เดือน (บาท) *</Label>
-                <input className={`field ${fe.monthlyRent ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} type="number" placeholder="เช่น 15000" value={f.monthlyRent} onChange={(e) => set('monthlyRent', e.target.value)} />
+              <label><Label>{t('propertyForm.rent')} *</Label>
+                <input className={`field ${fe.monthlyRent ? 'border-danger focus:border-danger focus:ring-danger/20' : ''}`} type="number" placeholder={t('propertyForm.rentPlaceholder')} value={f.monthlyRent} onChange={(e) => set('monthlyRent', e.target.value)} />
                 {fe.monthlyRent && <span className="mt-1 block text-xs text-danger">{fe.monthlyRent}</span>}
               </label>
-              <label><Label>มัดจำ (เดือน)</Label>
+              <label><Label>{t('propertyForm.deposit')}</Label>
                 <input className="field" type="number" value={f.depositMonths ?? ''} onChange={(e) => set('depositMonths', Number(e.target.value))} />
               </label>
             </div>
           </div>
           {/* กลุ่ม 2 — ห้อง & พื้นที่ (ชั้น ย้ายมาจาก "ทำเล" ให้ตรงกลุ่มหน้า detail) */}
           <div className="space-y-3">
-            <SectionLabel>ห้อง & พื้นที่</SectionLabel>
+            <SectionLabel>{t('propertyDetail.roomsArea')}</SectionLabel>
             <div className="grid gap-4 sm:grid-cols-3">
-              <label><Label>ห้องนอน</Label>
+              <label><Label>{t('propertyDetail.bedrooms')}</Label>
                 <input className="field" type="number" value={f.bedrooms ?? ''} onChange={(e) => set('bedrooms', Number(e.target.value))} />
               </label>
-              <label><Label>ห้องน้ำ</Label>
+              <label><Label>{t('propertyDetail.bathrooms')}</Label>
                 <input className="field" type="number" value={f.bathrooms ?? ''} onChange={(e) => set('bathrooms', Number(e.target.value))} />
               </label>
-              <label><Label>พื้นที่ (ตร.ม.)</Label>
+              <label><Label>{t('propertyForm.areaSqm')}</Label>
                 <input className="field" type="number" value={f.areaSqm} onChange={(e) => set('areaSqm', e.target.value)} />
               </label>
-              <label><Label>ชั้น</Label>
+              <label><Label>{t('propertyDetail.floor')}</Label>
                 <input className="field" value={f.floor} onChange={(e) => set('floor', e.target.value)} />
               </label>
-              <div className="sm:col-span-3"><Label>เฟอร์นิเจอร์</Label>
-                <ChipGroup options={FURNISHED} value={f.furnished} onChange={(v) => set('furnished', v)} />
+              <div className="sm:col-span-3"><Label>{t('propertyDetail.furnishing')}</Label>
+                <ChipGroup options={FURNISHED.map((c) => ({ code: c, labelTh: t(`propertyForm.furnish.${c}`) }))} value={f.furnished} onChange={(v) => set('furnished', v)} />
               </div>
             </div>
           </div>
@@ -266,15 +267,15 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
 
       {step === 3 && (
         <div className="card space-y-5 p-5">
-          <h2 className="font-semibold sm:hidden">สิ่งอำนวยความสะดวก</h2>
+          <h2 className="font-semibold sm:hidden">{t('propertyForm.steps.amenities')}</h2>
           {(() => {
             const known = new Set(AMENITY_GROUPS.flatMap((g) => g.codes));
             const buckets = AMENITY_GROUPS.map((g) => ({ title: g.title, items: amenityOpts.filter((a) => g.codes.includes(a.code)) }));
             const others = amenityOpts.filter((a) => !known.has(a.code));
-            if (others.length) buckets.push({ title: 'อื่น ๆ', items: others });
+            if (others.length) buckets.push({ title: 'other', items: others });
             return buckets.filter((b) => b.items.length > 0).map((b) => (
               <div key={b.title}>
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{b.title}</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{t(`propertyForm.amenityGroup.${b.title}`)}</p>
                 <div className="flex flex-wrap gap-2">
                   {b.items.map((a) => (
                     <button type="button" key={a.code} onClick={() => toggleAmenity(a.code)}
@@ -288,10 +289,10 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
               </div>
             ));
           })()}
-          <label className="block border-t border-border pt-4"><Label>รายละเอียดเพิ่มเติม</Label>
-            <textarea className="field h-auto py-2.5" rows={4} placeholder="จุดเด่นของทรัพย์ เช่น วิว ทิศ การตกแต่ง บรรยากาศ" value={f.descriptionTh} onChange={(e) => set('descriptionTh', e.target.value)} />
+          <label className="block border-t border-border pt-4"><Label>{t('propertyForm.description')}</Label>
+            <textarea className="field h-auto py-2.5" rows={4} placeholder={t('propertyForm.descPlaceholder')} value={f.descriptionTh} onChange={(e) => set('descriptionTh', e.target.value)} />
           </label>
-          {mode === 'create' && <p className="text-sm text-muted">เพิ่มรูปทรัพย์ได้หลังบันทึก (ในหน้ารายละเอียดทรัพย์)</p>}
+          {mode === 'create' && <p className="text-sm text-muted">{t('propertyForm.createHint')}</p>}
         </div>
       )}
 
@@ -299,12 +300,12 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
 
       <div className="flex items-center justify-between gap-2">
         <button type="button" className="btn-ghost" onClick={() => (step === 0 ? (onClose ? onClose() : router.back()) : setStep((s) => s - 1))}>
-          {step === 0 ? 'ยกเลิก' : 'ย้อนกลับ'}
+          {step === 0 ? t('common.cancel') : t('common.back')}
         </button>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-muted">ขั้นที่ {step + 1}/{STEPS.length}</span>
+          <span className="text-sm text-muted">{t('propertyForm.stepOf', { n: step + 1, total: STEP_KEYS.length })}</span>
           <button type="submit" className="btn-gold" disabled={saving}>
-            {step < STEPS.length - 1 ? 'ถัดไป' : saving ? 'กำลังบันทึก…' : mode === 'create' ? 'สร้างทรัพย์' : 'บันทึกการแก้ไข'}
+            {step < STEP_KEYS.length - 1 ? t('propertyForm.next') : saving ? t('propertyForm.saving') : mode === 'create' ? t('propertyForm.create') : t('propertyForm.saveEdit')}
           </button>
         </div>
       </div>
