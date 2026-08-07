@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useDebouncedValue } from '@/lib/useDebounce';
@@ -128,10 +129,26 @@ export default function PropertiesPage() {
     },
   ];
 
+  // เซล = อ่านอย่างเดียว (ไม่มี property:create) แต่ขอเพิ่มทรัพย์ผ่านคำขอได้ → CTA คนละแบบ + framing แคตตาล็อก
+  const canAddProperty = can('property', 'create');
+  const canRequestProperty = !canAddProperty && can('property_request', 'create');
+  const addCta = canAddProperty
+    ? <button className="btn-gold btn-sm" onClick={() => setShowNew(true)}><Icon name="plus" size={16} /> เพิ่มทรัพย์</button>
+    : canRequestProperty
+      ? <Link href="/property-requests" className="btn-gold btn-sm"><Icon name="plus" size={16} /> ขอเพิ่มทรัพย์</Link>
+      : null;
+
   return (
     <div>
-      <PageHeader title="ทรัพย์" count={`${meta.total ?? 0} รายการ`}
-        action={can('property', 'create') && <button className="btn-gold btn-sm" onClick={() => setShowNew(true)}><Icon name="plus" size={16} /> เพิ่มทรัพย์</button>} />
+      <PageHeader title="ทรัพย์" count={`${meta.total ?? 0} รายการ`} action={addCta} />
+
+      {/* เซล: คลังทรัพย์กลาง = อ่านอย่างเดียว ไว้จับคู่ลูกค้า · เพิ่มใหม่ผ่าน "ขอเพิ่มทรัพย์" */}
+      {canRequestProperty && (
+        <p className="mt-3 flex items-center gap-2 rounded-lg bg-raised px-3 py-2 text-xs text-ink-soft">
+          <Icon name="info" size={14} className="shrink-0 text-faint" />
+          คลังทรัพย์กลาง — ดูเพื่อจับคู่ลูกค้า · เจอทรัพย์ใหม่ให้กด “ขอเพิ่มทรัพย์”
+        </p>
+      )}
 
       {/* P11: สถานะทรัพย์ = quick-filter แตะเดียว (ว่าง/ไม่ว่าง/ร่าง) */}
       <div className="mt-4 -mb-1">
@@ -175,7 +192,7 @@ export default function PropertiesPage() {
           empty={filtered ? 'ไม่พบทรัพย์ตามเงื่อนไขที่เลือก' : 'ยังไม่มีทรัพย์ในระบบ — เพิ่มทรัพย์แรกเพื่อเริ่มต้น'}
           emptyAction={filtered
             ? <button className="btn-ghost btn-sm" onClick={clearFilters}>ล้างตัวกรอง</button>
-            : (can('property', 'create') && <button className="btn-gold btn-sm" onClick={() => setShowNew(true)}><Icon name="plus" size={16} /> เพิ่มทรัพย์</button>)}
+            : addCta}
           onRow={(p) => router.push(`/properties/${p.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />

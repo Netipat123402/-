@@ -119,6 +119,25 @@ export default function AppointmentsPage() {
       .catch(() => toast.error('ไม่พบ Lead สำหรับสร้างนัด'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newLeadId]);
+  // deep-link จากหน้าทรัพย์: /appointments?newProperty={id} → เปิดฟอร์ม "นัดดูทรัพย์" prefill ทรัพย์ (ผู้ใช้เลือก Lead เอง)
+  // กัน flow ชน: ถ้ามี newLead มาด้วย → ยกให้ flow lead ก่อน (newProperty ไม่ทำงาน)
+  const newPropId = sp.get('newProperty');
+  const newPropRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!newPropId || newLeadId || newPropRef.current === newPropId) return;
+    newPropRef.current = newPropId;
+    api<{ id: string; code: string; titleTh: string }>(`/properties/${newPropId}`)
+      .then((r) => {
+        const p = r.data;
+        setSeedProp({ value: p.id, label: `${p.code} · ${p.titleTh}` });
+        setMode('viewing');
+        setForm({ ...blank, propertyId: p.id });
+        setOpen(true);
+        router.replace('/appointments'); // ล้าง param กันเปิดซ้ำตอน refresh/back
+      })
+      .catch(() => toast.error('ไม่พบทรัพย์สำหรับสร้างนัด'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newPropId]);
   function setField<K extends keyof typeof blank>(k: K, v: (typeof blank)[K]) {
     setForm((f) => ({ ...f, [k]: v }));
     if (k in fe) setFe((e) => ({ ...e, [k]: undefined }));

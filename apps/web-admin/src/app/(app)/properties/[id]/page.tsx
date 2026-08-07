@@ -247,8 +247,20 @@ export default function PropertyDetailPage() {
                 </div>
                 {/* telemetry (ยอดวิว) — ย้ายจากหัวมาไว้ในราง คู่กับสถานะเผยแพร่ */}
                 {(p.viewCount ?? 0) > 0 && <div className="mt-1 inline-flex items-center gap-1 text-xs text-faint"><Icon name="search" size={12} className="opacity-60" /> ดู {p.viewCount} ครั้ง</div>}
+                {/* เซล (ไม่มีสิทธิ์แก้) = สื่อชัดว่าเป็นข้อมูลอ้างอิง ไม่ใช่หน้าพัง */}
+                {!can('property', 'update') && (
+                  <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-raised px-2 py-0.5 text-2xs text-muted">
+                    <Icon name="info" size={11} className="text-faint" /> อ่านอย่างเดียว
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
+                {/* นัดดูทรัพย์นี้ — เปลี่ยน "การดูแคตตาล็อก" เป็น "การขาย" (เซล/ผจก/เจ้าของ ที่นัดได้) */}
+                {p.status === 'available' && can('appointment', 'create') && (
+                  <Link href={`/appointments?newProperty=${p.id}`} className="btn-gold btn-sm flex items-center justify-center gap-1.5">
+                    <Icon name="calendar" size={15} /> นัดดูทรัพย์นี้
+                  </Link>
+                )}
                 {p.status === 'draft' && can('property', 'approve') && (
                   <button className="btn-gold btn-sm" disabled={busy || notReady} onClick={() => run(() => api(`/properties/${p.id}/approve`, { method: 'POST', body: '{}' }), 'เผยแพร่แล้ว — ทรัพย์ขึ้นเว็บลูกค้า')}>เผยแพร่ขึ้นเว็บ</button>
                 )}
