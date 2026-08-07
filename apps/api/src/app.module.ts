@@ -18,6 +18,7 @@ import { IdentityModule } from './modules/identity/identity.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PropertyModule } from './modules/property/property.module';
 import { PropertyRequestModule } from './modules/property-request/property-request.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { OwnerModule } from './modules/owner/owner.module';
 import { LeadModule } from './modules/lead/lead.module';
 import { AppointmentModule } from './modules/appointment/appointment.module';
@@ -52,6 +53,7 @@ import { CommunityModule } from './modules/community/community.module';
     AuthModule,
     PropertyModule,
     PropertyRequestModule,
+    DashboardModule,
     OwnerModule,
     LeadModule,
     AppointmentModule,
