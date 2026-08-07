@@ -79,7 +79,9 @@
   - **งานเดิมไม่เสีย:** C0 (`45aa308`) + C1 (`3384d0c`) แปล shell/ui/login/dashboard เป็นอังกฤษแล้ว → **สตริงอังกฤษเหล่านี้ = `en.json`** · ไทยเดิม (ดึงจาก git ก่อน 45aa308) = `th.json` · แค่ย้ายเข้า catalog + เรียก `t('key')`
   - ✅ **i18n foundation เสร็จ (`fd43c06`):** next-intl v4 cookie-based (`src/i18n/request.ts` + next.config plugin) · `NextIntlClientProvider` ใน root layout · `messages/{en,th}.json` (nav/navGroup/slot/shell) · **shell migrate ครบ** (nav.ts label→key · layout · ProfileMenu · ThemeToggle · `LanguageToggle` globe ใน ProfileMenu+drawer) · **verify: สลับ EN↔TH ทั้ง shell ได้ · persist cookie ข้าม restart · flow ไม่พัง · ไม่มี error**
   - **วิธี migrate ต่อ (แม่แบบ):** แต่ละไฟล์ → แทนสตริงด้วย `t('key')` + เพิ่มคีย์ใน en.json/th.json (อังกฤษจาก C0/C1 + ไทยจาก git ก่อน 45aa308) · client comp: `useTranslations()` · server comp: `getTranslations()`
-  - **เหลือ migrate (~52 ไฟล์ FE):** lists/details/forms ทุก entity + users/settings/community/search/audit + components (PropertyForm/DocumentSection/GlobalSearch/NotificationBell/QuickAddProperty...) · **+ backend** (dashboard.service labels/agenda + notify/audit — ส่ง locale ไป API หรือแปลตอน render)
+  - **แม่แบบ backend-key (พิสูจน์แล้วที่ dashboard):** endpoint คืน **key** (kpi.key / agenda.titleKey) แทนข้อความ → FE แปล `t()` เอง (ไม่ต้องส่ง locale ไป API) · ใช้กับ backend display strings อื่นได้
+  - ✅ **Dashboard migrate เสร็จ (`ebb883b`):** KPI + agenda title + chrome สลับ EN/TH ครบ (backend +titleKey · FE t()) · เหลือ alert notification sentences (ข้อความประกอบจาก notify — i18n ลึก · defer)
+  - **เหลือ migrate (~51 ไฟล์ FE):** lists/details/forms ทุก entity + users/settings/community/search/audit + components (PropertyForm/DocumentSection/GlobalSearch/NotificationBell/QuickAddProperty...) · **+ notify/audit สตริงประกอบ backend** (แยก task · ลึก)
   - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (แปล ~1,490 สตริง × 2 ภาษา · แม่แบบพร้อม ไล่ทำได้เลย)
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
