@@ -1,5 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import { AuthProvider } from '@/lib/auth';
 
 export const metadata: Metadata = {
@@ -24,9 +26,11 @@ export const viewport: Viewport = {
   themeColor: '#141312',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
-    <html lang="th" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* ใช้ธีมที่บันทึกไว้ก่อนเพนต์ (กันจอกระพริบ flash) — ค่าเริ่มต้น = สว่าง, เลือกมืดได้เอง */}
         <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('ros-theme')!=='light')document.documentElement.classList.add('dark')}catch(e){}" }} />
@@ -38,7 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AuthProvider>{children}</AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

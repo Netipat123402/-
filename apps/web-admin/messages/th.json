@@ -1,0 +1,53 @@
+{
+  "nav": {
+    "dashboard": "แดชบอร์ด",
+    "properties": "ทรัพย์",
+    "owners": "เจ้าของ",
+    "propertyRequests": "คำขอทรัพย์",
+    "requestProperty": "ขอเพิ่มทรัพย์",
+    "leads": "Lead",
+    "appointments": "นัดหมาย",
+    "calendar": "ปฏิทิน",
+    "customers": "ลูกค้า",
+    "contracts": "สัญญา",
+    "users": "ผู้ใช้งาน",
+    "activity": "บันทึกกิจกรรม",
+    "settings": "ตั้งค่า",
+    "community": "ชุมชน"
+  },
+  "navGroup": {
+    "inventory": "คลังทรัพย์",
+    "sales": "งานขาย",
+    "browse": "ค้นทรัพย์",
+    "system": "ระบบ"
+  },
+  "slot": {
+    "home": "หน้าหลัก",
+    "properties": "ทรัพย์",
+    "requests": "คำขอ",
+    "leads": "Lead",
+    "appts": "นัด",
+    "customers": "ลูกค้า",
+    "contracts": "สัญญา",
+    "search": "ค้นหา",
+    "profile": "โปรไฟล์"
+  },
+  "shell": {
+    "menu": "เมนู",
+    "signOut": "ออกจากระบบ",
+    "stayIn": "อยู่ต่อ",
+    "stillThere": "ยังอยู่ไหม?",
+    "idleBody": "คุณไม่ได้ใช้งานสักพัก ระบบจะออกจากระบบอัตโนมัติใน <b>{seconds}</b> วินาที เพื่อความปลอดภัย",
+    "addProperty": "เพิ่มทรัพย์",
+    "newProperty": "เพิ่มทรัพย์ใหม่",
+    "loading": "กำลังโหลด…",
+    "skipToMain": "ข้ามไปเนื้อหาหลัก",
+    "collapse": "ยุบ",
+    "collapseSidebar": "ยุบแถบเมนู",
+    "expandSidebar": "ขยายแถบเมนู",
+    "menuAndProfile": "เมนูและโปรไฟล์",
+    "language": "ภาษา",
+    "lightMode": "โหมดสว่าง",
+    "darkMode": "โหมดมืด"
+  }
+}

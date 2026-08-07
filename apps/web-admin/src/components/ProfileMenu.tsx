@@ -3,18 +3,21 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
 
-// กลุ่ม "ระบบ" ย้ายมาไว้ในเมนูโปรไฟล์ (sidebar สั้นลง)
+// กลุ่ม "ระบบ" ย้ายมาไว้ในเมนูโปรไฟล์ (sidebar สั้นลง) · label = i18n key
 const SYSTEM: { href: string; label: string; perm: [string, string] }[] = [
-  { href: '/audit', label: 'บันทึกกิจกรรม', perm: ['activity', 'read'] }, // ฟีดทีม — เห็นได้ทุกบทบาท
-  { href: '/users', label: 'ผู้ใช้งาน', perm: ['user', 'read'] },
-  { href: '/settings', label: 'ตั้งค่า', perm: ['setting', 'read'] },
+  { href: '/audit', label: 'nav.activity', perm: ['activity', 'read'] }, // ฟีดทีม — เห็นได้ทุกบทบาท
+  { href: '/users', label: 'nav.users', perm: ['user', 'read'] },
+  { href: '/settings', label: 'nav.settings', perm: ['setting', 'read'] },
 ];
 
 export default function ProfileMenu() {
   const { user, can, logout } = useAuth();
+  const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,16 +53,17 @@ export default function ProfileMenu() {
             <div className="py-1">
               {items.map((it) => (
                 <Link key={it.href} href={it.href} onClick={() => setOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-raised">{it.label}</Link>
+                  className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-raised">{t(it.label)}</Link>
               ))}
             </div>
           )}
           <div className="border-t border-border py-1">
+            <LanguageToggle onToggle={() => setOpen(false)} />
             <ThemeToggle />
           </div>
           <button onClick={() => { setOpen(false); logout(); }}
             className="block w-full border-t border-border px-4 py-2.5 text-left text-sm text-danger hover:bg-raised">
-            ออกจากระบบ
+            {t('shell.signOut')}
           </button>
         </div>
       )}

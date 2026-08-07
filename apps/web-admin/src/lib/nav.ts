@@ -39,22 +39,22 @@ export type OperatingRole = 'super_admin' | 'property_manager' | 'sales_agent';
 
 // --- แม่แบบเมนู (นิยามครั้งเดียว · ประกอบต่อบทบาท) ---------------------------
 const I = {
-  dashboard: { href: '/', label: 'Dashboard', icon: 'home' } as NavItem,
-  properties: { href: '/properties', label: 'Properties', icon: 'building', perm: ['property', 'read'] } as NavItem,
-  owners: { href: '/owners', label: 'Owners', icon: 'key', perm: ['owner', 'read'] } as NavItem,
-  propertyRequests: { href: '/property-requests', label: 'Property requests', icon: 'inbox', perm: ['property_request', 'read'], badgeKey: 'propertyRequest' } as NavItem,
+  dashboard: { href: '/', label: 'nav.dashboard', icon: 'home' } as NavItem,
+  properties: { href: '/properties', label: 'nav.properties', icon: 'building', perm: ['property', 'read'] } as NavItem,
+  owners: { href: '/owners', label: 'nav.owners', icon: 'key', perm: ['owner', 'read'] } as NavItem,
+  propertyRequests: { href: '/property-requests', label: 'nav.propertyRequests', icon: 'inbox', perm: ['property_request', 'read'], badgeKey: 'propertyRequest' } as NavItem,
   // เซล: เมนูเดียวกัน (href เดิม) แต่ป้าย/ไอคอนเป็นเชิงรุก "ขอเพิ่มทรัพย์"
-  requestAdd: { href: '/property-requests', label: 'Request property', icon: 'plus', perm: ['property_request', 'read'], accent: true } as NavItem,
-  leads: { href: '/leads', label: 'Leads', icon: 'user-plus', perm: ['lead', 'read'] } as NavItem,
-  appointments: { href: '/appointments', label: 'Appointments', icon: 'clock', perm: ['appointment', 'read'] } as NavItem,
-  calendar: { href: '/calendar', label: 'Calendar', icon: 'calendar', perm: ['appointment', 'read'] } as NavItem,
-  customers: { href: '/customers', label: 'Customers', icon: 'users', perm: ['customer', 'read'] } as NavItem,
-  contracts: { href: '/contracts', label: 'Contracts', icon: 'file-text', perm: ['contract', 'read'] } as NavItem,
+  requestAdd: { href: '/property-requests', label: 'nav.requestProperty', icon: 'plus', perm: ['property_request', 'read'], accent: true } as NavItem,
+  leads: { href: '/leads', label: 'nav.leads', icon: 'user-plus', perm: ['lead', 'read'] } as NavItem,
+  appointments: { href: '/appointments', label: 'nav.appointments', icon: 'clock', perm: ['appointment', 'read'] } as NavItem,
+  calendar: { href: '/calendar', label: 'nav.calendar', icon: 'calendar', perm: ['appointment', 'read'] } as NavItem,
+  customers: { href: '/customers', label: 'nav.customers', icon: 'users', perm: ['customer', 'read'] } as NavItem,
+  contracts: { href: '/contracts', label: 'nav.contracts', icon: 'file-text', perm: ['contract', 'read'] } as NavItem,
   // ระบบ (เจ้าของ) — ยึดไอคอน/route เดิมจาก SYSTEM (drawer) เพื่อความสอดคล้อง
-  users: { href: '/users', label: 'Users', icon: 'users', perm: ['user', 'read'] } as NavItem,
-  audit: { href: '/audit', label: 'Activity', icon: 'clock', perm: ['activity', 'read'] } as NavItem,
-  settings: { href: '/settings', label: 'Settings', icon: 'menu', perm: ['setting', 'read'] } as NavItem,
-  community: { href: '/community', label: 'Community', icon: 'users', modOnly: true } as NavItem,
+  users: { href: '/users', label: 'nav.users', icon: 'users', perm: ['user', 'read'] } as NavItem,
+  audit: { href: '/audit', label: 'nav.activity', icon: 'clock', perm: ['activity', 'read'] } as NavItem,
+  settings: { href: '/settings', label: 'nav.settings', icon: 'menu', perm: ['setting', 'read'] } as NavItem,
+  community: { href: '/community', label: 'nav.community', icon: 'users', modOnly: true } as NavItem,
 };
 
 // กลุ่มงานขาย (ใช้ซ้ำทุกบทบาท) · กลุ่มคลังทรัพย์ (ผจก/เจ้าของ)
@@ -66,29 +66,29 @@ const NAV_BY_ROLE: Record<OperatingRole | 'default', NavGroup[]> = {
   // เซล = นักล่าดีล: งานขายนำ · คลังทรัพย์เป็น "ค้นทรัพย์" (ดูได้เต็ม · แก้ไม่ได้) + ปุ่มขอเพิ่มทรัพย์
   sales_agent: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
-    { key: 'find', label: 'Browse', items: [I.properties, I.owners, I.requestAdd] },
+    { key: 'sales', label: 'navGroup.sales', items: SALES_ITEMS },
+    { key: 'find', label: 'navGroup.browse', items: [I.properties, I.owners, I.requestAdd] },
   ],
   // ผู้จัดการ = คุมปฏิบัติการ: คลังทรัพย์นำ (จัดการเต็ม) → งานขาย · ชุมชนปักล่าง
   property_manager: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'inventory', label: 'Inventory', items: INVENTORY_ITEMS },
-    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
+    { key: 'inventory', label: 'navGroup.inventory', items: INVENTORY_ITEMS },
+    { key: 'sales', label: 'navGroup.sales', items: SALES_ITEMS },
     { key: 'system', pinBottom: true, items: [I.community] },
   ],
   // เจ้าของ = ควบคุม+อนุมัติ+กันโกง: คลังทรัพย์+งานขาย · กลุ่ม "ระบบ" ปักล่าง (เลิกซ่อนใน ProfileMenu)
   super_admin: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'inventory', label: 'Inventory', items: INVENTORY_ITEMS },
-    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
-    { key: 'system', label: 'System', pinBottom: true, items: [I.users, I.audit, I.settings, I.community] },
+    { key: 'inventory', label: 'navGroup.inventory', items: INVENTORY_ITEMS },
+    { key: 'sales', label: 'navGroup.sales', items: SALES_ITEMS },
+    { key: 'system', label: 'navGroup.system', pinBottom: true, items: [I.users, I.audit, I.settings, I.community] },
   ],
   // fallback (บทบาทอื่น/อนาคต) — โครงกลาง gate ด้วย can() ล้วน (ปลอดภัย)
   default: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'inventory', label: 'Inventory', items: INVENTORY_ITEMS },
-    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
-    { key: 'system', label: 'System', pinBottom: true, items: [I.users, I.audit, I.settings, I.community] },
+    { key: 'inventory', label: 'navGroup.inventory', items: INVENTORY_ITEMS },
+    { key: 'sales', label: 'navGroup.sales', items: SALES_ITEMS },
+    { key: 'system', label: 'navGroup.system', pinBottom: true, items: [I.users, I.audit, I.settings, I.community] },
   ],
 };
 
@@ -102,15 +102,15 @@ export type NavSlot =
   | { key: string; label: string; icon: IconName; action: 'search' | 'profile' };
 
 const S = {
-  home: { key: 'home', label: 'Home', icon: 'home', href: '/' } as NavSlot,
-  properties: { key: 'prop', label: 'Properties', icon: 'building', href: '/properties', perm: ['property', 'read'] } as NavSlot,
-  requests: { key: 'req', label: 'Requests', icon: 'inbox', href: '/property-requests', perm: ['property_request', 'read'] } as NavSlot,
-  leads: { key: 'lead', label: 'Leads', icon: 'user-plus', href: '/leads', perm: ['lead', 'read'] } as NavSlot,
-  appointments: { key: 'appt', label: 'Appts', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] } as NavSlot,
-  customers: { key: 'cust', label: 'Customers', icon: 'users', href: '/customers', perm: ['customer', 'read'] } as NavSlot,
-  contracts: { key: 'contract', label: 'Contracts', icon: 'file-text', href: '/contracts', perm: ['contract', 'read'] } as NavSlot,
-  search: { key: 'search', label: 'Search', icon: 'search', href: '/search' } as NavSlot,
-  profile: { key: 'profile', label: 'Profile', icon: 'user', action: 'profile' } as NavSlot,
+  home: { key: 'home', label: 'slot.home', icon: 'home', href: '/' } as NavSlot,
+  properties: { key: 'prop', label: 'slot.properties', icon: 'building', href: '/properties', perm: ['property', 'read'] } as NavSlot,
+  requests: { key: 'req', label: 'slot.requests', icon: 'inbox', href: '/property-requests', perm: ['property_request', 'read'] } as NavSlot,
+  leads: { key: 'lead', label: 'slot.leads', icon: 'user-plus', href: '/leads', perm: ['lead', 'read'] } as NavSlot,
+  appointments: { key: 'appt', label: 'slot.appts', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] } as NavSlot,
+  customers: { key: 'cust', label: 'slot.customers', icon: 'users', href: '/customers', perm: ['customer', 'read'] } as NavSlot,
+  contracts: { key: 'contract', label: 'slot.contracts', icon: 'file-text', href: '/contracts', perm: ['contract', 'read'] } as NavSlot,
+  search: { key: 'search', label: 'slot.search', icon: 'search', href: '/search' } as NavSlot,
+  profile: { key: 'profile', label: 'slot.profile', icon: 'user', action: 'profile' } as NavSlot,
 };
 
 // center = ช่องกลาง (index 2) เน้นสีทอง · โปรไฟล์ปิดท้ายเสมอ

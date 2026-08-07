@@ -14,8 +14,10 @@ import { Modal } from '@/components/ui';
 import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import ThemeToggle from '@/components/ThemeToggle';
+import LanguageToggle from '@/components/LanguageToggle';
 import { Icon, type IconName } from '@/components/Icon';
 import { resolveNav, resolveBottomSlots, type NavSlot } from '@/lib/nav';
+import { useTranslations } from 'next-intl';
 
 // โครงเมนูทั้งหมด (ราง เดสก์ท็อป · แถบล่าง+drawer มือถือ) ย้ายไป lib/nav.ts (role-aware · single source of truth)
 
@@ -23,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, ready, can, logout, api } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations();
   const [prPending, setPrPending] = useState(0); // badge: จำนวนคำขอทรัพย์ที่รอตรวจ
   const [drawer, setDrawer] = useState(false);   // เมนูโปรไฟล์ (มือถือ)
   const [quickAdd, setQuickAdd] = useState(false); // ฟอร์มเพิ่มทรัพย์แบบลัด (ปุ่ม + มุมซ้ายบน)
@@ -129,7 +132,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [logout]);
 
   if (!ready || !user) {
-    return <div className="flex min-h-screen items-center justify-center text-muted">Loading…</div>;
+    return <div className="flex min-h-screen items-center justify-center text-muted">{t('shell.loading')}</div>;
   }
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href));
@@ -155,7 +158,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {navGroups.map((sec, gi) => (
         <div key={sec.key} className={`${sec.pinBottom ? 'mt-auto' : ''} ${gi > 0 ? 'mt-2 border-t border-border pt-2' : ''}`}>
           {sec.label && !railCollapsed && (
-            <p className="px-3 pb-1 pt-1 text-2xs font-medium uppercase tracking-wider text-muted">{sec.label}</p>
+            <p className="px-3 pb-1 pt-1 text-2xs font-medium uppercase tracking-wider text-muted">{t(sec.label)}</p>
           )}
           <div className="space-y-0.5">
             {sec.items.map((it) => {
@@ -165,7 +168,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               return (
                 <Link key={it.label} href={it.href}
                   aria-current={active ? 'page' : undefined}
-                  title={railCollapsed ? it.label : undefined}
+                  title={railCollapsed ? t(it.label) : undefined}
                   className={`flex items-center rounded-lg transition ${tone} ${railCollapsed ? 'justify-center py-2.5' : 'gap-3 px-3 py-2 text-sm'}`}>
                   <span className="relative flex shrink-0 items-center">
                     <Icon name={it.icon} size={railCollapsed ? 22 : 19} className={active || it.accent ? '' : 'opacity-80'} />
@@ -173,7 +176,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold leading-none text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
                     )}
                   </span>
-                  {!railCollapsed && <span className="min-w-0 flex-1 truncate">{it.label}</span>}
+                  {!railCollapsed && <span className="min-w-0 flex-1 truncate">{t(it.label)}</span>}
                   {badge && !railCollapsed && (
                     <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
                   )}
@@ -195,9 +198,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
-    {/* a11y: Skip to main contentด้วยคีย์บอร์ด (ซ่อนจนกว่าจะ focus) */}
+    {/* a11y: {t('shell.skipToMain')}ด้วยคีย์บอร์ด (ซ่อนจนกว่าจะ focus) */}
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-canvas">
-      Skip to main content
+      {t('shell.skipToMain')}
     </a>
     <div className={`min-h-screen mouse:grid ${railCollapsed ? 'mouse:grid-cols-[64px_1fr]' : 'mouse:grid-cols-[232px_1fr]'}`}>
       {/* Sidebar — เฉพาะอุปกรณ์ที่มีเมาส์/แทร็กแพด (เดสก์ท็อป/โน้ตบุ๊ก) · ไอแพด/แท็บเล็ตสัมผัส = ใช้ mobile shell
@@ -209,11 +212,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <NavLinks />
           </div>
           <button onClick={toggleRail}
-            title={railCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            aria-label={railCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={railCollapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
+            aria-label={railCollapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
             className={`flex shrink-0 items-center border-t border-border py-3 text-2xs font-medium uppercase tracking-wider text-muted transition hover:bg-raised hover:text-ink ${railCollapsed ? 'justify-center' : 'gap-2 px-4'}`}>
             <Icon name={railCollapsed ? 'chevron-right' : 'chevron-left'} size={18} />
-            {!railCollapsed && <span>Collapse</span>}
+            {!railCollapsed && <span>{t('shell.collapse')}</span>}
           </button>
         </div>
       </aside>
@@ -223,7 +226,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {drawer && (
         <>
           <div className="fixed inset-0 z-40 bg-ink/40 dark:bg-black/50 mouse:hidden" onClick={() => setDrawer(false)} />
-          <aside ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Menu and profile"
+          <aside ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={t('shell.menuAndProfile')}
             className="fixed inset-y-0 right-0 z-50 flex w-[280px] flex-col overflow-y-auto border-l border-border bg-surface outline-none mouse:hidden">
             {/* หัวโปรไฟล์ */}
             <div className="flex items-center gap-3 border-b border-border px-5 py-4">
@@ -239,7 +242,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1 overflow-y-auto px-3 py-3">
               {drawerMain.length > 0 && (
                 <div className="mb-4">
-                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">Menu</p>
+                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">{t('shell.menu')}</p>
                   {drawerMain.map((it) => {
                     const active = isActive(it.href);
                     const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
@@ -248,7 +251,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         aria-current={active ? 'page' : undefined}
                         className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${tone}`}>
                         <Icon name={it.icon} size={18} className={active || it.accent ? '' : 'opacity-70'} />
-                        {it.label}
+                        {t(it.label)}
                         {it.badgeKey === 'propertyRequest' && prPending > 0 && (
                           <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
                         )}
@@ -259,7 +262,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               )}
               {drawerLabeled.map((g) => (
                 <div key={g.key} className="mb-4">
-                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">{g.label}</p>
+                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">{t(g.label!)}</p>
                   {g.items.map((it) => {
                     const active = isActive(it.href);
                     const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
@@ -268,7 +271,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         aria-current={active ? 'page' : undefined}
                         className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${tone}`}>
                         <Icon name={it.icon} size={18} className={active || it.accent ? '' : 'opacity-70'} />
-                        {it.label}
+                        {t(it.label)}
                         {it.badgeKey === 'propertyRequest' && prPending > 0 && (
                           <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
                         )}
@@ -279,11 +282,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               ))}
             </div>
             <div className="border-t border-border">
+              <LanguageToggle onToggle={() => setDrawer(false)} />
               <ThemeToggle />
             </div>
             <button onClick={() => { setDrawer(false); logout(); }}
               className="border-t border-border px-5 py-3.5 text-left text-sm font-medium text-danger hover:bg-raised">
-              Sign out
+              {t('shell.signOut')}
             </button>
           </aside>
         </>
@@ -294,7 +298,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-surface/80 px-4 backdrop-blur mouse:px-8">
           {/* มือถือซ้าย: + เพิ่มทรัพย์ → เปิดฟอร์มมีสเต็ป 1-4 (ตัวเดียวกับเดสก์ท็อป) ในกล่องกลางจอ */}
           {can('property', 'create') && (
-            <button onClick={() => setQuickAdd(true)} aria-label="Add property"
+            <button onClick={() => setQuickAdd(true)} aria-label={t('shell.addProperty')}
               className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised mouse:hidden">
               <Icon name="plus" size={22} />
             </button>
@@ -333,10 +337,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             }`;
             const icon = <Icon name={s.icon} size={24} />;
             return 'href' in s ? (
-              <Link key={s.key} href={s.href} aria-label={s.label} aria-current={on ? 'page' : undefined} className={cls}
+              <Link key={s.key} href={s.href} aria-label={t(s.label)} aria-current={on ? 'page' : undefined} className={cls}
                 onClick={() => setDrawer(false)}>{icon}</Link>
             ) : (
-              <button key={s.key} aria-label={s.label} className={cls}
+              <button key={s.key} aria-label={t(s.label)} className={cls}
                 onClick={() => setDrawer((v) => !v)}>{icon}</button>
             );
           })}
@@ -344,22 +348,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* ฟอร์มเพิ่มทรัพย์ (เปิดจากปุ่ม + มุมซ้ายบน) — wizard มีสเต็ป 1-4 เหมือนหน้าทรัพย์/เดสก์ท็อป */}
-      <Modal open={quickAdd} onClose={() => setQuickAdd(false)} title="New property" size="xl">
+      <Modal open={quickAdd} onClose={() => setQuickAdd(false)} title={t('shell.newProperty')} size="xl">
         <PropertyForm mode="create" onClose={() => setQuickAdd(false)}
           onSaved={(id) => { setQuickAdd(false); router.push(`/properties/${id}`); }} />
       </Modal>
 
       {/* A3: เตือนก่อนออกจากระบบอัตโนมัติ (ไม่ได้ใช้งานนาน) */}
-      <Modal open={idleWarn} onClose={() => resetIdleRef.current()} title="Still there?"
+      <Modal open={idleWarn} onClose={() => resetIdleRef.current()} title={t('shell.stillThere')}
         footer={
           <div className="flex justify-end gap-2">
-            <button type="button" className="btn-ghost text-danger" onClick={() => { setIdleWarn(false); void logout(); }}>Sign out</button>
-            <button type="button" className="btn-gold" onClick={() => resetIdleRef.current()}>Stay signed in</button>
+            <button type="button" className="btn-ghost text-danger" onClick={() => { setIdleWarn(false); void logout(); }}>{t('shell.signOut')}</button>
+            <button type="button" className="btn-gold" onClick={() => resetIdleRef.current()}>{t('shell.stayIn')}</button>
           </div>
         }>
         <p className="text-sm leading-relaxed text-ink-soft">
-          You’ve been inactive for a while. You’ll be signed out in{' '}
-          <b className="tabular-nums text-ink">{idleLeft}</b> seconds for security.
+          {t.rich('shell.idleBody', { seconds: idleLeft, b: (c) => <b className="tabular-nums text-ink">{c}</b> })}
         </p>
       </Modal>
     </div>

@@ -1,0 +1,53 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "properties": "Properties",
+    "owners": "Owners",
+    "propertyRequests": "Property requests",
+    "requestProperty": "Request property",
+    "leads": "Leads",
+    "appointments": "Appointments",
+    "calendar": "Calendar",
+    "customers": "Customers",
+    "contracts": "Contracts",
+    "users": "Users",
+    "activity": "Activity",
+    "settings": "Settings",
+    "community": "Community"
+  },
+  "navGroup": {
+    "inventory": "Inventory",
+    "sales": "Sales",
+    "browse": "Browse",
+    "system": "System"
+  },
+  "slot": {
+    "home": "Home",
+    "properties": "Properties",
+    "requests": "Requests",
+    "leads": "Leads",
+    "appts": "Appts",
+    "customers": "Customers",
+    "contracts": "Contracts",
+    "search": "Search",
+    "profile": "Profile"
+  },
+  "shell": {
+    "menu": "Menu",
+    "signOut": "Sign out",
+    "stayIn": "Stay signed in",
+    "stillThere": "Still there?",
+    "idleBody": "You’ve been inactive for a while. You’ll be signed out in <b>{seconds}</b> seconds for security.",
+    "addProperty": "Add property",
+    "newProperty": "New property",
+    "loading": "Loading…",
+    "skipToMain": "Skip to main content",
+    "collapse": "Collapse",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
+    "menuAndProfile": "Menu and profile",
+    "language": "Language",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
+  }
+}

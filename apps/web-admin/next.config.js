@@ -22,6 +22,9 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
 ];
 
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -32,4 +35,4 @@ const nextConfig = {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
 };
-module.exports = nextConfig;
+module.exports = withNextIntl(nextConfig);
