@@ -15,53 +15,9 @@ import { useScrollLock } from '@/lib/useScrollLock';
 import { useFocusTrap } from '@/lib/useFocusTrap';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Icon, type IconName } from '@/components/Icon';
-import { resolveNav } from '@/lib/nav';
+import { resolveNav, resolveBottomSlots, type NavSlot } from '@/lib/nav';
 
-type NavItem = { href: string; label: string; icon: IconName; perm?: [string, string]; badgeKey?: 'propertyRequest' };
-// เรียงตาม flow ธุรกิจอสังหา: ตั้งต้นคลังทรัพย์ (เจ้าของ→ทรัพย์) → งานขาย (Lead→นัด→ปฏิทิน→ลูกค้า→สัญญา)
-const NAV: { group: string; items: NavItem[] }[] = [
-  { group: 'ภาพรวม', items: [{ href: '/', label: 'แดชบอร์ด', icon: 'home' }] },
-  {
-    group: 'คลังทรัพย์',
-    items: [
-      { href: '/owners', label: 'เจ้าของ', icon: 'key', perm: ['owner', 'read'] },
-      { href: '/properties', label: 'ทรัพย์', icon: 'building', perm: ['property', 'read'] },
-      { href: '/property-requests', label: 'คำขอทรัพย์', icon: 'inbox', perm: ['property_request', 'read'], badgeKey: 'propertyRequest' },
-    ],
-  },
-  {
-    group: 'งานขาย',
-    items: [
-      { href: '/leads', label: 'Lead', icon: 'user-plus', perm: ['lead', 'read'] },
-      { href: '/appointments', label: 'นัดหมาย', icon: 'clock', perm: ['appointment', 'read'] },
-      { href: '/calendar', label: 'ปฏิทิน', icon: 'calendar', perm: ['appointment', 'read'] },
-      { href: '/customers', label: 'ลูกค้า', icon: 'users', perm: ['customer', 'read'] },
-      { href: '/contracts', label: 'สัญญา', icon: 'file-text', perm: ['contract', 'read'] },
-    ],
-  },
-  // หมายเหตุ: กลุ่ม "ระบบ" (ผู้ใช้/ตรวจสอบ/ตั้งค่า) ย้ายไปเมนูโปรไฟล์ (ProfileMenu)
-];
-
-// กลุ่ม "ระบบ/บัญชี" — โชว์ในเมนูโปรไฟล์ (ตั้งค่า + กิจกรรม ตามที่ผู้ใช้ขอ)
-const SYSTEM: { href: string; label: string; icon: IconName; perm: [string, string] }[] = [
-  { href: '/audit', label: 'บันทึกกิจกรรม', icon: 'clock', perm: ['activity', 'read'] },
-  { href: '/users', label: 'ผู้ใช้งาน', icon: 'users', perm: ['user', 'read'] },
-  { href: '/settings', label: 'ตั้งค่า', icon: 'menu', perm: ['setting', 'read'] },
-];
-
-// Bottom nav มือถือแบบ IG (5 ช่อง): หน้าหลัก · นัด · ทรัพย์(กลาง) · ค้นหา · โปรไฟล์
-type Slot =
-  | { key: string; label: string; icon: IconName; href: string; perm?: [string, string]; center?: boolean }
-  | { key: string; label: string; icon: IconName; action: 'search' | 'profile' };
-const SLOTS: Slot[] = [
-  { key: 'home', label: 'หน้าหลัก', icon: 'home', href: '/' },
-  { key: 'appt', label: 'นัด', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] },
-  { key: 'prop', label: 'ทรัพย์', icon: 'building', href: '/properties', perm: ['property', 'read'], center: true },
-  { key: 'search', label: 'ค้นหา', icon: 'search', href: '/search' },
-  { key: 'profile', label: 'โปรไฟล์', icon: 'user', action: 'profile' },
-];
-// hrefs ที่อยู่บน bottom nav แล้ว → ไม่ต้องโชว์ซ้ำในเมนูโปรไฟล์ (เหลือเฉพาะ "เมนูที่เหลือ")
-const BOTTOM_HREFS = new Set(['/', '/appointments', '/properties']);
+// โครงเมนูทั้งหมด (ราง เดสก์ท็อป · แถบล่าง+drawer มือถือ) ย้ายไป lib/nav.ts (role-aware · single source of truth)
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, ready, can, logout, api } = useAuth();
@@ -168,21 +124,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href));
-  const slots = SLOTS.filter((s) => !('perm' in s) || !s.perm || can(s.perm[0], s.perm[1]));
-  // ชุมชน (moderation) เปิดเฉพาะผู้ดูแล — ตรงกับ backend BOARD_MOD_ROLES (operating จริง: เจ้าของ + ผู้จัดการ)
-  const isMod = !!user?.roles?.some((r) => ['super_admin', 'property_manager'].includes(r));
-  const systemLinks = [
-    ...SYSTEM.filter((it) => can(it.perm[0], it.perm[1])),
-    ...(isMod ? [{ href: '/community', label: 'ชุมชน', icon: 'users' as IconName, perm: ['', ''] as [string, string] }] : []),
-  ];
-  // เมนูโปรไฟล์ (มือถือ) = เมนูที่ "เหลือ" จากแถบล่าง (เจ้าของ/Lead/ปฏิทิน/ลูกค้า/สัญญา) ไม่โชว์ซ้ำ
-  const extraNav = NAV.flatMap((g) => g.items).filter(
-    (it) => !BOTTOM_HREFS.has(it.href) && (!it.perm || can(it.perm[0], it.perm[1])),
+  // โครงเมนูตามบทบาท (single source of truth · lib/nav.ts) — ใช้ทั้งราง เดสก์ท็อป และ drawer มือถือ
+  const navGroups = resolveNav(user.roles, can);
+  // แถบล่างมือถือ = 5 ช่องตามบทบาท (ช่องกลาง = signature ของบทบาท)
+  const slots = resolveBottomSlots(user.roles, can);
+  // Drawer (มือถือ) = โครงเดียวกับราง ตัดรายการที่อยู่บนแถบล่างแล้ว (ไม่โชว์ซ้ำ) · คงกลุ่ม/ป้าย (ค้นทรัพย์/ระบบ)
+  const bottomHrefs = new Set(
+    slots.filter((s): s is Extract<NavSlot, { href: string }> => 'href' in s).map((s) => s.href),
   );
+  const drawerGroups = navGroups
+    .map((g) => ({ ...g, items: g.items.filter((it) => !bottomHrefs.has(it.href)) }))
+    .filter((g) => g.items.length > 0);
+  // กลุ่มไม่มีป้าย = รวมเป็น "เมนู" · กลุ่มมีป้าย (ค้นทรัพย์/ระบบ) = แยกหัวข้อของตัวเอง
+  const drawerMain = drawerGroups.filter((g) => !g.label).flatMap((g) => g.items);
+  const drawerLabeled = drawerGroups.filter((g) => g.label);
 
   // Sidebar เดสก์ท็อป = ราง (rail) แคบ: ไอคอนบน + ป้ายเล็กล่าง · โครง/ลำดับตามบทบาท (lib/nav.ts)
   // คั่นกลุ่มด้วยเส้นบาง · ป้ายกลุ่มโชว์เฉพาะกลุ่มที่ต้องสื่อความหมาย (ค้นทรัพย์/ระบบ) · กลุ่ม pinBottom ดันลงล่าง
-  const navGroups = resolveNav(user.roles, can);
   const NavLinks = () => (
     <nav className="flex flex-1 flex-col px-1.5 py-2">
       {navGroups.map((sec, gi) => (
@@ -250,41 +208,48 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <p className="truncate text-xs text-muted">{user.email}</p>
               </div>
             </div>
-            {/* เมนู = เฉพาะที่ไม่ได้อยู่บน bottom nav (เจ้าของ/Lead/ปฏิทิน/ลูกค้า/สัญญา) + ระบบ → คลีน ไม่ซ้ำ */}
+            {/* เมนู = โครง roleNav ที่เหลือจากแถบล่าง (ไม่ซ้ำ) · กลุ่มมีป้าย (ค้นทรัพย์/ระบบ) แยกหัวข้อ */}
             <div className="flex-1 overflow-y-auto px-3 py-3">
-              {extraNav.length > 0 && (
+              {drawerMain.length > 0 && (
                 <div className="mb-4">
                   <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">เมนู</p>
-                  {extraNav.map((it) => (
-                    <Link key={it.href} href={it.href} onClick={() => setDrawer(false)}
-                      aria-current={isActive(it.href) ? 'page' : undefined}
-                      className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                        isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
-                      }`}>
-                      <Icon name={it.icon} size={18} className={isActive(it.href) ? '' : 'opacity-70'} />
-                      {it.label}
-                      {it.badgeKey === 'propertyRequest' && prPending > 0 && (
-                        <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
-                      )}
-                    </Link>
-                  ))}
+                  {drawerMain.map((it) => {
+                    const active = isActive(it.href);
+                    const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
+                    return (
+                      <Link key={it.label} href={it.href} onClick={() => setDrawer(false)}
+                        aria-current={active ? 'page' : undefined}
+                        className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${tone}`}>
+                        <Icon name={it.icon} size={18} className={active || it.accent ? '' : 'opacity-70'} />
+                        {it.label}
+                        {it.badgeKey === 'propertyRequest' && prPending > 0 && (
+                          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
-              {systemLinks.length > 0 && (
-                <div>
-                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">ระบบ</p>
-                  {systemLinks.map((it) => (
-                    <Link key={it.href} href={it.href} onClick={() => setDrawer(false)}
-                      aria-current={isActive(it.href) ? 'page' : undefined}
-                      className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                        isActive(it.href) ? 'bg-raised text-gold-dark' : 'text-ink-soft hover:bg-raised'
-                      }`}>
-                      <Icon name={it.icon} size={18} className={isActive(it.href) ? '' : 'opacity-70'} />
-                      {it.label}
-                    </Link>
-                  ))}
+              {drawerLabeled.map((g) => (
+                <div key={g.key} className="mb-4">
+                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">{g.label}</p>
+                  {g.items.map((it) => {
+                    const active = isActive(it.href);
+                    const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
+                    return (
+                      <Link key={it.label} href={it.href} onClick={() => setDrawer(false)}
+                        aria-current={active ? 'page' : undefined}
+                        className={`mb-0.5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${tone}`}>
+                        <Icon name={it.icon} size={18} className={active || it.accent ? '' : 'opacity-70'} />
+                        {it.label}
+                        {it.badgeKey === 'propertyRequest' && prPending > 0 && (
+                          <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
-              )}
+              ))}
             </div>
             <div className="border-t border-border">
               <ThemeToggle />

@@ -92,6 +92,42 @@ const NAV_BY_ROLE: Record<OperatingRole | 'default', NavGroup[]> = {
   ],
 };
 
+// ============================================================================
+// แถบล่างมือถือ (bottom-nav 5 ช่อง · ไอคอนล้วน) — ช่องกลาง (center) = signature ของบทบาท
+// เซล=นัด (ขับเคลื่อนรายวัน) · ผจก/เจ้าของ=คำขอ (คิว inbound/อนุมัติ) — แทนของเดิมที่ "ทรัพย์" เหมือนกันหมด
+// ค้นหา (search) ย้ายไปหัว (GlobalSearch) แล้ว จึงไม่อยู่ในแถบล่างของ 3 บทบาทหลัก
+// ============================================================================
+export type NavSlot =
+  | { key: string; label: string; icon: IconName; href: string; perm?: [string, string]; center?: boolean }
+  | { key: string; label: string; icon: IconName; action: 'search' | 'profile' };
+
+const S = {
+  home: { key: 'home', label: 'หน้าหลัก', icon: 'home', href: '/' } as NavSlot,
+  properties: { key: 'prop', label: 'ทรัพย์', icon: 'building', href: '/properties', perm: ['property', 'read'] } as NavSlot,
+  requests: { key: 'req', label: 'คำขอ', icon: 'inbox', href: '/property-requests', perm: ['property_request', 'read'] } as NavSlot,
+  leads: { key: 'lead', label: 'Lead', icon: 'user-plus', href: '/leads', perm: ['lead', 'read'] } as NavSlot,
+  appointments: { key: 'appt', label: 'นัด', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] } as NavSlot,
+  customers: { key: 'cust', label: 'ลูกค้า', icon: 'users', href: '/customers', perm: ['customer', 'read'] } as NavSlot,
+  contracts: { key: 'contract', label: 'สัญญา', icon: 'file-text', href: '/contracts', perm: ['contract', 'read'] } as NavSlot,
+  search: { key: 'search', label: 'ค้นหา', icon: 'search', href: '/search' } as NavSlot,
+  profile: { key: 'profile', label: 'โปรไฟล์', icon: 'user', action: 'profile' } as NavSlot,
+};
+
+// center = ช่องกลาง (index 2) เน้นสีทอง · โปรไฟล์ปิดท้ายเสมอ
+const SLOTS_BY_ROLE: Record<OperatingRole | 'default', NavSlot[]> = {
+  sales_agent: [S.home, S.leads, { ...S.appointments, center: true }, S.customers, S.profile],
+  property_manager: [S.home, S.properties, { ...S.requests, center: true }, S.appointments, S.profile],
+  super_admin: [S.home, S.contracts, { ...S.requests, center: true }, S.properties, S.profile],
+  default: [S.home, S.appointments, { ...S.properties, center: true }, S.search, S.profile],
+};
+
+/** แถบล่างมือถือของผู้ใช้ = 5 ช่องตามบทบาท กรองด้วย can() (action slot โชว์เสมอ) */
+export function resolveBottomSlots(roles: string[], can: (resource: string, action: string) => boolean): NavSlot[] {
+  return SLOTS_BY_ROLE[pickOperatingRole(roles)].filter(
+    (s) => !('perm' in s) || !s.perm || can(s.perm[0], s.perm[1]),
+  );
+}
+
 const ROLE_PRIORITY: OperatingRole[] = ['super_admin', 'property_manager', 'sales_agent'];
 
 /** เลือกบทบาท operating ที่ "สูงสุด" ของผู้ใช้ (ผู้ใช้ 1 คนปกติ 1 บทบาท · เผื่อหลายบทบาท) */
