@@ -9,8 +9,8 @@ import { Icon, type IconName } from '@/components/Icon';
 
 // ── payload จาก GET /dashboard (server aggregation ต่อบทบาท · Phase 2) ──
 interface Kpi { key: string; label: string; value: number; href: string; icon: string; hot?: boolean }
-interface AgendaItem { id: string; code?: string; primary: string; secondary?: string | null; scheduledAt?: string | null; endDate?: string | null }
-interface AgendaSection { key: string; title: string; icon: string; href: string; items: AgendaItem[] }
+interface AgendaItem { id: string; code?: string; primary: string; secondary?: string | null; scheduledAt?: string | null; endDate?: string | null; href?: string }
+interface AgendaSection { key: string; title: string; icon: string; href: string; items: AgendaItem[]; tone?: 'alert' }
 interface DashboardData { role: string; kpis: Kpi[]; agenda: AgendaSection[] }
 
 const fmtDayTime = (iso: string) => {
@@ -86,11 +86,13 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {agenda.map((sec) => (
+            {agenda.map((sec) => {
+              const alert = sec.tone === 'alert';
+              return (
               <div key={sec.key} className="py-1.5">
                 <div className="flex items-center justify-between gap-2 px-4 pb-1 pt-2 sm:px-5">
-                  <span className="inline-flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wide text-muted">
-                    <Icon name={sec.icon as IconName} size={13} /> {sec.title} <span className="text-faint/70">{sec.items.length}</span>
+                  <span className={`inline-flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wide ${alert ? 'text-warning' : 'text-muted'}`}>
+                    <Icon name={sec.icon as IconName} size={13} /> {sec.title} <span className={alert ? 'text-warning/70' : 'text-faint/70'}>{sec.items.length}</span>
                   </span>
                   <Link href={sec.href} className="text-xs text-gold-dark hover:underline">ดูทั้งหมด</Link>
                 </div>
@@ -99,7 +101,7 @@ export default function DashboardPage() {
                     const expiry = it.endDate ? fmtExpiry(it.endDate) : null;
                     return (
                       <li key={it.id}>
-                        <Link href={sec.href} className="flex items-center gap-3 px-4 py-2.5 hover:bg-raised sm:px-5">
+                        <Link href={it.href || sec.href} className={`flex items-center gap-3 px-4 py-2.5 sm:px-5 ${alert ? 'bg-warning/[0.06] hover:bg-warning/10' : 'hover:bg-raised'}`}>
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium">{it.primary}</p>
                             {(it.secondary || it.scheduledAt || expiry) && (
@@ -117,7 +119,8 @@ export default function DashboardPage() {
                   })}
                 </ul>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
