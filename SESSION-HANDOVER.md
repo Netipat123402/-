@@ -6,7 +6,7 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · **RBAC + governance กันโกง ✅ ครบ roadmap 6/6** (Phase 1–6 + final system audit — commit `7cc7865`…`f4f3063`).
-🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — รากฐาน [`lib/nav.ts`](apps/web-admin/src/lib/nav.ts) `roleNav` + `GET /dashboard` server aggregation ต่อ role · ดู §4 · **กำลังทำ: track C แปล web-admin→อังกฤษ** (replace ตรง · glossary ล็อก · C0 shell + C1 shared/login/dashboard เสร็จ · เหลือ ~52 ไฟล์เฉพาะหน้า)
+🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) + **Sidebar ขยาย-ยุบได้** — ดู §4 · **กำลังทำ: track C i18n 2 ภาษา (อังกฤษหลัก+ไทยรอง สลับได้ · next-intl)** — foundation + shell เสร็จ+verify (สลับ EN↔TH ได้จริง) · **เหลือ migrate ~52 ไฟล์ FE + backend เข้า catalog** (แม่แบบพร้อม)
 📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
@@ -77,8 +77,10 @@
 - **🟢 track C (กำลังทำ · ⚠️ owner เปลี่ยนแนว → i18n 2 ภาษา): แปล web-admin เป็น bilingual (อังกฤษหลัก + ไทยรอง สลับได้)**
   - **วิธี (เคาะใหม่):** `next-intl` **cookie-based (ไม่แตะ URL/route = flow ไม่ชน)** · default=English · toggle ไทย (ใน ProfileMenu) · **ครอบ backend ด้วย** (ส่ง locale ไป API · dashboard/แจ้งเตือน อังกฤษเต็ม) · glossary ล็อกแล้ว (ทรัพย์=Properties · เจ้าของ=Owners · คำขอทรัพย์=Property requests · ขอเพิ่มทรัพย์=Request property · ค้นทรัพย์=Browse · ระบบ=System)
   - **งานเดิมไม่เสีย:** C0 (`45aa308`) + C1 (`3384d0c`) แปล shell/ui/login/dashboard เป็นอังกฤษแล้ว → **สตริงอังกฤษเหล่านี้ = `en.json`** · ไทยเดิม (ดึงจาก git ก่อน 45aa308) = `th.json` · แค่ย้ายเข้า catalog + เรียก `t('key')`
-  - **ถัดไป = i18n foundation:** ติดตั้ง next-intl + provider + cookie locale + language switcher + messages/{en,th}.json + นำร่อง shell (พิสูจน์สลับได้จริง flow ไม่พัง) → แล้วไล่ migrate ทีละส่วน (~52 ไฟล์ FE + backend labels)
-  - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (แปล ~1,490 สตริง × 2 ภาษา + infra)
+  - ✅ **i18n foundation เสร็จ (`fd43c06`):** next-intl v4 cookie-based (`src/i18n/request.ts` + next.config plugin) · `NextIntlClientProvider` ใน root layout · `messages/{en,th}.json` (nav/navGroup/slot/shell) · **shell migrate ครบ** (nav.ts label→key · layout · ProfileMenu · ThemeToggle · `LanguageToggle` globe ใน ProfileMenu+drawer) · **verify: สลับ EN↔TH ทั้ง shell ได้ · persist cookie ข้าม restart · flow ไม่พัง · ไม่มี error**
+  - **วิธี migrate ต่อ (แม่แบบ):** แต่ละไฟล์ → แทนสตริงด้วย `t('key')` + เพิ่มคีย์ใน en.json/th.json (อังกฤษจาก C0/C1 + ไทยจาก git ก่อน 45aa308) · client comp: `useTranslations()` · server comp: `getTranslations()`
+  - **เหลือ migrate (~52 ไฟล์ FE):** lists/details/forms ทุก entity + users/settings/community/search/audit + components (PropertyForm/DocumentSection/GlobalSearch/NotificationBell/QuickAddProperty...) · **+ backend** (dashboard.service labels/agenda + notify/audit — ส่ง locale ไป API หรือแปลตอน render)
+  - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (แปล ~1,490 สตริง × 2 ภาษา · แม่แบบพร้อม ไล่ทำได้เลย)
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
 ## 6) 🧪 เครื่องมือเทส/ข้อมูล (session นี้สร้าง)
