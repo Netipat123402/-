@@ -6,7 +6,7 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · **RBAC + governance กันโกง ✅ ครบ roadmap 6/6** (Phase 1–6 + final system audit — commit `7cc7865`…`f4f3063`).
-🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — รากฐาน [`lib/nav.ts`](apps/web-admin/src/lib/nav.ts) `roleNav` + `GET /dashboard` server aggregation ต่อ role · ดู §4 · **เหลือ: ป้าย "สร้างประกาศแล้ว" (แก้เร็ว) + track C แปลอังกฤษ** (56 ไฟล์ · ไม่มี i18n lib)
+🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — รากฐาน [`lib/nav.ts`](apps/web-admin/src/lib/nav.ts) `roleNav` + `GET /dashboard` server aggregation ต่อ role · ดู §4 · **เหลือ: track C แปลอังกฤษ** (56 ไฟล์ · ไม่มี i18n lib · รอเคาะวิธี)
 📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
@@ -72,7 +72,7 @@
 - **✅ เฟส 3 · หน้าทรัพย์ = แคตตาล็อกไว้ขายของเซล เสร็จ (`488fbdd`):** list CTA "ขอเพิ่มทรัพย์"+hint (เฉพาะไม่มี property:create) · detail ป้าย "อ่านอย่างเดียว" + ปุ่ม "นัดดูทรัพย์นี้" (available+appointment:create → deep-link `/appointments?newProperty=` prefill ทรัพย์ · guard กันชน `?newLead=`) · verify เซล(flow นัดไม่ชน)+เจ้าของ(no regression ปุ่มแก้ครบ) · หน้าเจ้าของ(ทรัพย์)=อ้างอิงสะอาดอยู่แล้ว ไม่แตะ
 - **✅ เฟส 4 · surface ควบคุมเจ้าของ เสร็จ (4a `4daea91` + 4b `4bf6d85`):** เพิ่มแผง "แจ้งเตือนอ่อนไหว (กันโกง)" บน dashboard เจ้าของ (ขึ้นบนสุด · โทนเหลือง warning) จาก notification category owner (Phase 5 sensitive-edit alerts) · item แตะ→ /owners/{id} · verify เจ้าของเห็น 4 alert · เซล/ผจก ไม่เห็น (scope) · generic renderer เพิ่ม tone='alert' + per-item href (เผื่อ section เตือนอื่นอนาคต)
 - **🎉 Roadmap UX แยกบทบาท เฟส 1–4 ครบแล้ว** (nav · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — ทั้งหมด verify authed 3 บทบาท typecheck ผ่าน
-- **🔸 ค้าง (owner ถาม · รอเคาะ):** ป้ายสถานะคำขอ `converted` = "สร้างประกาศแล้ว" สื่อผิด (ชนกับ "เผยแพร่") → เสนอเปลี่ยนเป็น **"แปลงเป็นทรัพย์แล้ว"** ที่ [`property-requests/page.tsx:26`](apps/web-admin/src/app/(app)/property-requests/page.tsx) · ยืนยันแล้ว: คำขอ(convert→ทรัพย์ร่าง) กับ เผยแพร่(draft→pending_review→available) = 2 วงจรแยกกัน · ผจก=เจ้าของ ตรวจคำขอเหมือนกัน ต่างที่ขั้นอนุมัติเผยแพร่ (เจ้าของเท่านั้น)
+- **✅ แก้ป้าย converted "สร้างประกาศแล้ว" → "แปลงเป็นทรัพย์แล้ว" (`c93e717`):** ลดความสับสน (ชนกับ "เผยแพร่") · แก้ 3 จุด (status.ts+tab+ลิงก์) · หลักที่ยืนยัน: คำขอ(convert→ทรัพย์ร่าง) กับ เผยแพร่(draft→pending_review→available) = 2 วงจรแยกกัน · ผจก=เจ้าของ ตรวจคำขอเหมือนกัน ต่างที่ขั้นอนุมัติเผยแพร่ (เจ้าของเท่านั้น)
 - **🟢 track C (ก้อนใหญ่สุด): แปลทั้งระบบเป็นอังกฤษ** — 56 ไฟล์ · ไม่มี i18n lib · owner เคาะ direction แล้ว · **รอเคาะวิธี**: (ก) next-intl+en.json หรือ (ข) replace ตรง · ขอบเขต web-admin หรือ +web-public
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
