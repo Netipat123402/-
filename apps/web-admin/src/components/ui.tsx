@@ -27,7 +27,7 @@ export function SectionLabel({ children, className = '' }: { children: React.Rea
 export function SectionNav({ items }: { items: { id: string; label: string }[] }) {
   if (items.length < 2) return null;
   return (
-    <nav aria-label="ไปยังส่วน"
+    <nav aria-label="Jump to section"
       className="sticky top-16 z-20 mt-6 mb-4 flex gap-1 overflow-x-auto rounded-xl border border-border bg-surface/85 px-1.5 py-1.5 backdrop-blur">
       {items.map((it) => (
         <a key={it.id} href={`#${it.id}`}
@@ -64,7 +64,7 @@ export function StatusBadge({ map, value, short, outline }: { map: Record<string
 
 /** Spinner — "กำลังทำงานอยู่" (รอสั้น ๆ เช่น กดส่ง) */
 export function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
-  return <span role="status" aria-label="กำลังทำงาน" className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`} />;
+  return <span role="status" aria-label="Working" className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`} />;
 }
 
 /** ProgressBar — "เหลืออีกเท่าไหร่" (งานยาว เช่น อัปโหลด) */
@@ -99,12 +99,12 @@ export function EmptyState({ text, action, icon = 'search' }: { text: string; ac
 }
 
 /** สถานะโหลดไม่สำเร็จ + ปุ่มลองใหม่ (MR-26) — ใช้ในหน้าที่ fetch เอง (ไม่ใช่ useList) */
-export function ErrorState({ onRetry, text = 'โหลดข้อมูลไม่สำเร็จ' }: { onRetry?: () => void; text?: string }) {
+export function ErrorState({ onRetry, text = "Couldn't load data" }: { onRetry?: () => void; text?: string }) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger"><Icon name="alert-triangle" size={22} /></span>
       <p className="text-sm text-muted">{text}</p>
-      {onRetry && <button className="btn-ghost btn-sm" onClick={onRetry}>ลองใหม่</button>}
+      {onRetry && <button className="btn-ghost btn-sm" onClick={onRetry}>Retry</button>}
     </div>
   );
 }
@@ -280,7 +280,7 @@ export function SectionTabs({ items, className = '' }: {
  * สถานะรับเป็น statusMap+statusValue (เรนเดอร์เป็นจุดสีในตัว) แทน badge node เดิม · telemetry(ยอดวิว)ย้ายออกจากหัว
  */
 export function DetailHeader({
-  backHref, backLabel = 'กลับ', code, statusMap, statusValue, title, subtitle, price, priceSuffix, actions, className = '',
+  backHref, backLabel = 'Back', code, statusMap, statusValue, title, subtitle, price, priceSuffix, actions, className = '',
 }: {
   backHref?: string;
   backLabel?: string;
@@ -347,7 +347,7 @@ export function ActionBar({ children, className = '' }: { children: React.ReactN
  * ไม่ใช้ scroll-lock (เป็น popover เล็ก ไม่ใช่ modal) → ไม่ชน R2; ปิดเมื่อคลิกนอก/Esc/เลื่อน-รีไซส์=ปรับตำแหน่ง
  */
 export function MoreMenu({
-  items, label = 'ตัวเลือกเพิ่มเติม', align = 'end', className = '',
+  items, label = 'More options', align = 'end', className = '',
 }: {
   items: { label: string; onClick: () => void; icon?: IconName; danger?: boolean; disabled?: boolean }[];
   label?: string;
@@ -432,12 +432,12 @@ export function Pagination({ meta, page, setPage, limit = PAGE_SIZE }: {
   const end = Math.min(page * limit, total || page * limit);
   return (
     <div className="mt-4 flex items-center justify-between gap-2 px-1">
-      <span className="text-sm tabular-nums text-muted">{total ? `${start}–${end} จาก ${total}` : `หน้า ${page} / ${totalPages}`}</span>
+      <span className="text-sm tabular-nums text-muted">{total ? `${start}–${end} of ${total}` : `Page ${page} of ${totalPages}`}</span>
       <div className="flex items-center gap-1.5">
-        <button aria-label="ก่อนหน้า" className="flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 enabled:hover:border-ink/40 enabled:hover:text-ink enabled:active:scale-90 disabled:opacity-40"
+        <button aria-label="Previous" className="flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 enabled:hover:border-ink/40 enabled:hover:text-ink enabled:active:scale-90 disabled:opacity-40"
           disabled={page <= 1} onClick={() => setPage(page - 1)}><Icon name="chevron-left" size={18} /></button>
         <span className="min-w-[2.5rem] text-center text-sm font-medium">{page}/{totalPages}</span>
-        <button aria-label="ถัดไป" className="flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 enabled:hover:border-ink/40 enabled:hover:text-ink enabled:active:scale-90 disabled:opacity-40"
+        <button aria-label="Next" className="flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-lg border border-border bg-surface text-ink-soft transition duration-150 enabled:hover:border-ink/40 enabled:hover:text-ink enabled:active:scale-90 disabled:opacity-40"
           disabled={page >= totalPages} onClick={() => setPage(page + 1)}><Icon name="chevron-right" size={18} /></button>
       </div>
     </div>
@@ -502,7 +502,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
         className={`flex max-h-[90dvh] w-full animate-modal-in flex-col overflow-hidden rounded-xl2 border border-border bg-surface shadow-lift outline-none ${size === 'xl' ? 'max-w-2xl' : 'max-w-lg'}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h2 id={titleId} className="font-semibold">{title}</h2>
-          <button onClick={requestClose} aria-label="ปิด" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={20} /></button>
+          <button onClick={requestClose} aria-label="Close" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
         {footer && <div className="shrink-0 border-t border-border bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{footer}</div>}
@@ -510,8 +510,8 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
     </div>
     {/* ถามก่อนทิ้งข้อมูล — ซ้อนบนฟอร์ม (BUG-L2) */}
     <ConfirmDialog open={askDiscard} onClose={() => setAskDiscard(false)}
-      title="ละทิ้งข้อมูลที่กรอก?" tone="danger" confirmLabel="ละทิ้ง"
-      message="ข้อมูลที่กรอกไว้ยังไม่ถูกบันทึก ต้องการปิดหน้าต่างนี้หรือไม่?"
+      title="Discard changes?" tone="danger" confirmLabel="Discard"
+      message="Your changes haven't been saved. Close this window?"
       onConfirm={() => { setAskDiscard(false); onClose(); }} />
     </>,
     document.body,
@@ -524,8 +524,8 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
  * - ขอเหตุผล: withReason → มี textarea, ส่งค่าผ่าน onConfirm(reason)
  */
 export function ConfirmDialog({
-  open, onClose, title, message, confirmLabel = 'ยืนยัน', tone = 'default',
-  withReason, reasonRequired, reasonLabel = 'เหตุผล (ถ้ามี)', reasonPlaceholder, busy, onConfirm,
+  open, onClose, title, message, confirmLabel = 'Confirm', tone = 'default',
+  withReason, reasonRequired, reasonLabel = 'Reason (optional)', reasonPlaceholder, busy, onConfirm,
 }: {
   open: boolean; onClose: () => void; title: string; message?: React.ReactNode;
   confirmLabel?: string; tone?: 'default' | 'danger'; withReason?: boolean;
@@ -539,10 +539,10 @@ export function ConfirmDialog({
     <Modal open={open} onClose={onClose} title={title}
       footer={
         <div className="flex justify-end gap-2">
-          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>ยกเลิก</button>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>Cancel</button>
           <button type="button" disabled={busy || reasonMissing} className={tone === 'danger' ? 'btn-danger' : 'btn-gold'}
             onClick={() => onConfirm(withReason ? (reason.trim() || undefined) : undefined)}>
-            {busy ? 'กำลังทำ…' : confirmLabel}
+            {busy ? 'Working…' : confirmLabel}
           </button>
         </div>
       }>
@@ -580,7 +580,7 @@ export function Field({ label, error, hint, ...props }: {
  * Combobox — ช่องเลือกที่ "พิมพ์ค้นหา + เลื่อน" ได้ (สำหรับลิสต์ยาว เช่น ทรัพย์/เจ้าของ/จังหวัด)
  * หน้าตา error/hint รูปแบบเดียวกับ Field
  */
-export function Combobox({ label, error, hint, value, onChange, options, placeholder = '— เลือก —', disabled, searchable = true, size, onSearch, loading, loadError, onRetry }: {
+export function Combobox({ label, error, hint, value, onChange, options, placeholder = '— Select —', disabled, searchable = true, size, onSearch, loading, loadError, onRetry }: {
   label: string; error?: string; hint?: string;
   value: string; onChange: (v: string) => void;
   options: { value: string; label: string }[];
@@ -658,20 +658,20 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
             <div className="shrink-0 border-b border-border p-2">
               {/* autoFocus เฉพาะเมาส์ (เดสก์ท็อป) — มือถือไม่เด้งคีย์บอร์ดบังเมนูตอนเปิด (แตะช่องเองถ้าจะกรอง) */}
               <input autoFocus={typeof window !== 'undefined' && !window.matchMedia?.('(any-pointer: coarse)').matches}
-                className="field h-9" placeholder="พิมพ์เพื่อค้นหา…" value={q}
+                className="field h-9" placeholder="Type to search…" value={q}
                 onChange={(e) => { setQ(e.target.value); onSearch?.(e.target.value); }} />
             </div>
           )}
           <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1">
             {loading ? (
-              <li className="px-3 py-2 text-sm text-muted">กำลังค้นหา…</li>
+              <li className="px-3 py-2 text-sm text-muted">Searching…</li>
             ) : loadError ? (
               <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm text-warning">
-                <span>โหลดไม่สำเร็จ</span>
-                {onRetry && <button type="button" onClick={onRetry} className="font-medium underline">ลองใหม่</button>}
+                <span>Couldn't load</span>
+                {onRetry && <button type="button" onClick={onRetry} className="font-medium underline">Retry</button>}
               </li>
             ) : filtered.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-muted">ไม่พบรายการ</li>
+              <li className="px-3 py-2 text-sm text-muted">No results</li>
             ) : filtered.map((o) => (
               <li key={o.value || '__empty'}>
                 <button type="button" onClick={() => { onChange(o.value); setOpen(false); }}
@@ -771,7 +771,7 @@ function InlineRange({ range }: { range: RangeDef }) {
             <span className="text-sm tabular-nums text-muted">{range.display}</span>
           </div>
           <PriceRange min={range.min} max={range.max} step={range.step} lo={range.lo} hi={range.hi} onChange={range.onChange} />
-          {range.active && <button type="button" onClick={() => range.onClear()} className="mt-3 text-xs text-muted hover:text-ink">ล้างช่วงราคา</button>}
+          {range.active && <button type="button" onClick={() => range.onClear()} className="mt-3 text-xs text-muted hover:text-ink">Clear price range</button>}
         </div>
       )}
     </div>
@@ -804,7 +804,7 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
       {search && (
-        <input className={`field min-w-0 flex-1 sm:max-w-[280px] ${searchWide ? 'lg:max-w-none' : ''}`} placeholder={search.placeholder ?? 'ค้นหา…'}
+        <input className={`field min-w-0 flex-1 sm:max-w-[280px] ${searchWide ? 'lg:max-w-none' : ''}`} placeholder={search.placeholder ?? 'Search…'}
           value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} />
       )}
 
@@ -823,11 +823,11 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
           {range && <InlineRange range={range} />}
           {sort && (
             <div className="w-44">
-              <Combobox label="" size="sm" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} placeholder="เรียงลำดับ" />
+              <Combobox label="" size="sm" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} placeholder="Sort" />
             </div>
           )}
           {activeCount > 0 && (
-            <button type="button" onClick={clearAll} className="btn-ghost btn-sm shrink-0 text-muted">ล้าง ({activeCount})</button>
+            <button type="button" onClick={clearAll} className="btn-ghost btn-sm shrink-0 text-muted">Clear ({activeCount})</button>
           )}
         </div>
       )}
@@ -837,20 +837,20 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
         <div className="shrink-0 sm:ml-auto lg:hidden">
           <button type="button" onClick={() => setOpen(true)} aria-expanded={open}
             className={`btn-ghost btn-sm ${activeCount ? 'border-gold text-gold-dark' : ''}`}>
-            <Icon name="menu" size={16} /> ตัวกรอง
+            <Icon name="menu" size={16} /> Filters
             {activeCount > 0 && (
               <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-medium text-[#1c1b18]">{activeCount}</span>
             )}
           </button>
           {/* แผ่นตัวกรองลอยกลางจอ (Modal มาตรฐานเดียวกับฟอร์ม) — ไม่เด้งล่าง ไม่ล้น เหมือนกันทุกหมวด */}
-          <Modal open={open} onClose={() => setOpen(false)} title="ตัวกรอง"
+          <Modal open={open} onClose={() => setOpen(false)} title="Filters"
             footer={
               <div className="flex items-center justify-between gap-2">
                 <button type="button" onClick={clearAll} disabled={activeCount === 0}
                   className="text-sm text-muted enabled:hover:text-ink disabled:opacity-40">
-                  ล้างตัวกรอง{activeCount > 0 ? ` (${activeCount})` : ''}
+                  Clear filters{activeCount > 0 ? ` (${activeCount})` : ''}
                 </button>
-                <button type="button" className="btn-gold" onClick={() => setOpen(false)}>เสร็จ</button>
+                <button type="button" className="btn-gold" onClick={() => setOpen(false)}>Done</button>
               </div>
             }>
             <div className="space-y-4">
@@ -875,7 +875,7 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
                 )
               ))}
               {sort && (
-                <Combobox label="เรียงลำดับ" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} />
+                <Combobox label="Sort" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} />
               )}
             </div>
           </Modal>
@@ -916,7 +916,7 @@ export function ListView<T>({
 }) {
   // โหลดครั้งแรก (ยังไม่มีข้อมูล) → skeleton เต็มหน้า (PAGE_SIZE แถว) เพื่อสำรองความสูง = หน้าจริง
   if (loading && items.length === 0) return <ListSkeleton rows={PAGE_SIZE} />;
-  if (!loading && items.length === 0) return <EmptyState text={empty ?? 'ยังไม่มีข้อมูล'} icon={emptyIcon} action={emptyAction} />;
+  if (!loading && items.length === 0) return <EmptyState text={empty ?? 'No data yet'} icon={emptyIcon} action={emptyAction} />;
 
   const primary = cols.find((c) => c.primary);
   const subs = cols.filter((c) => c.sub);

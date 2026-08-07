@@ -25,7 +25,7 @@ export default function LoginPage() {
       await login(email.trim(), password);
       router.replace('/');
     } catch (err) {
-      setError((err as { message?: string }).message || 'เข้าสู่ระบบไม่สำเร็จ');
+      setError((err as { message?: string }).message || 'Sign in failed');
     } finally {
       setLoading(false);
     }
@@ -40,33 +40,33 @@ export default function LoginPage() {
             R
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">ROS</h1>
-          <p className="mt-1 text-sm text-muted">ระบบบริหารงานนายหน้าอสังหาฯ</p>
+          <p className="mt-1 text-sm text-muted">Real estate brokerage system</p>
         </div>
 
         {/* การ์ดเข้าสู่ระบบ */}
         <div className="card p-7">
           <div className="mb-5">
-            <h2 className="text-base font-semibold text-ink">เข้าสู่ระบบ</h2>
-            <p className="mt-0.5 text-xs text-muted">สำหรับเจ้าหน้าที่ภายในองค์กรเท่านั้น</p>
+            <h2 className="text-base font-semibold text-ink">Sign in</h2>
+            <p className="mt-0.5 text-xs text-muted">For internal staff only</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4" noValidate>
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-soft">อีเมล</label>
+              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-soft">Email</label>
               <input id="email" className="field" type="email" autoComplete="username" autoFocus
                 placeholder="name@ros.local" value={email}
                 onChange={(e) => setEmail(e.target.value)} required />
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink-soft">รหัสผ่าน</label>
+              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink-soft">Password</label>
               <div className="relative">
                 <input id="password" className="field pr-16" type={showPw ? 'text' : 'password'}
                   autoComplete="current-password" placeholder="••••••••" value={password}
                   onChange={(e) => setPassword(e.target.value)} required />
                 <button type="button" onClick={() => setShowPw((v) => !v)} tabIndex={-1}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted transition hover:text-ink">
-                  {showPw ? 'ซ่อน' : 'แสดง'}
+                  {showPw ? 'Hide' : 'Show'}
                 </button>
               </div>
             </div>
@@ -76,13 +76,13 @@ export default function LoginPage() {
             )}
 
             <button className="btn-gold w-full" type="submit" disabled={loading || !email || !password}>
-              {loading ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted">
-          © 2026 ROS · ลืมรหัสผ่าน? ติดต่อผู้ดูแลระบบ
+          © 2026 ROS · Forgot password? Contact your administrator
         </p>
       </div>
     </div>
