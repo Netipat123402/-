@@ -108,5 +108,50 @@
       "active": "Active",
       "ended": "Ended"
     }
+  },
+  "common": {
+    "all": "All",
+    "allTypes": "All types",
+    "allProvinces": "All provinces",
+    "allPrices": "All prices",
+    "clearFilters": "Clear filters",
+    "province": "Province",
+    "type": "Type",
+    "itemCount": "{n} items"
+  },
+  "propertyType": {
+    "condo": "Condo",
+    "house": "House",
+    "townhome": "Townhome",
+    "apartment": "Apartment"
+  },
+  "properties": {
+    "tab": {
+      "all": "All",
+      "pending": "Pending",
+      "available": "Available",
+      "rented": "Rented",
+      "draft": "Draft"
+    },
+    "sort": {
+      "newest": "Newest",
+      "priceAsc": "Rent low → high",
+      "priceDesc": "Rent high → low",
+      "code": "Code (A–Z)"
+    },
+    "col": {
+      "codeProperty": "Code / property",
+      "location": "Location",
+      "type": "Type",
+      "statusRent": "Status · rent"
+    },
+    "searchPlaceholder": "Search name / project / code…",
+    "rentMonth": "Rent/month",
+    "salesBanner": "Central inventory — browse to match customers · found a new one? tap “Request property”",
+    "ownerChip": "Properties of {name}",
+    "thisOwner": "this owner",
+    "clearOwnerFilter": "Clear owner filter",
+    "emptyNoMatch": "No properties match your filters",
+    "emptyNone": "No properties yet — add your first to start"
   }
 }

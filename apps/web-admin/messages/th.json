@@ -5,7 +5,7 @@
     "owners": "เจ้าของ",
     "propertyRequests": "คำขอทรัพย์",
     "requestProperty": "ขอเพิ่มทรัพย์",
-    "leads": "Lead",
+    "leads": "ผู้สนใจ",
     "appointments": "นัดหมาย",
     "calendar": "ปฏิทิน",
     "customers": "ลูกค้า",
@@ -25,7 +25,7 @@
     "home": "หน้าหลัก",
     "properties": "ทรัพย์",
     "requests": "คำขอ",
-    "leads": "Lead",
+    "leads": "ผู้สนใจ",
     "appts": "นัด",
     "customers": "ลูกค้า",
     "contracts": "สัญญา",
@@ -58,13 +58,13 @@
     "due": "ครบ",
     "daysLeft": "อีก {n} วัน",
     "kpi": {
-      "myLeads": "Lead ของฉัน",
+      "myLeads": "ผู้สนใจของฉัน",
       "myApptToday": "นัดวันนี้",
       "myDeals": "ดีลกำลังปิด",
       "available": "ทรัพย์ว่าง (จับคู่)",
       "pendingRequests": "คำขอรอตรวจ",
       "draftProps": "ร่างค้าง",
-      "teamLeads": "Lead ทั้งทีม",
+      "teamLeads": "ผู้สนใจทั้งทีม",
       "teamApptToday": "นัดทีมวันนี้",
       "pendingReview": "รออนุมัติเผยแพร่",
       "awaitingSign": "สัญญารอเซ็น",
@@ -72,8 +72,8 @@
     },
     "agenda": {
       "myAppointments": "นัดของฉัน",
-      "myNewLeads": "Lead ใหม่ของฉัน",
-      "pendingConvert": "คำขอรอ convert",
+      "myNewLeads": "ผู้สนใจใหม่ของฉัน",
+      "pendingConvert": "คำขอรอแปลง",
       "draftProperties": "ทรัพย์ร่าง",
       "reviewProperties": "ทรัพย์รอตรวจสอบ",
       "awaitingSign": "สัญญารอเซ็น",
@@ -108,5 +108,50 @@
       "active": "มีผลบังคับ",
       "ended": "สิ้นสุด"
     }
+  },
+  "common": {
+    "all": "ทั้งหมด",
+    "allTypes": "ทุกประเภท",
+    "allProvinces": "ทุกจังหวัด",
+    "allPrices": "ทุกช่วงราคา",
+    "clearFilters": "ล้างตัวกรอง",
+    "province": "จังหวัด",
+    "type": "ประเภท",
+    "itemCount": "{n} รายการ"
+  },
+  "propertyType": {
+    "condo": "คอนโด",
+    "house": "บ้านเดี่ยว",
+    "townhome": "ทาวน์โฮม",
+    "apartment": "อพาร์ทเมนท์"
+  },
+  "properties": {
+    "tab": {
+      "all": "ทั้งหมด",
+      "pending": "รอตรวจ",
+      "available": "ว่าง",
+      "rented": "ไม่ว่าง",
+      "draft": "ร่าง"
+    },
+    "sort": {
+      "newest": "ใหม่สุด",
+      "priceAsc": "ค่าเช่า น้อย→มาก",
+      "priceDesc": "ค่าเช่า มาก→น้อย",
+      "code": "รหัสทรัพย์ (ก–ฮ)"
+    },
+    "col": {
+      "codeProperty": "รหัส / ทรัพย์",
+      "location": "ทำเล",
+      "type": "ประเภท",
+      "statusRent": "สถานะ · ค่าเช่า"
+    },
+    "searchPlaceholder": "ค้นหาชื่อ/โครงการ/รหัส…",
+    "rentMonth": "ค่าเช่า/เดือน",
+    "salesBanner": "คลังทรัพย์กลาง — ดูเพื่อจับคู่ลูกค้า · เจอทรัพย์ใหม่ให้กด “ขอเพิ่มทรัพย์”",
+    "ownerChip": "ทรัพย์ของ {name}",
+    "thisOwner": "เจ้าของรายนี้",
+    "clearOwnerFilter": "ล้างตัวกรองเจ้าของ",
+    "emptyNoMatch": "ไม่พบทรัพย์ตามเงื่อนไขที่เลือก",
+    "emptyNone": "ยังไม่มีทรัพย์ในระบบ — เพิ่มทรัพย์แรกเพื่อเริ่มต้น"
   }
 }

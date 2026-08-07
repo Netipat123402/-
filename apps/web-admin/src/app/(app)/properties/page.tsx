@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { mediaUrl } from '@/lib/api';
@@ -17,30 +18,32 @@ interface PropertyRow {
   media?: { storageKey: string }[];
 }
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'ทั้งหมด' },
-  { value: 'pending_review', label: 'รอตรวจ' },
-  { value: 'available', label: 'ว่าง' },
-  { value: 'rented', label: 'ไม่ว่าง' },
-  { value: 'draft', label: 'ร่าง' },
-];
-const TYPE_OPTIONS = [{ value: '', label: 'ทุกประเภท' }, ...Object.entries(PROPERTY_TYPE).map(([value, label]) => ({ value, label }))];
 // ไอคอนตามประเภท (ตึกสูง vs บ้าน) — ใช้ในรูป placeholder ของทรัพย์ที่ยังไม่มีภาพ
 const TYPE_ICON: Record<string, 'building' | 'home'> = { condo: 'building', apartment: 'building', house: 'home', townhome: 'home' };
-const SORT_OPTIONS = [
-  { value: 'new', label: 'ใหม่สุด' },
-  { value: 'price_asc', label: 'ค่าเช่า น้อย→มาก' },
-  { value: 'price_desc', label: 'ค่าเช่า มาก→น้อย' },
-  { value: 'code', label: 'รหัสทรัพย์ (ก–ฮ)' },
-];
+// STATUS/TYPE/SORT options ย้ายเข้า component (แปลด้วย t) · ค่า value = enum ส่ง API คงเดิม
 // ช่วงค่าเช่าสำหรับสไลเดอร์กรอง (บาท/เดือน)
 const RENT_MAX = 100000;
 const RENT_STEP = 1000;
 
 export default function PropertiesPage() {
   const { api, can } = useAuth();
+  const t = useTranslations();
   const router = useRouter();
   const sp = useSearchParams();
+  const statusOptions = [
+    { value: '', label: t('properties.tab.all') },
+    { value: 'pending_review', label: t('properties.tab.pending') },
+    { value: 'available', label: t('properties.tab.available') },
+    { value: 'rented', label: t('properties.tab.rented') },
+    { value: 'draft', label: t('properties.tab.draft') },
+  ];
+  const typeOptions = [{ value: '', label: t('common.allTypes') }, ...Object.keys(PROPERTY_TYPE).map((v) => ({ value: v, label: t(`propertyType.${v}`) }))];
+  const sortOptions = [
+    { value: 'new', label: t('properties.sort.newest') },
+    { value: 'price_asc', label: t('properties.sort.priceAsc') },
+    { value: 'price_desc', label: t('properties.sort.priceDesc') },
+    { value: 'code', label: t('properties.sort.code') },
+  ];
   const [rows, setRows] = useState<PropertyRow[]>([]);
   const [meta, setMeta] = useState<{ total?: number; page?: number; totalPages?: number }>({});
   const [status, setStatus] = useState(sp.get('status') ?? '');
@@ -103,7 +106,7 @@ export default function PropertiesPage() {
 
   const cols: Col<PropertyRow>[] = [
     {
-      header: 'รหัส / ทรัพย์', primary: true, cell: (p) => (
+      header: t('properties.col.codeProperty'), primary: true, cell: (p) => (
         <span className="min-w-0">
           <span className="block font-mono text-xs text-gold-dark">{p.code}</span>
           <span className="block truncate font-medium">{p.titleTh}</span>
@@ -111,15 +114,15 @@ export default function PropertiesPage() {
       ),
     },
     // ทำเล = คีย์สแกนอสังหา (ที่ตั้ง) → แยกจากชนิด · โชว์ทุกจอ (มือถือ+)
-    { header: 'ทำเล', sub: true, cell: (p) => p.province || <span className="text-faint">—</span> },
+    { header: t('properties.col.location'), sub: true, cell: (p) => p.province || <span className="text-faint">—</span> },
     // ประเภท = ชนิดทรัพย์อย่างเดียว (§10: 1 คอลัมน์ 1 ความหมาย) — เลิกพ่วง "· N นอน"
     //   เดิมพ่วงห้องนอน = ซ้ำกับชื่อทรัพย์ที่มี "— N นอน" อยู่แล้ว + ปนความหมาย · ห้องนอนอยู่ในหน้า detail
-    { header: 'ประเภท', sub: true, cell: (p) => (
-      <span className="hidden sm:inline">{PROPERTY_TYPE[p.propertyType] ?? p.propertyType}</span>
+    { header: t('properties.col.type'), sub: true, cell: (p) => (
+      <span className="hidden sm:inline">{PROPERTY_TYPE[p.propertyType] ? t(`propertyType.${p.propertyType}`) : p.propertyType}</span>
     ) },
     {
       // สถานะ + ค่าเช่า รวมคอลัมน์เดียว: สถานะอยู่บน · ราคาอยู่ล่าง · จัดกึ่งกลางเข้าหากัน
-      header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (p) => (
+      header: t('properties.col.statusRent'), right: true, width: 'w-40', cell: (p) => (
         <div className="flex flex-col items-center gap-1">
           <span className="md:hidden"><StatusBadge map={PROPERTY_STATUS} value={p.status} short outline /></span>
           <span className="hidden md:inline"><StatusBadge map={PROPERTY_STATUS} value={p.status} outline /></span>
@@ -133,55 +136,55 @@ export default function PropertiesPage() {
   const canAddProperty = can('property', 'create');
   const canRequestProperty = !canAddProperty && can('property_request', 'create');
   const addCta = canAddProperty
-    ? <button className="btn-gold btn-sm" onClick={() => setShowNew(true)}><Icon name="plus" size={16} /> เพิ่มทรัพย์</button>
+    ? <button className="btn-gold btn-sm" onClick={() => setShowNew(true)}><Icon name="plus" size={16} /> {t('shell.addProperty')}</button>
     : canRequestProperty
-      ? <Link href="/property-requests" className="btn-gold btn-sm"><Icon name="plus" size={16} /> ขอเพิ่มทรัพย์</Link>
+      ? <Link href="/property-requests" className="btn-gold btn-sm"><Icon name="plus" size={16} /> {t('nav.requestProperty')}</Link>
       : null;
 
   return (
     <div>
-      <PageHeader title="ทรัพย์" count={`${meta.total ?? 0} รายการ`} action={addCta} />
+      <PageHeader title={t('nav.properties')} count={t('common.itemCount', { n: meta.total ?? 0 })} action={addCta} />
 
       {/* เซล: คลังทรัพย์กลาง = อ่านอย่างเดียว ไว้จับคู่ลูกค้า · เพิ่มใหม่ผ่าน "ขอเพิ่มทรัพย์" */}
       {canRequestProperty && (
         <p className="mt-3 flex items-center gap-2 rounded-lg bg-raised px-3 py-2 text-xs text-ink-soft">
           <Icon name="info" size={14} className="shrink-0 text-faint" />
-          คลังทรัพย์กลาง — ดูเพื่อจับคู่ลูกค้า · เจอทรัพย์ใหม่ให้กด “ขอเพิ่มทรัพย์”
+          {t('properties.salesBanner')}
         </p>
       )}
 
       {/* P11: สถานะทรัพย์ = quick-filter แตะเดียว (ว่าง/ไม่ว่าง/ร่าง) */}
       <div className="mt-4 -mb-1">
-        <Segmented options={STATUS_OPTIONS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
+        <Segmented options={statusOptions} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
       </div>
       <FilterBar
-        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/โครงการ/รหัส…' }}
+        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: t('properties.searchPlaceholder') }}
         searchWide
         filters={[
-          { key: 'province', label: 'จังหวัด', value: province, onChange: (v) => { setPage(1); setProvince(v); }, options: [{ value: '', label: 'ทุกจังหวัด' }, ...provinceOpts], searchable: true },
-          { key: 'type', label: 'ประเภท', value: type, onChange: (v) => { setPage(1); setType(v); }, options: TYPE_OPTIONS },
+          { key: 'province', label: t('common.province'), value: province, onChange: (v) => { setPage(1); setProvince(v); }, options: [{ value: '', label: t('common.allProvinces') }, ...provinceOpts], searchable: true },
+          { key: 'type', label: t('common.type'), value: type, onChange: (v) => { setPage(1); setType(v); }, options: typeOptions },
         ]}
         range={{
-          label: 'ค่าเช่า/เดือน',
+          label: t('properties.rentMonth'),
           min: 0, max: RENT_MAX, step: RENT_STEP,
           lo: rentMin ? Number(rentMin) : 0,
           hi: rentMax ? Number(rentMax) : RENT_MAX,
           display: (!rentMin && !rentMax)
-            ? 'ทุกช่วงราคา'
+            ? t('common.allPrices')
             : `฿${bahtFormat(rentMin ? Number(rentMin) : 0)} – ${rentMax ? `฿${bahtFormat(Number(rentMax))}` : `฿${bahtFormat(RENT_MAX)}+`}`,
           active: !!rentMin || !!rentMax,
           onChange: (lo, hi) => { setPage(1); setRentMin(lo <= 0 ? '' : String(lo)); setRentMax(hi >= RENT_MAX ? '' : String(hi)); },
           onClear: () => { setPage(1); setRentMin(''); setRentMax(''); },
         }}
-        sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: SORT_OPTIONS }}
+        sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: sortOptions }}
       />
 
       {/* ชิปกรองเจ้าของ (มาจาก owner detail "ดูทั้งหมด") — กดกากบาทล้าง */}
       {ownerFilter && (
         <div className="mt-3">
           <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/10 px-3 py-1.5 text-sm text-gold-dark">
-            ทรัพย์ของ {ownerName || 'เจ้าของรายนี้'}
-            <button onClick={clearFilters} aria-label="ล้างตัวกรองเจ้าของ" className="ml-0.5 transition hover:text-ink"><Icon name="x" size={14} /></button>
+            {t('properties.ownerChip', { name: ownerName || t('properties.thisOwner') })}
+            <button onClick={clearFilters} aria-label={t('properties.clearOwnerFilter')} className="ml-0.5 transition hover:text-ink"><Icon name="x" size={14} /></button>
           </span>
         </div>
       )}
@@ -189,16 +192,16 @@ export default function PropertiesPage() {
       <div className="mt-4 mouse:card mouse:overflow-hidden">
         <ListView items={sorted} cols={cols} keyOf={(p) => p.id} loading={loading} leading={thumb}
           emptyIcon={filtered ? 'search' : 'building'}
-          empty={filtered ? 'ไม่พบทรัพย์ตามเงื่อนไขที่เลือก' : 'ยังไม่มีทรัพย์ในระบบ — เพิ่มทรัพย์แรกเพื่อเริ่มต้น'}
+          empty={filtered ? t('properties.emptyNoMatch') : t('properties.emptyNone')}
           emptyAction={filtered
-            ? <button className="btn-ghost btn-sm" onClick={clearFilters}>ล้างตัวกรอง</button>
+            ? <button className="btn-ghost btn-sm" onClick={clearFilters}>{t('common.clearFilters')}</button>
             : addCta}
           onRow={(p) => router.push(`/properties/${p.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
 
       {/* เพิ่มทรัพย์ — กรอบลอยกลางจอ (เหมือนสร้าง Lead/เจ้าของ) ไม่เต็มจอ */}
-      <Modal open={showNew} onClose={() => setShowNew(false)} title="เพิ่มทรัพย์ใหม่" size="xl">
+      <Modal open={showNew} onClose={() => setShowNew(false)} title={t('shell.newProperty')} size="xl">
         <PropertyForm mode="create" onClose={() => setShowNew(false)} />
       </Modal>
     </div>
