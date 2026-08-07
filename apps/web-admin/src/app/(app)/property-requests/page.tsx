@@ -23,7 +23,7 @@ const STATUS_OPTIONS = [
   { value: '', label: 'ทั้งหมด' },
   { value: 'pending', label: 'รอตรวจ' },
   { value: 'needs_info', label: 'ขอข้อมูลเพิ่ม' },
-  { value: 'converted', label: 'สร้างประกาศแล้ว' },
+  { value: 'converted', label: 'แปลงเป็นทรัพย์แล้ว' },
   { value: 'rejected', label: 'ปฏิเสธ' },
 ];
 

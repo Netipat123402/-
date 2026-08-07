@@ -19,7 +19,7 @@ export const PROPERTY_STATUS: Record<string, { label: string; tone: Tone }> = {
 export const PROPERTY_REQUEST_STATUS: Record<string, { label: string; tone: Tone }> = {
   pending: { label: 'รอตรวจ', tone: 'done' },
   needs_info: { label: 'ขอข้อมูลเพิ่ม', tone: 'gold' },
-  converted: { label: 'สร้างประกาศแล้ว', tone: 'active' },
+  converted: { label: 'แปลงเป็นทรัพย์แล้ว', tone: 'active' },
   rejected: { label: 'ปฏิเสธ', tone: 'neutral' },
 };
 

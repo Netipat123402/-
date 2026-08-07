@@ -125,10 +125,10 @@ export default function PropertyRequestDetailPage() {
               </div>
             )}
 
-            {/* สร้างประกาศแล้ว — ลิงก์ไปประกาศ */}
+            {/* แปลงเป็นทรัพย์แล้ว — ลิงก์ไปทรัพย์ (ร่าง) ที่สร้าง */}
             {req.convertedProperty && (
               <Link href={`/properties/${req.convertedProperty.id}`} className="mt-3 block rounded-lg border border-border py-2 text-center text-sm text-gold-dark transition hover:bg-raised">
-                ดูประกาศที่สร้าง · {req.convertedProperty.code} ›
+                ดูทรัพย์ที่สร้าง · {req.convertedProperty.code} ›
               </Link>
             )}
 
