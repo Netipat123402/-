@@ -6,7 +6,7 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · **RBAC + governance กันโกง ✅ ครบ roadmap 6/6** (Phase 1–6 + final system audit — commit `7cc7865`…`f4f3063`).
-🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — รากฐาน [`lib/nav.ts`](apps/web-admin/src/lib/nav.ts) `roleNav` + `GET /dashboard` server aggregation ต่อ role · ดู §4 · **เหลือ: track C แปลอังกฤษ** (56 ไฟล์ · ไม่มี i18n lib · รอเคาะวิธี)
+🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — รากฐาน [`lib/nav.ts`](apps/web-admin/src/lib/nav.ts) `roleNav` + `GET /dashboard` server aggregation ต่อ role · ดู §4 · **กำลังทำ: track C แปล web-admin→อังกฤษ** (replace ตรง · glossary ล็อก · C0 shell + C1 shared/login/dashboard เสร็จ · เหลือ ~52 ไฟล์เฉพาะหน้า)
 📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
@@ -73,7 +73,10 @@
 - **✅ เฟส 4 · surface ควบคุมเจ้าของ เสร็จ (4a `4daea91` + 4b `4bf6d85`):** เพิ่มแผง "แจ้งเตือนอ่อนไหว (กันโกง)" บน dashboard เจ้าของ (ขึ้นบนสุด · โทนเหลือง warning) จาก notification category owner (Phase 5 sensitive-edit alerts) · item แตะ→ /owners/{id} · verify เจ้าของเห็น 4 alert · เซล/ผจก ไม่เห็น (scope) · generic renderer เพิ่ม tone='alert' + per-item href (เผื่อ section เตือนอื่นอนาคต)
 - **🎉 Roadmap UX แยกบทบาท เฟส 1–4 ครบแล้ว** (nav · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) — ทั้งหมด verify authed 3 บทบาท typecheck ผ่าน
 - **✅ แก้ป้าย converted "สร้างประกาศแล้ว" → "แปลงเป็นทรัพย์แล้ว" (`c93e717`):** ลดความสับสน (ชนกับ "เผยแพร่") · แก้ 3 จุด (status.ts+tab+ลิงก์) · หลักที่ยืนยัน: คำขอ(convert→ทรัพย์ร่าง) กับ เผยแพร่(draft→pending_review→available) = 2 วงจรแยกกัน · ผจก=เจ้าของ ตรวจคำขอเหมือนกัน ต่างที่ขั้นอนุมัติเผยแพร่ (เจ้าของเท่านั้น)
-- **🟢 track C (ก้อนใหญ่สุด): แปลทั้งระบบเป็นอังกฤษ** — 56 ไฟล์ · ไม่มี i18n lib · owner เคาะ direction แล้ว · **รอเคาะวิธี**: (ก) next-intl+en.json หรือ (ข) replace ตรง · ขอบเขต web-admin หรือ +web-public
+- **🟢 track C (กำลังทำ · ก้อนใหญ่สุด): แปล web-admin ไทย→อังกฤษ** — **วิธีเคาะแล้ว = replace ตรง (English-only ไม่มี switcher) · scope web-admin** · **glossary ล็อกแล้ว** (ทรัพย์=Properties · เจ้าของ=Owners · คำขอทรัพย์=Property requests · ขอเพิ่มทรัพย์=Request property · ค้นทรัพย์=Browse · ระบบ=System · Leads/Customers/Appointments/Calendar/Contracts)
+  - ✅ **C0** (`45aa308`) shell: nav.ts + layout.tsx · ✅ **C1** (`3384d0c`) shared: ui.tsx + login + dashboard chrome — verify authed ผ่าน (ไม่ overflow)
+  - **เหลือ ~52 ไฟล์** (สตริงเฉพาะหน้า): lists+details+forms ทุก entity (properties/owners/leads/appointments/customers/contracts/property-requests) · users/settings/community/search/audit · components (PropertyForm/DocumentSection/GlobalSearch/NotificationBell/ProfileMenu/QuickAddProperty/ThemeToggle...) — ไล่ทีละส่วน typecheck+verify
+  - **⚠️ รอเคาะ: backend labels (apps/api)** — KPI/agenda/alert บน dashboard + แจ้งเตือน/audit เป็นไทยจาก server (นอก scope web-admin) → dashboard ตอนนี้ครึ่งอังกฤษครึ่งไทย · ถ้าอยากอังกฤษเต็มต้องรวม apps/api (dashboard.service.ts ก่อน · เล็ก) — owner ตัดสิน
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
 ## 6) 🧪 เครื่องมือเทส/ข้อมูล (session นี้สร้าง)
