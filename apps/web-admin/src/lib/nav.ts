@@ -66,28 +66,28 @@ const NAV_BY_ROLE: Record<OperatingRole | 'default', NavGroup[]> = {
   // เซล = นักล่าดีล: งานขายนำ · คลังทรัพย์เป็น "ค้นทรัพย์" (ดูได้เต็ม · แก้ไม่ได้) + ปุ่มขอเพิ่มทรัพย์
   sales_agent: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'sales', items: SALES_ITEMS },
+    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
     { key: 'find', label: 'Browse', items: [I.properties, I.owners, I.requestAdd] },
   ],
   // ผู้จัดการ = คุมปฏิบัติการ: คลังทรัพย์นำ (จัดการเต็ม) → งานขาย · ชุมชนปักล่าง
   property_manager: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'inventory', items: INVENTORY_ITEMS },
-    { key: 'sales', items: SALES_ITEMS },
+    { key: 'inventory', label: 'Inventory', items: INVENTORY_ITEMS },
+    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
     { key: 'system', pinBottom: true, items: [I.community] },
   ],
   // เจ้าของ = ควบคุม+อนุมัติ+กันโกง: คลังทรัพย์+งานขาย · กลุ่ม "ระบบ" ปักล่าง (เลิกซ่อนใน ProfileMenu)
   super_admin: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'inventory', items: INVENTORY_ITEMS },
-    { key: 'sales', items: SALES_ITEMS },
+    { key: 'inventory', label: 'Inventory', items: INVENTORY_ITEMS },
+    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
     { key: 'system', label: 'System', pinBottom: true, items: [I.users, I.audit, I.settings, I.community] },
   ],
   // fallback (บทบาทอื่น/อนาคต) — โครงกลาง gate ด้วย can() ล้วน (ปลอดภัย)
   default: [
     { key: 'overview', items: [I.dashboard] },
-    { key: 'inventory', items: INVENTORY_ITEMS },
-    { key: 'sales', items: SALES_ITEMS },
+    { key: 'inventory', label: 'Inventory', items: INVENTORY_ITEMS },
+    { key: 'sales', label: 'Sales', items: SALES_ITEMS },
     { key: 'system', label: 'System', pinBottom: true, items: [I.users, I.audit, I.settings, I.community] },
   ],
 };

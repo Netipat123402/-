@@ -26,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [prPending, setPrPending] = useState(0); // badge: จำนวนคำขอทรัพย์ที่รอตรวจ
   const [drawer, setDrawer] = useState(false);   // เมนูโปรไฟล์ (มือถือ)
   const [quickAdd, setQuickAdd] = useState(false); // ฟอร์มเพิ่มทรัพย์แบบลัด (ปุ่ม + มุมซ้ายบน)
+  const [railCollapsed, setRailCollapsed] = useState(false); // sidebar เดสก์ท็อป ยุบ (ไอคอนล้วน) ↔ กาง (ไอคอน+ชื่อ) · จำใน localStorage
   const [navCollapsed, setNavCollapsed] = useState(false); // bottom nav หุบตอนเลื่อนลง (แบบ IG)
   const [kbOpen, setKbOpen] = useState(false);             // คีย์บอร์ดเด้ง (โฟกัสช่องกรอก) → ซ่อน bottom nav
   const [idleWarn, setIdleWarn] = useState(false);         // A3: เตือนก่อน auto-logout
@@ -47,6 +48,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [ready, user, can, api, pathname]);
 
   useEffect(() => { setDrawer(false); }, [pathname]);
+
+  // จำสถานะ ยุบ/กาง sidebar (localStorage) — โหลดตอน mount (กัน hydration mismatch: เริ่ม false เสมอ)
+  useEffect(() => { if (localStorage.getItem('ros-rail-collapsed') === '1') setRailCollapsed(true); }, []);
+  const toggleRail = () => setRailCollapsed((v) => {
+    const n = !v;
+    try { localStorage.setItem('ros-rail-collapsed', n ? '1' : '0'); } catch { /* ignore */ }
+    return n;
+  });
 
   // ล็อกพื้นหลัง (iOS-proof) เมื่อเปิดเมนูโปรไฟล์ (drawer) — กันพื้นหลัง pan ใต้ overlay
   useScrollLock(drawer);
@@ -139,55 +148,73 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const drawerMain = drawerGroups.filter((g) => !g.label).flatMap((g) => g.items);
   const drawerLabeled = drawerGroups.filter((g) => g.label);
 
-  // Sidebar เดสก์ท็อป = ราง (rail) แคบ: ไอคอนบน + ป้ายเล็กล่าง · โครง/ลำดับตามบทบาท (lib/nav.ts)
-  // คั่นกลุ่มด้วยเส้นบาง · ป้ายกลุ่มโชว์เฉพาะกลุ่มที่ต้องสื่อความหมาย (ค้นทรัพย์/ระบบ) · กลุ่ม pinBottom ดันลงล่าง
+  // Sidebar เดสก์ท็อป = ขยาย-ยุบได้ (world-class · Linear/Notion): กาง = ไอคอน+ชื่อแนวนอน + ป้ายกลุ่ม ·
+  // ยุบ = ไอคอนล้วน + tooltip (title) · โครง/ลำดับตามบทบาท (lib/nav.ts) · กลุ่ม pinBottom (ระบบ) ดันลงล่าง
   const NavLinks = () => (
-    <nav className="flex flex-1 flex-col px-1.5 py-2">
+    <nav className="flex flex-1 flex-col gap-0.5 px-2 py-2">
       {navGroups.map((sec, gi) => (
-        <div key={sec.key} className={`space-y-1 ${
-          sec.pinBottom ? 'mt-auto border-t border-border pt-2' : gi > 0 ? 'mt-2 border-t border-border pt-2' : ''
-        }`}>
-          {sec.label && <p className="px-1 pb-1 text-center text-2xs text-muted">{sec.label}</p>}
-          {sec.items.map((it) => {
-            const active = isActive(it.href);
-            const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
-            return (
-              <Link key={it.label} href={it.href}
-                aria-current={active ? 'page' : undefined}
-                className={`flex flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center text-2xs leading-tight transition ${tone}`}>
-                <span className="relative">
-                  <Icon name={it.icon} size={20} className={active || it.accent ? '' : 'opacity-80'} />
-                  {it.badgeKey === 'propertyRequest' && prPending > 0 && (
-                    <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold leading-none text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
+        <div key={sec.key} className={`${sec.pinBottom ? 'mt-auto' : ''} ${gi > 0 ? 'mt-2 border-t border-border pt-2' : ''}`}>
+          {sec.label && !railCollapsed && (
+            <p className="px-3 pb-1 pt-1 text-2xs font-medium uppercase tracking-wider text-muted">{sec.label}</p>
+          )}
+          <div className="space-y-0.5">
+            {sec.items.map((it) => {
+              const active = isActive(it.href);
+              const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
+              const badge = it.badgeKey === 'propertyRequest' && prPending > 0;
+              return (
+                <Link key={it.label} href={it.href}
+                  aria-current={active ? 'page' : undefined}
+                  title={railCollapsed ? it.label : undefined}
+                  className={`flex items-center rounded-lg transition ${tone} ${railCollapsed ? 'justify-center py-2.5' : 'gap-3 px-3 py-2 text-sm'}`}>
+                  <span className="relative flex shrink-0 items-center">
+                    <Icon name={it.icon} size={railCollapsed ? 22 : 19} className={active || it.accent ? '' : 'opacity-80'} />
+                    {badge && railCollapsed && (
+                      <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold leading-none text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
+                    )}
+                  </span>
+                  {!railCollapsed && <span className="min-w-0 flex-1 truncate">{it.label}</span>}
+                  {badge && !railCollapsed && (
+                    <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-semibold text-[#1c1b18]">{prPending > 9 ? '9+' : prPending}</span>
                   )}
-                </span>
-                <span>{it.label}</span>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       ))}
     </nav>
   );
 
   const Brand = () => (
-    <div className="flex h-16 items-center justify-center">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gold text-base font-semibold text-[#1c1b18]">R</div>
+    <div className={`flex h-16 shrink-0 items-center ${railCollapsed ? 'justify-center' : 'gap-2.5 px-4'}`}>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold text-base font-semibold text-[#1c1b18]">R</div>
+      {!railCollapsed && <span className="text-lg font-semibold tracking-tight">ROS</span>}
     </div>
   );
 
   return (
     <ToastProvider>
-    {/* a11y: ข้ามไปเนื้อหาหลักด้วยคีย์บอร์ด (ซ่อนจนกว่าจะ focus) */}
+    {/* a11y: Skip to main contentด้วยคีย์บอร์ด (ซ่อนจนกว่าจะ focus) */}
     <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-canvas">
-      ข้ามไปเนื้อหาหลัก
+      Skip to main content
     </a>
-    <div className="min-h-screen mouse:grid mouse:grid-cols-[84px_1fr]">
-      {/* Sidebar — เฉพาะอุปกรณ์ที่มีเมาส์/แทร็กแพด (เดสก์ท็อป/โน้ตบุ๊ก) · ไอแพด/แท็บเล็ตสัมผัส = ใช้ mobile shell */}
+    <div className={`min-h-screen mouse:grid ${railCollapsed ? 'mouse:grid-cols-[64px_1fr]' : 'mouse:grid-cols-[232px_1fr]'}`}>
+      {/* Sidebar — เฉพาะอุปกรณ์ที่มีเมาส์/แทร็กแพด (เดสก์ท็อป/โน้ตบุ๊ก) · ไอแพด/แท็บเล็ตสัมผัส = ใช้ mobile shell
+          ขยาย-ยุบได้: ปุ่มล่างสุดสลับ · จำสถานะใน localStorage */}
       <aside className="hidden border-r border-border bg-surface mouse:block">
-        <div className="sticky top-0 flex h-screen flex-col overflow-y-auto">
+        <div className="sticky top-0 flex h-screen flex-col">
           <Brand />
-          <NavLinks />
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            <NavLinks />
+          </div>
+          <button onClick={toggleRail}
+            title={railCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={railCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={`flex shrink-0 items-center border-t border-border py-3 text-2xs font-medium uppercase tracking-wider text-muted transition hover:bg-raised hover:text-ink ${railCollapsed ? 'justify-center' : 'gap-2 px-4'}`}>
+            <Icon name={railCollapsed ? 'chevron-right' : 'chevron-left'} size={18} />
+            {!railCollapsed && <span>Collapse</span>}
+          </button>
         </div>
       </aside>
 
