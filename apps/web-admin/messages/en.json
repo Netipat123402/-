@@ -79,5 +79,34 @@
       "awaitingSign": "Contracts to sign",
       "sensitiveAlerts": "Sensitive edits (fraud watch)"
     }
+  },
+  "status": {
+    "property": {
+      "draft": "Draft",
+      "pending_review": "Pending review",
+      "available": "Available · Listed",
+      "rented": "Rented"
+    },
+    "request": {
+      "pending": "Pending",
+      "needs_info": "Needs info",
+      "converted": "Converted to property",
+      "rejected": "Rejected"
+    },
+    "lead": {
+      "new": "New",
+      "working": "Working",
+      "closed": "Closed"
+    },
+    "appointment": {
+      "upcoming": "Upcoming",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "contract": {
+      "draft": "Draft",
+      "active": "Active",
+      "ended": "Ended"
+    }
   }
 }

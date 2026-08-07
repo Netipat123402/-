@@ -79,5 +79,34 @@
       "awaitingSign": "สัญญารอเซ็น",
       "sensitiveAlerts": "แจ้งเตือนอ่อนไหว (กันโกง)"
     }
+  },
+  "status": {
+    "property": {
+      "draft": "ฉบับร่าง",
+      "pending_review": "รอตรวจสอบ",
+      "available": "ว่าง · ลงประกาศ",
+      "rented": "ไม่ว่าง"
+    },
+    "request": {
+      "pending": "รอตรวจ",
+      "needs_info": "ขอข้อมูลเพิ่ม",
+      "converted": "แปลงเป็นทรัพย์แล้ว",
+      "rejected": "ปฏิเสธ"
+    },
+    "lead": {
+      "new": "ใหม่",
+      "working": "กำลังดูแล",
+      "closed": "ปิดจบ"
+    },
+    "appointment": {
+      "upcoming": "รอพบ",
+      "done": "พบแล้ว",
+      "cancelled": "ยกเลิก"
+    },
+    "contract": {
+      "draft": "ฉบับร่าง",
+      "active": "มีผลบังคับ",
+      "ended": "สิ้นสุด"
+    }
   }
 }

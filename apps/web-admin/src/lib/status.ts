@@ -9,36 +9,38 @@ const TONE_CLASS: Record<Tone, string> = {
   danger: 'bg-danger/10 text-danger',
 };
 
-export const PROPERTY_STATUS: Record<string, { label: string; tone: Tone }> = {
-  draft: { label: 'ฉบับร่าง', tone: 'neutral' },
-  pending_review: { label: 'รอตรวจสอบ', tone: 'done' },
-  available: { label: 'ว่าง · ลงประกาศ', tone: 'active' },
-  rented: { label: 'ไม่ว่าง', tone: 'gold' },
+// label = i18n key (แปลที่ StatusBadge · lib ใช้ hook ไม่ได้) · tone คงเดิม
+type StatusMeta = { labelKey: string; tone: Tone };
+export const PROPERTY_STATUS: Record<string, StatusMeta> = {
+  draft: { labelKey: 'status.property.draft', tone: 'neutral' },
+  pending_review: { labelKey: 'status.property.pending_review', tone: 'done' },
+  available: { labelKey: 'status.property.available', tone: 'active' },
+  rented: { labelKey: 'status.property.rented', tone: 'gold' },
 };
 
-export const PROPERTY_REQUEST_STATUS: Record<string, { label: string; tone: Tone }> = {
-  pending: { label: 'รอตรวจ', tone: 'done' },
-  needs_info: { label: 'ขอข้อมูลเพิ่ม', tone: 'gold' },
-  converted: { label: 'แปลงเป็นทรัพย์แล้ว', tone: 'active' },
-  rejected: { label: 'ปฏิเสธ', tone: 'neutral' },
+export const PROPERTY_REQUEST_STATUS: Record<string, StatusMeta> = {
+  pending: { labelKey: 'status.request.pending', tone: 'done' },
+  needs_info: { labelKey: 'status.request.needs_info', tone: 'gold' },
+  converted: { labelKey: 'status.request.converted', tone: 'active' },
+  rejected: { labelKey: 'status.request.rejected', tone: 'neutral' },
 };
 
-export const LEAD_STATUS: Record<string, { label: string; tone: Tone }> = {
-  new: { label: 'ใหม่', tone: 'done' },
-  working: { label: 'กำลังดูแล', tone: 'gold' },
-  closed: { label: 'ปิดจบ', tone: 'neutral' },
+export const LEAD_STATUS: Record<string, StatusMeta> = {
+  new: { labelKey: 'status.lead.new', tone: 'done' },
+  working: { labelKey: 'status.lead.working', tone: 'gold' },
+  closed: { labelKey: 'status.lead.closed', tone: 'neutral' },
 };
 
-export const APPOINTMENT_STATUS: Record<string, { label: string; tone: Tone }> = {
-  upcoming: { label: 'รอพบ', tone: 'done' },
-  done: { label: 'พบแล้ว', tone: 'active' },
-  cancelled: { label: 'ยกเลิก', tone: 'neutral' },
+export const APPOINTMENT_STATUS: Record<string, StatusMeta> = {
+  upcoming: { labelKey: 'status.appointment.upcoming', tone: 'done' },
+  done: { labelKey: 'status.appointment.done', tone: 'active' },
+  cancelled: { labelKey: 'status.appointment.cancelled', tone: 'neutral' },
 };
 
-export const CONTRACT_STATUS: Record<string, { label: string; tone: Tone }> = {
-  draft: { label: 'ฉบับร่าง', tone: 'neutral' },
-  active: { label: 'มีผลบังคับ', tone: 'active' },
-  ended: { label: 'สิ้นสุด', tone: 'neutral' },
+export const CONTRACT_STATUS: Record<string, StatusMeta> = {
+  draft: { labelKey: 'status.contract.draft', tone: 'neutral' },
+  active: { labelKey: 'status.contract.active', tone: 'active' },
+  ended: { labelKey: 'status.contract.ended', tone: 'neutral' },
 };
 
 // ป้ายเสริม "ใกล้ครบกำหนด" (คำนวณจากวันสิ้นสุด ไม่ใช่สถานะ)

@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
@@ -51,16 +53,16 @@ const FIELD_TH: Record<string, string> = {
   fullName: 'ชื่อ', phone: 'เบอร์โทร', email: 'อีเมล', roles: 'บทบาท',
 };
 
-const STATUS_MAPS: Record<string, Record<string, { label: string }>> = {
+const STATUS_MAPS: Record<string, Record<string, { labelKey: string }>> = {
   property: PROPERTY_STATUS, lead: LEAD_STATUS, appointment: APPOINTMENT_STATUS, contract: CONTRACT_STATUS,
 };
 
 /** แปลงค่าในฟิลด์ให้อ่านง่าย (สถานะ/ประเภท/ราคา/พื้นที่ …) */
-function fmtVal(entityType: string | undefined, field: string, val: unknown): string {
+function fmtVal(entityType: string | undefined, field: string, val: unknown, t: (k: string) => string): string {
   if (val == null || val === '') return '—';
   if (Array.isArray(val)) return val.join(', ');
   const s = String(val);
-  if (field === 'status' && entityType && STATUS_MAPS[entityType]?.[s]) return STATUS_MAPS[entityType][s].label;
+  if (field === 'status' && entityType && STATUS_MAPS[entityType]?.[s]) return t(STATUS_MAPS[entityType][s].labelKey);
   if (field === 'propertyType') return PROPERTY_TYPE[s] ?? s;
   if (field === 'monthlyRent') { const n = Number(val); return Number.isFinite(n) ? `฿${bahtFormat(n)}` : s; }
   if (field === 'areaSqm') return `${s} ตร.ม.`;
@@ -92,6 +94,7 @@ function fullTime(iso: string) {
 }
 
 export default function AuditPage() {
+  const t = useTranslations();
   const { api } = useAuth();
   const [action, setAction] = useState('');
   const [range, setRange] = useState('');
@@ -165,9 +168,9 @@ export default function AuditPage() {
                             <div key={c.field} className="flex items-baseline gap-2 text-xs">
                               <dt className="w-20 shrink-0 text-muted">{FIELD_TH[c.field] ?? c.field}</dt>
                               <dd className="flex min-w-0 flex-1 items-baseline gap-1.5">
-                                <span className="truncate text-muted line-through decoration-faint/60">{fmtVal(l.entityType, c.field, c.from)}</span>
+                                <span className="truncate text-muted line-through decoration-faint/60">{fmtVal(l.entityType, c.field, c.from, t)}</span>
                                 <Icon name="chevron-right" size={12} className="shrink-0 text-faint" />
-                                <span className="truncate font-medium text-ink">{fmtVal(l.entityType, c.field, c.to)}</span>
+                                <span className="truncate font-medium text-ink">{fmtVal(l.entityType, c.field, c.to, t)}</span>
                               </dd>
                             </div>
                           ))}

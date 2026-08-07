@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { useScrollLock } from '@/lib/useScrollLock';
@@ -56,10 +57,12 @@ export function PageHeader({
   );
 }
 
-export function StatusBadge({ map, value, short, outline }: { map: Record<string, { label: string; tone: Tone }>; value: string; short?: boolean; outline?: boolean }) {
-  const s = map[value] ?? { label: value, tone: 'neutral' as Tone };
-  const label = short ? s.label.split(' · ')[0] : s.label; // มือถือ: ตัดส่วนหลัง " · " ออก
-  return <span className={badgeClass(s.tone, outline)}>{label}</span>;
+export function StatusBadge({ map, value, short, outline }: { map: Record<string, { labelKey: string; tone: Tone }>; value: string; short?: boolean; outline?: boolean }) {
+  const t = useTranslations();
+  const s = map[value];
+  const full = s ? t(s.labelKey) : value; // ไม่มี entry → โชว์ค่าดิบ
+  const label = short ? full.split(' · ')[0] : full; // มือถือ: ตัดส่วนหลัง " · " ออก
+  return <span className={badgeClass(s?.tone ?? 'neutral', outline)}>{label}</span>;
 }
 
 /** Spinner — "กำลังทำงานอยู่" (รอสั้น ๆ เช่น กดส่ง) */
@@ -285,7 +288,7 @@ export function DetailHeader({
   backHref?: string;
   backLabel?: string;
   code?: React.ReactNode;
-  statusMap?: Record<string, { label: string; tone: Tone }>;
+  statusMap?: Record<string, { labelKey: string; tone: Tone }>;
   statusValue?: string;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
@@ -294,8 +297,10 @@ export function DetailHeader({
   actions?: React.ReactNode; // ปุ่ม action — เดสก์ท็อป: ชิดขวาหัว · มือถือ: stack ล่าง (ปกติ action อยู่ราง ไม่ใช้ที่นี่)
   className?: string;
 }) {
-  const st = statusMap && statusValue != null ? (statusMap[statusValue] ?? { label: statusValue, tone: 'neutral' as Tone }) : null;
-  const hasCaption = st || subtitle || code;
+  const t = useTranslations();
+  const st = statusMap && statusValue != null ? statusMap[statusValue] : undefined;
+  const stLabel = st ? t(st.labelKey) : (statusValue ?? null);
+  const hasCaption = stLabel || subtitle || code;
   return (
     <div className={className}>
       {backHref && (
@@ -318,10 +323,10 @@ export function DetailHeader({
           {/* แคปชั่นจางเส้นเดียว — สถานะ(จุด) · คำอธิบาย · รหัส */}
           {hasCaption && (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-              {st && (
+              {stLabel && (
                 <span className="inline-flex items-center gap-1.5">
-                  <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${toneDot(st.tone)}`} />
-                  {st.label}
+                  <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${toneDot(st?.tone ?? 'neutral')}`} />
+                  {stLabel}
                 </span>
               )}
               {st && subtitle && <span className="text-faint" aria-hidden>·</span>}
