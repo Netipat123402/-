@@ -49,5 +49,35 @@
     "language": "ภาษา",
     "lightMode": "โหมดสว่าง",
     "darkMode": "โหมดมืด"
+  },
+  "dashboard": {
+    "toDo": "สิ่งที่ต้องทำ",
+    "viewAll": "ดูทั้งหมด",
+    "empty": "ไม่มีงานที่ต้องทำในช่วงนี้",
+    "loadError": "โหลดข้อมูลแดชบอร์ดไม่สำเร็จ",
+    "due": "ครบ",
+    "daysLeft": "อีก {n} วัน",
+    "kpi": {
+      "myLeads": "Lead ของฉัน",
+      "myApptToday": "นัดวันนี้",
+      "myDeals": "ดีลกำลังปิด",
+      "available": "ทรัพย์ว่าง (จับคู่)",
+      "pendingRequests": "คำขอรอตรวจ",
+      "draftProps": "ร่างค้าง",
+      "teamLeads": "Lead ทั้งทีม",
+      "teamApptToday": "นัดทีมวันนี้",
+      "pendingReview": "รออนุมัติเผยแพร่",
+      "awaitingSign": "สัญญารอเซ็น",
+      "activeContracts": "สัญญามีผล"
+    },
+    "agenda": {
+      "myAppointments": "นัดของฉัน",
+      "myNewLeads": "Lead ใหม่ของฉัน",
+      "pendingConvert": "คำขอรอ convert",
+      "draftProperties": "ทรัพย์ร่าง",
+      "reviewProperties": "ทรัพย์รอตรวจสอบ",
+      "awaitingSign": "สัญญารอเซ็น",
+      "sensitiveAlerts": "แจ้งเตือนอ่อนไหว (กันโกง)"
+    }
   }
 }

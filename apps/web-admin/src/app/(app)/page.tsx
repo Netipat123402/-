@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { bahtFormat } from '@/lib/status';
 import { ErrorState } from '@/components/ui';
 import { Icon, type IconName } from '@/components/Icon';
 
 // ── payload จาก GET /dashboard (server aggregation ต่อบทบาท · Phase 2) ──
+// backend คืน key (kpi.key / agenda.titleKey) → FE แปลผ่าน i18n (สลับภาษาได้ · label ใน payload = fallback)
 interface Kpi { key: string; label: string; value: number; href: string; icon: string; hot?: boolean }
 interface AgendaItem { id: string; code?: string; primary: string; secondary?: string | null; scheduledAt?: string | null; endDate?: string | null; href?: string }
-interface AgendaSection { key: string; title: string; icon: string; href: string; items: AgendaItem[]; tone?: 'alert' }
+interface AgendaSection { key: string; titleKey: string; title: string; icon: string; href: string; items: AgendaItem[]; tone?: 'alert' }
 interface DashboardData { role: string; kpis: Kpi[]; agenda: AgendaSection[] }
 
 const fmtDayTime = (iso: string) => {
@@ -20,11 +22,12 @@ const fmtDayTime = (iso: string) => {
 const fmtExpiry = (iso: string) => {
   const d = new Date(iso);
   const days = Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86_400_000));
-  return { label: `Due ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`, days };
+  return { date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), days };
 };
 
 export default function DashboardPage() {
   const { api } = useAuth();
+  const t = useTranslations('dashboard');
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -52,9 +55,9 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-5xl">
       <p className="text-sm text-muted">{todayLabel}</p>
 
-      {error && !loading && <div className="mt-4 card"><ErrorState onRetry={() => setTick((t) => t + 1)} text="Couldn't load dashboard" /></div>}
+      {error && !loading && <div className="mt-4 card"><ErrorState onRetry={() => setTick((v) => v + 1)} text={t('loadError')} /></div>}
 
-      {/* KPI — ตัวเลขที่ต้อง action (hot) = ขอบ+พื้นทองอ่อน */}
+      {/* KPI — ตัวเลขที่ต้อง action (hot) = ขอบ+พื้นทองอ่อน · ป้ายแปลจาก key */}
       <div className="mt-6 grid grid-cols-2 gap-3.5 sm:grid-cols-4 sm:gap-4">
         {(loading ? Array.from({ length: 4 }) : kpis).map((c, i) => {
           const kpi = c as Kpi;
@@ -66,7 +69,7 @@ export default function DashboardPage() {
               }`}>
               <Icon name={kpi.icon as IconName} size={18} className={kpi.hot ? 'text-gold-dark' : 'text-faint'} />
               <span className="mt-1 text-[30px] font-semibold leading-none tracking-tight tabular-nums">{bahtFormat(kpi.value)}</span>
-              <span className="text-xs text-muted">{kpi.label}</span>
+              <span className="text-xs text-muted">{t(`kpi.${kpi.key}`)}</span>
             </Link>
           );
         })}
@@ -75,14 +78,14 @@ export default function DashboardPage() {
       {/* สิ่งที่ต้องทำ — คิวงานตามบทบาท (ซ่อนหมวดว่าง) */}
       <section className="mt-9 card overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:px-5">
-          <h2 className="text-base font-semibold tracking-tight">To do</h2>
+          <h2 className="text-base font-semibold tracking-tight">{t('toDo')}</h2>
         </div>
         {loading ? (
           <div className="space-y-2 p-4">{[1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-canvas" />)}</div>
         ) : !hasAgenda ? (
           <div className="flex flex-col items-center gap-2.5 px-6 py-16 text-center">
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-canvas text-faint"><Icon name="check" size={22} /></span>
-            <p className="text-sm text-muted">Nothing to do right now</p>
+            <p className="text-sm text-muted">{t('empty')}</p>
           </div>
         ) : (
           <div className="divide-y divide-border">
@@ -92,9 +95,9 @@ export default function DashboardPage() {
               <div key={sec.key} className="py-1.5">
                 <div className="flex items-center justify-between gap-2 px-4 pb-1 pt-2 sm:px-5">
                   <span className={`inline-flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wide ${alert ? 'text-warning' : 'text-muted'}`}>
-                    <Icon name={sec.icon as IconName} size={13} /> {sec.title} <span className={alert ? 'text-warning/70' : 'text-faint/70'}>{sec.items.length}</span>
+                    <Icon name={sec.icon as IconName} size={13} /> {t(`agenda.${sec.titleKey}`)} <span className={alert ? 'text-warning/70' : 'text-faint/70'}>{sec.items.length}</span>
                   </span>
-                  <Link href={sec.href} className="text-xs text-gold-dark hover:underline">View all</Link>
+                  <Link href={sec.href} className="text-xs text-gold-dark hover:underline">{t('viewAll')}</Link>
                 </div>
                 <ul className="divide-y divide-border">
                   {sec.items.map((it) => {
@@ -106,12 +109,12 @@ export default function DashboardPage() {
                             <p className="truncate text-sm font-medium">{it.primary}</p>
                             {(it.secondary || it.scheduledAt || expiry) && (
                               <p className="truncate text-xs text-muted">
-                                {it.secondary || (it.scheduledAt ? fmtDayTime(it.scheduledAt) : expiry ? expiry.label : '')}
+                                {it.secondary || (it.scheduledAt ? fmtDayTime(it.scheduledAt) : expiry ? `${t('due')} ${expiry.date}` : '')}
                               </p>
                             )}
                           </div>
                           {it.scheduledAt && <span className="hidden shrink-0 whitespace-nowrap text-xs text-ink-soft sm:inline">{fmtDayTime(it.scheduledAt)}</span>}
-                          {expiry && <span className="hidden shrink-0 whitespace-nowrap text-xs font-medium text-gold-dark sm:inline">{expiry.label}<span className="hidden lg:inline"> · {expiry.days} days left</span></span>}
+                          {expiry && <span className="hidden shrink-0 whitespace-nowrap text-xs font-medium text-gold-dark sm:inline">{t('due')} {expiry.date}<span className="hidden lg:inline"> · {t('daysLeft', { n: expiry.days })}</span></span>}
                           {it.code && <span className="hidden shrink-0 font-mono text-2xs text-faint lg:inline">{it.code}</span>}
                         </Link>
                       </li>

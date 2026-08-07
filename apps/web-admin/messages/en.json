@@ -49,5 +49,35 @@
     "language": "Language",
     "lightMode": "Light mode",
     "darkMode": "Dark mode"
+  },
+  "dashboard": {
+    "toDo": "To do",
+    "viewAll": "View all",
+    "empty": "Nothing to do right now",
+    "loadError": "Couldn’t load dashboard",
+    "due": "Due",
+    "daysLeft": "{n} days left",
+    "kpi": {
+      "myLeads": "My leads",
+      "myApptToday": "Appointments today",
+      "myDeals": "Deals closing",
+      "available": "Available (to match)",
+      "pendingRequests": "Requests to review",
+      "draftProps": "Drafts pending",
+      "teamLeads": "Team leads",
+      "teamApptToday": "Team appts today",
+      "pendingReview": "Awaiting approval",
+      "awaitingSign": "Contracts to sign",
+      "activeContracts": "Active contracts"
+    },
+    "agenda": {
+      "myAppointments": "My appointments",
+      "myNewLeads": "My new leads",
+      "pendingConvert": "Requests to convert",
+      "draftProperties": "Draft properties",
+      "reviewProperties": "Properties to review",
+      "awaitingSign": "Contracts to sign",
+      "sensitiveAlerts": "Sensitive edits (fraud watch)"
+    }
   }
 }

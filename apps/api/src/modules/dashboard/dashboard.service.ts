@@ -22,7 +22,7 @@ export type DashAgendaItem = {
   endDate?: Date | null;
   href?: string; // ลิงก์รายตัว (ถ้าไม่มี → ใช้ href ของ section)
 };
-export type DashAgenda = { key: string; title: string; icon: string; href: string; items: DashAgendaItem[]; tone?: 'alert' };
+export type DashAgenda = { key: string; titleKey: string; title: string; icon: string; href: string; items: DashAgendaItem[]; tone?: 'alert' };
 export type DashboardPayload = { role: OperatingRole; kpis: DashKpi[]; agenda: DashAgenda[] };
 
 function pickRole(roles: string[]): OperatingRole {
@@ -87,11 +87,11 @@ export class DashboardService {
       ],
       agenda: [
         {
-          key: 'appointments', title: 'นัดของฉัน', icon: 'clock', href: '/calendar',
+          key: 'appointments', titleKey: 'myAppointments', title: 'นัดของฉัน', icon: 'clock', href: '/calendar',
           items: apptItems.map((a) => ({ id: a.id, code: a.code, scheduledAt: a.scheduledAt, primary: a.lead?.fullName || a.title || 'นัดหมาย', secondary: a.property?.titleTh ?? null })),
         },
         {
-          key: 'leads', title: 'Lead ใหม่ของฉัน', icon: 'user-plus', href: '/leads?status=new',
+          key: 'leads', titleKey: 'myNewLeads', title: 'Lead ใหม่ของฉัน', icon: 'user-plus', href: '/leads?status=new',
           items: leadItems.map((l) => ({ id: l.id, code: l.code, primary: l.fullName, secondary: l.phone })),
         },
       ],
@@ -127,11 +127,11 @@ export class DashboardService {
       ],
       agenda: [
         {
-          key: 'requests', title: 'คำขอรอ convert', icon: 'inbox', href: '/property-requests?status=pending',
+          key: 'requests', titleKey: 'pendingConvert', title: 'คำขอรอ convert', icon: 'inbox', href: '/property-requests?status=pending',
           items: requestItems.map((r) => ({ id: r.id, code: r.code, primary: r.titleTh, secondary: [r.province, r.district].filter(Boolean).join(' · ') || null })),
         },
         {
-          key: 'properties', title: 'ทรัพย์ร่าง', icon: 'building', href: '/properties?status=draft',
+          key: 'properties', titleKey: 'draftProperties', title: 'ทรัพย์ร่าง', icon: 'building', href: '/properties?status=draft',
           items: draftItems.map((p) => ({ id: p.id, code: p.code, primary: p.titleTh })),
         },
       ],
@@ -163,7 +163,7 @@ export class DashboardService {
       }),
     ]);
     const alertSection: DashAgenda[] = alertItems.length > 0 ? [{
-      key: 'alerts', title: 'แจ้งเตือนอ่อนไหว (กันโกง)', icon: 'alert-triangle', href: '/audit', tone: 'alert',
+      key: 'alerts', titleKey: 'sensitiveAlerts', title: 'แจ้งเตือนอ่อนไหว (กันโกง)', icon: 'alert-triangle', href: '/audit', tone: 'alert',
       items: alertItems.map((n) => ({
         id: n.id,
         primary: n.title,
@@ -183,11 +183,11 @@ export class DashboardService {
       agenda: [
         ...alertSection, // กันโกงขึ้นก่อน (เด่นสุด)
         {
-          key: 'properties', title: 'ทรัพย์รอตรวจสอบ', icon: 'inbox', href: '/properties?status=pending_review',
+          key: 'properties', titleKey: 'reviewProperties', title: 'ทรัพย์รอตรวจสอบ', icon: 'inbox', href: '/properties?status=pending_review',
           items: reviewItems.map((p) => ({ id: p.id, code: p.code, primary: p.titleTh })),
         },
         {
-          key: 'contracts', title: 'สัญญารอเซ็น', icon: 'file-text', href: '/contracts?status=draft',
+          key: 'contracts', titleKey: 'awaitingSign', title: 'สัญญารอเซ็น', icon: 'file-text', href: '/contracts?status=draft',
           items: signItems.map((c) => ({ id: c.id, code: c.code, endDate: c.endDate, primary: c.property?.titleTh || c.code, secondary: c.customer?.fullName ?? null })),
         },
       ],
