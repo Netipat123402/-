@@ -81,7 +81,9 @@
   - **วิธี migrate ต่อ (แม่แบบ):** แต่ละไฟล์ → แทนสตริงด้วย `t('key')` + เพิ่มคีย์ใน en.json/th.json (อังกฤษจาก C0/C1 + ไทยจาก git ก่อน 45aa308) · client comp: `useTranslations()` · server comp: `getTranslations()`
   - **แม่แบบ backend-key (พิสูจน์แล้วที่ dashboard):** endpoint คืน **key** (kpi.key / agenda.titleKey) แทนข้อความ → FE แปล `t()` เอง (ไม่ต้องส่ง locale ไป API) · ใช้กับ backend display strings อื่นได้
   - ✅ **Dashboard migrate เสร็จ (`ebb883b`):** KPI + agenda title + chrome สลับ EN/TH ครบ (backend +titleKey · FE t()) · เหลือ alert notification sentences (ข้อความประกอบจาก notify — i18n ลึก · defer)
-  - **เหลือ migrate (~51 ไฟล์ FE):** lists/details/forms ทุก entity + users/settings/community/search/audit + components (PropertyForm/DocumentSection/GlobalSearch/NotificationBell/QuickAddProperty...) · **+ notify/audit สตริงประกอบ backend** (แยก task · ลึก)
+  - ✅ **Status labels เสร็จ (`4313c71`):** `lib/status.ts` *_STATUS → labelKey · StatusBadge+DetailHeader แปล t() (จุดเดียว ครอบทุก list/detail) · audit fmtVal รับ t · messages.status.* · verify badge สลับได้ · **เหลือ PROPERTY_TYPE/LEAD_SOURCE** (Record ไทย · consumer: properties/leads/property-requests/audit — migrate ตอนทำหน้านั้น)
+  - **เหลือ migrate (~50 ไฟล์ FE · chrome เฉพาะหน้า):** lists/details/forms ทุก entity (properties อยู่ระหว่างทำ — status badge เสร็จ เหลือ title/tabs/columns/filters/type) + owners/leads/appointments/customers/contracts/property-requests + users/settings/community/search/audit + components (PropertyForm/DocumentSection/GlobalSearch/NotificationBell/QuickAddProperty...) · **+ notify/audit สตริงประกอบ backend** (แยก task · ลึก)
+  - **แม่แบบต่อหน้า:** client → `const t = useTranslations('ns')` + `t('key')` · เพิ่มคีย์ en/th (อังกฤษใหม่ + ไทยเดิม) · ระวังแปลแค่ label · **ค่า filter/enum ที่ส่ง API ห้ามแตะ**
   - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (แปล ~1,490 สตริง × 2 ภาษา · แม่แบบพร้อม ไล่ทำได้เลย)
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
