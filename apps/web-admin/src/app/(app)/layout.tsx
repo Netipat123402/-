@@ -120,7 +120,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [logout]);
 
   if (!ready || !user) {
-    return <div className="flex min-h-screen items-center justify-center text-muted">กำลังโหลด…</div>;
+    return <div className="flex min-h-screen items-center justify-center text-muted">Loading…</div>;
   }
 
   const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(href));
@@ -196,7 +196,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {drawer && (
         <>
           <div className="fixed inset-0 z-40 bg-ink/40 dark:bg-black/50 mouse:hidden" onClick={() => setDrawer(false)} />
-          <aside ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="เมนูและโปรไฟล์"
+          <aside ref={drawerRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Menu and profile"
             className="fixed inset-y-0 right-0 z-50 flex w-[280px] flex-col overflow-y-auto border-l border-border bg-surface outline-none mouse:hidden">
             {/* หัวโปรไฟล์ */}
             <div className="flex items-center gap-3 border-b border-border px-5 py-4">
@@ -212,7 +212,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="flex-1 overflow-y-auto px-3 py-3">
               {drawerMain.length > 0 && (
                 <div className="mb-4">
-                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">เมนู</p>
+                  <p className="px-3 pb-1.5 text-2xs font-medium uppercase tracking-wider text-muted">Menu</p>
                   {drawerMain.map((it) => {
                     const active = isActive(it.href);
                     const tone = active ? 'bg-raised text-gold-dark' : it.accent ? 'text-gold-dark hover:bg-raised' : 'text-ink-soft hover:bg-raised';
@@ -256,7 +256,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
             <button onClick={() => { setDrawer(false); logout(); }}
               className="border-t border-border px-5 py-3.5 text-left text-sm font-medium text-danger hover:bg-raised">
-              ออกจากระบบ
+              Sign out
             </button>
           </aside>
         </>
@@ -267,7 +267,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-surface/80 px-4 backdrop-blur mouse:px-8">
           {/* มือถือซ้าย: + เพิ่มทรัพย์ → เปิดฟอร์มมีสเต็ป 1-4 (ตัวเดียวกับเดสก์ท็อป) ในกล่องกลางจอ */}
           {can('property', 'create') && (
-            <button onClick={() => setQuickAdd(true)} aria-label="เพิ่มทรัพย์"
+            <button onClick={() => setQuickAdd(true)} aria-label="Add property"
               className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised mouse:hidden">
               <Icon name="plus" size={22} />
             </button>
@@ -317,22 +317,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* ฟอร์มเพิ่มทรัพย์ (เปิดจากปุ่ม + มุมซ้ายบน) — wizard มีสเต็ป 1-4 เหมือนหน้าทรัพย์/เดสก์ท็อป */}
-      <Modal open={quickAdd} onClose={() => setQuickAdd(false)} title="เพิ่มทรัพย์ใหม่" size="xl">
+      <Modal open={quickAdd} onClose={() => setQuickAdd(false)} title="New property" size="xl">
         <PropertyForm mode="create" onClose={() => setQuickAdd(false)}
           onSaved={(id) => { setQuickAdd(false); router.push(`/properties/${id}`); }} />
       </Modal>
 
       {/* A3: เตือนก่อนออกจากระบบอัตโนมัติ (ไม่ได้ใช้งานนาน) */}
-      <Modal open={idleWarn} onClose={() => resetIdleRef.current()} title="ยังอยู่ไหม?"
+      <Modal open={idleWarn} onClose={() => resetIdleRef.current()} title="Still there?"
         footer={
           <div className="flex justify-end gap-2">
-            <button type="button" className="btn-ghost text-danger" onClick={() => { setIdleWarn(false); void logout(); }}>ออกจากระบบ</button>
-            <button type="button" className="btn-gold" onClick={() => resetIdleRef.current()}>อยู่ต่อ</button>
+            <button type="button" className="btn-ghost text-danger" onClick={() => { setIdleWarn(false); void logout(); }}>Sign out</button>
+            <button type="button" className="btn-gold" onClick={() => resetIdleRef.current()}>Stay signed in</button>
           </div>
         }>
         <p className="text-sm leading-relaxed text-ink-soft">
-          คุณไม่ได้ใช้งานสักพัก ระบบจะออกจากระบบอัตโนมัติใน{' '}
-          <b className="tabular-nums text-ink">{idleLeft}</b> วินาที เพื่อความปลอดภัย
+          You’ve been inactive for a while. You’ll be signed out in{' '}
+          <b className="tabular-nums text-ink">{idleLeft}</b> seconds for security.
         </p>
       </Modal>
     </div>
