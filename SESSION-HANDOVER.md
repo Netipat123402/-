@@ -6,7 +6,9 @@
 
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · **RBAC + governance กันโกง ✅ ครบ roadmap 6/6** (Phase 1–6 + final system audit — commit `7cc7865`…`f4f3063`).
-🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** (nav/sidebar+แถบล่าง · dashboard · หน้าเซล catalog · surface เจ้าของกันโกง) + **Sidebar ขยาย-ยุบได้** — ดู §4 · **กำลังทำ: track C i18n 2 ภาษา (อังกฤษหลัก+ไทยรอง สลับได้ · next-intl)** — foundation + shell เสร็จ+verify (สลับ EN↔TH ได้จริง) · **เหลือ migrate ~52 ไฟล์ FE + backend เข้า catalog** (แม่แบบพร้อม)
+🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** + **Sidebar ขยาย-ยุบได้** · **กำลังทำ: track C = i18n 2 ภาษา (อังกฤษหลัก+ไทยรอง สลับได้ · next-intl cookie)**
+✅ **สลับ EN↔TH ได้จริงแล้ว:** shell(nav/sidebar/drawer/profile) · dashboard · status badges(ทุก entity) · **Properties (ทั้ง entity: list+detail+edit+form)** · ปุ่มสลับภาษา 🌐
+🔴 **แต่ยังไม่สมบูรณ์ (owner จับได้):** ยังภาษาปนมั่ว — (1) master-data ไทยเสมอ (type chips/amenity/จังหวัด/LEAD_SOURCE ไม่สลับ) (2) component ร่วมยังไม่แปล (DocumentSection/ประวัติ/GlobalSearch…) โผล่ทุกหน้า (3) เหลือ 6 entity + system pages · **และ session นี้ไม่ได้ทำตาม CYCLE/responsive — ครั้งหน้าต้องทำตามกฎ** (ดู §4 KNOWN ISSUES + แผน · [[ros-rule-discipline-big-tasks]])
 📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
@@ -84,10 +86,17 @@
   - ✅ **Status labels เสร็จ (`4313c71`):** `lib/status.ts` *_STATUS → labelKey · StatusBadge+DetailHeader แปล t() (จุดเดียว ครอบทุก list/detail) · audit fmtVal รับ t · messages.status.* · verify badge สลับได้ · **เหลือ PROPERTY_TYPE/LEAD_SOURCE** (Record ไทย · consumer: properties/leads/property-requests/audit — migrate ตอนทำหน้านั้น)
   - ✅ **Lead→"ผู้สนใจ" + Properties list (`62e1a57`):** owner ติ "โหมดไทยโชว์ Lead อังกฤษ" → TH catalog ใช้ "ผู้สนใจ" ทุกที่ (convert→"แปลง") · **กฎใหม่: audit ทุก batch ให้ th ไทยล้วน / en อังกฤษล้วน** · Properties list migrate ครบ (namespace `common`/`propertyType`/`properties`) · verify สลับ EN↔TH เต็ม
   - ✅ **Properties entity เสร็จ 100% (`428cde7`):** detail(117สตริง · confirm ใช้ t.rich) + edit + PropertyForm(wizard) + fix DetailHeader backLabel · namespace propertyDetail/propertyForm/furnished + common(back/delete/name/phone/email/documents/history/units...) · verify EN↔TH ครบ
-  - **เหลือ migrate (~44 ไฟล์ FE · ทำตามแม่แบบ Properties):** owners/leads/appointments/customers/contracts/property-requests (list+detail+form) · users/settings/community/search/audit + components (DocumentSection/GlobalSearch/NotificationBell/QuickAddProperty/ActivityTimeline...) · **+ LEAD_SOURCE map** (leads) · **+ notify/audit สตริงประกอบ backend** (แยก task · ลึก)
-  - **บทเรียน verify:** default param hardcode ใน shared component (เช่น DetailHeader backLabel) ก็ต้อง i18n — เช็ค shared component ที่ยังมี default อังกฤษ/ไทยด้วย
-  - **แม่แบบต่อหน้า (พิสูจน์แล้วที่ properties):** client → `const t = useTranslations()` · ย้าย option const เข้า component แปลด้วย t · เพิ่มคีย์ en/th (อังกฤษใหม่ + ไทยเดิมจาก git) · **ค่า filter/enum/route ห้ามแตะ (flow)** · ฿=สกุลเงินคงไว้ · ชื่อ/ข้อมูลจริง=คงภาษาเดิม · audit ภาษาปนท้าย batch
-  - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (แปล ~1,490 สตริง × 2 ภาษา · แม่แบบพร้อม ไล่ทำได้เลย)
+  - 🔴 **KNOWN ISSUES (owner จับได้ end of session · ต้องแก้ก่อนถือว่าเสร็จ):**
+    1. **master-data ยังไทยเสมอ (ไม่สลับ)** — type chips ในฟอร์ม (คอนโดมิเนียม/บ้านเดี่ยว…), amenity labels, จังหวัด, LEAD_SOURCE มาจาก `/public/master-data` (labelTh) → โชว์ไทยแม้ locale=en · **แม้แต่ไม่ตรง catalog** (master-data="คอนโดมิเนียม" vs propertyType.condo="คอนโด") → ต้องตัดสิน: (ก) แปล master-data ผ่าน key ที่ FE (t(`propertyType.${code}`) แทน labelTh) หรือ (ข) API คืน labelEn/labelTh ตาม locale
+    2. **component ยังไม่แปล** — `DocumentSection` (บัตรประชาชน/แนบเอกสาร/ยังไม่มีเอกสาร), `ActivityTimeline`/ประวัติ (เปลี่ยนสถานะ.../แก้ไขทรัพย์...), GlobalSearch, NotificationBell, QuickAddProperty → **โผล่ในทุกหน้า detail** = ภาษาปนทุกที่
+    3. **ยังไม่ทำตาม CYCLE/responsive** — session นี้ผมไล่แปล mechanical ไม่ได้ ติเก่า→เสนอ+รูป 3 จอ→รอเคาะ ต่อหน้า · ไม่ verify 3 อุปกรณ์ต่อหน้า → **ครั้งหน้าต้องทำตามกฎ** ([[ros-rule-discipline-big-tasks]])
+  - **📋 แผนที่เหลือ (เสนอ · ให้ owner เคาะก่อนเริ่ม):**
+    - **C-shared** (leverage สูงสุด · ทำก่อน): (1) master-data i18n — เลือกวิธี (ก)/(ข) แล้วทำ PROPERTY_TYPE/amenity/province/LEAD_SOURCE ให้สลับ · (2) แปล component ร่วม (DocumentSection/ActivityTimeline/GlobalSearch/NotificationBell/QuickAddProperty) — จบครั้งเดียวครอบทุก detail
+    - **C-entities** (ทีละ entity ตาม CYCLE): owners → leads → appointments → customers → contracts → property-requests · แต่ละ entity = list+detail+form · **ต่อ entity: ติเก่า→รูปเทียบ 3 จอ→เคาะ→ทำ→verify authed 3 จอ→audit ภาษาปน→commit**
+    - **C-system:** users/settings/community/search/audit (หน้าที่เหลือ)
+    - **C-backend (ลึก):** notify/audit สตริงประกอบ (เช่น "เปลี่ยนสถานะ X → Y", "มีการแก้ข้อมูลเจ้าของ…") — ต้อง restructure เป็น key+params หรือ i18n ฝั่ง server
+  - **แม่แบบต่อหน้า (พิสูจน์แล้ว):** client → `const t = useTranslations()` · ย้าย option const เข้า component แปลด้วย t · confirm dialog ใช้ `t.rich` (<b>{code}</b>) · **ค่า filter/enum/route ห้ามแตะ (flow)** · ฿+ชื่อ/data=คงภาษาเดิม · shared component default param hardcode ก็ต้อง i18n (เจอที่ DetailHeader backLabel) · **audit ท้าย batch:** `grep '": *"[^"]*[A-Za-z]' th.json` (ยกเว้น placeholder) = ต้องว่าง · en.json ต้องไม่มีอักษรไทย
+  - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (~1,490 สตริง × 2 ภาษา + master-data + component + backend)
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
 ## 6) 🧪 เครื่องมือเทส/ข้อมูล (session นี้สร้าง)
