@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { ConfirmDialog, DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, SectionLabel, StatusBadge } from '@/components/ui';
@@ -18,6 +19,7 @@ interface ContractLite {
 interface Customer { id: string; fullName: string; phone?: string; email?: string; address?: string; contracts?: ContractLite[]; }
 
 export default function CustomerDetailPage() {
+  const t = useTranslations();
   const { api, can } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -43,13 +45,13 @@ export default function CustomerDetailPage() {
       const r = await api<Customer>(`/customers/${id}`, { method: 'PATCH', body: JSON.stringify({
         fullName: form.fullName, phone: form.phone || undefined, email: form.email || undefined, address: form.address || undefined,
       }) });
-      setC((prev) => ({ ...r.data, contracts: prev?.contracts })); setEdit(false); toast.success('บันทึกแล้ว');
-    } catch (e) { toast.error((e as { message?: string }).message || 'บันทึกไม่สำเร็จ'); }
+      setC((prev) => ({ ...r.data, contracts: prev?.contracts })); setEdit(false); toast.success(t('common.saved'));
+    } catch (e) { toast.error((e as { message?: string }).message || t('common.saveFailed')); }
     finally { setSaving(false); }
   }
 
   if (loading) return <div className="mx-auto max-w-3xl"><div className="h-40 animate-pulse rounded-card bg-canvas" /></div>;
-  if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบลูกค้า <Link href="/customers" className="text-gold-dark underline">กลับ</Link></div>;
+  if (!c) return <div className="mx-auto max-w-3xl text-center text-muted">{t('customers.notFound')} <Link href="/customers" className="text-gold-dark underline">{t('common.back')}</Link></div>;
 
   const contracts = c.contracts ?? [];
   const active = contracts.filter((ct) => ct.status === 'active');       // กำลังเช่า
@@ -76,29 +78,29 @@ export default function CustomerDetailPage() {
               <div className="flex shrink-0 text-center">
                 <div className="flex-1 px-3">
                   <div className="text-lg font-semibold tabular-nums text-ink">{contracts.length}</div>
-                  <div className="text-xs text-muted">สัญญา</div>
+                  <div className="text-xs text-muted">{t('customers.statContracts')}</div>
                 </div>
                 {activeRent > 0 && (
                   <div className="flex-1 border-l border-border px-3">
                     <div className="text-lg font-semibold tabular-nums text-gold-dark">฿{bahtFormat(activeRent)}</div>
-                    <div className="text-xs text-muted">ค่าเช่าปัจจุบัน</div>
+                    <div className="text-xs text-muted">{t('customers.statCurrentRent')}</div>
                   </div>
                 )}
               </div>
               {/* ติดต่อ — label-value ราง (กฎ 1) */}
               <div className="border-t border-border pt-3 text-sm sm:flex-1 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0 xl:border-l-0 xl:border-t xl:pl-0 xl:pt-3">
                 <div className="divide-y divide-border/60">
-                  {c.phone && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">เบอร์</span><PhoneLink phone={c.phone} className="text-ink" /></div>}
-                  {c.email && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">อีเมล</span><span className="truncate text-ink">{c.email}</span></div>}
-                  {c.address && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">ที่อยู่</span><span className="text-ink">{c.address}</span></div>}
-                  {!c.phone && !c.email && !c.address && <p className="py-2 text-faint">— ยังไม่มีข้อมูลติดต่อ</p>}
+                  {c.phone && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">{t('common.phone')}</span><PhoneLink phone={c.phone} className="text-ink" /></div>}
+                  {c.email && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">{t('common.email')}</span><span className="truncate text-ink">{c.email}</span></div>}
+                  {c.address && <div className="grid grid-cols-[3.5rem_1fr] gap-3 py-2"><span className="text-faint">{t('common.address')}</span><span className="text-ink">{c.address}</span></div>}
+                  {!c.phone && !c.email && !c.address && <p className="py-2 text-faint">{t('owners.noContact')}</p>}
                 </div>
               </div>
-              {can('customer', 'update') && <button className="btn-ghost w-full shrink-0 sm:w-auto xl:w-full" onClick={() => { setForm(c); setEdit(true); }}>แก้ไขข้อมูล</button>}
+              {can('customer', 'update') && <button className="btn-ghost w-full shrink-0 sm:w-auto xl:w-full" onClick={() => { setForm(c); setEdit(true); }}>{t('owners.editData')}</button>}
             </div>
           </div>
           {can('customer', 'delete') && contracts.length === 0 && (
-            <div className="mt-2 text-center"><button className="text-xs text-muted transition hover:text-danger" onClick={() => setDelOpen(true)}>ลบลูกค้ารายนี้</button></div>
+            <div className="mt-2 text-center"><button className="text-xs text-muted transition hover:text-danger" onClick={() => setDelOpen(true)}>{t('customers.deleteThis')}</button></div>
           )}
         </div>
 
@@ -106,28 +108,28 @@ export default function CustomerDetailPage() {
         <div className="mt-6 xl:order-1 xl:mt-0">
           {/* กำลังเช่า = สัญญา active → label-value ราง (กฎ 1) */}
           {active.length === 0 ? (
-            <InfoGroup label="กำลังเช่า" className="mb-4">
-              <p className="py-6 text-center text-sm text-muted">ยังไม่มีสัญญาที่เช่าอยู่</p>
+            <InfoGroup label={t('customers.renting')} className="mb-4">
+              <p className="py-6 text-center text-sm text-muted">{t('customers.noActive')}</p>
             </InfoGroup>
           ) : active.map((ct) => {
             const dl = daysLeftOf(ct.endDate);
             return (
-              <InfoGroup key={ct.id} label="กำลังเช่า" className="mb-4"
-                action={<button className="text-xs text-gold-dark transition hover:underline" onClick={() => router.push(`/contracts/${ct.id}`)}>ดูสัญญา ›</button>}>
+              <InfoGroup key={ct.id} label={t('customers.renting')} className="mb-4"
+                action={<button className="text-xs text-gold-dark transition hover:underline" onClick={() => router.push(`/contracts/${ct.id}`)}>{t('customers.viewContract')}</button>}>
                 {ct.property && (
-                  <InfoRow label="ทรัพย์" href={`/properties/${ct.property.id}`} strong hideChevron
+                  <InfoRow label={t('customers.fieldProperty')} href={`/properties/${ct.property.id}`} strong hideChevron
                     value={<span><span className="block">{ct.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{ct.property.code}</span></span>} />
                 )}
-                {ct.owner && <InfoRow label="เจ้าของ" value={ct.owner.fullName} />}
-                <InfoRow label="ค่าเช่า" value={`฿${bahtFormat(Number(ct.monthlyRent ?? 0))}/เดือน`} />
-                <InfoRow label="วันสิ้นสุด" value={<span>{ct.endDate ? fmtDate(ct.endDate) : '—'}{dl != null && <span className="text-gold-dark"> · เหลือ {dl} วัน</span>}</span>} />
+                {ct.owner && <InfoRow label={t('customers.fieldOwner')} value={ct.owner.fullName} />}
+                <InfoRow label={t('customers.fieldRent')} value={`฿${bahtFormat(Number(ct.monthlyRent ?? 0))}${t('propertyDetail.perMonth')}`} />
+                <InfoRow label={t('customers.fieldEndDate')} value={<span>{ct.endDate ? fmtDate(ct.endDate) : '—'}{dl != null && <span className="text-gold-dark">{t('customers.daysLeft', { n: dl })}</span>}</span>} />
               </InfoGroup>
             );
           })}
 
           {/* ประวัติสัญญา = ไม่ active → label(รหัส)-value(ค่าเช่า/สถานะ) ราง */}
           {past.length > 0 && (
-            <InfoGroup label="ประวัติสัญญา" className="mb-4">
+            <InfoGroup label={t('customers.historyContracts')} className="mb-4">
               {past.map((ct) => (
                 <InfoRow key={ct.id} onClick={() => router.push(`/contracts/${ct.id}`)} hideChevron
                   label={<span className="font-mono text-xs">{ct.code}</span>}
@@ -138,36 +140,36 @@ export default function CustomerDetailPage() {
 
           {/* เอกสาร */}
           <section className="scroll-mt-28 overflow-hidden rounded-card border border-border bg-surface">
-            <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>เอกสาร</SectionLabel></div>
+            <div className="px-4 pt-3.5 sm:px-5"><SectionLabel>{t('common.documents')}</SectionLabel></div>
             <div className="px-4 pb-4 pt-2 sm:px-5"><DocumentSection entityType="customer" entityId={c.id} /></div>
           </section>
         </div>
       </div>
 
       {/* แก้ไขข้อมูล (modal) */}
-      <Modal open={edit} onClose={() => { setEdit(false); setForm(c); }} title="แก้ไขข้อมูลลูกค้า"
+      <Modal open={edit} onClose={() => { setEdit(false); setForm(c); }} title={t('customers.editTitle')}
         confirmOnClose={form.fullName !== c.fullName || (form.phone ?? '') !== (c.phone ?? '') || (form.email ?? '') !== (c.email ?? '') || (form.address ?? '') !== (c.address ?? '')}>
         <div className="space-y-4">
-          <Field label="ชื่อ-นามสกุล" placeholder="เช่น สมชาย ใจดี" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-          <Field label="เบอร์โทร" inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
-          <Field label="อีเมล" type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">ที่อยู่</span>
-            <textarea className="field h-auto py-2.5" rows={2} placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <Field label={t('common.fullName')} placeholder={t('owners.namePlaceholder')} value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+          <Field label={t('common.phone')} inputMode="tel" placeholder="08x-xxx-xxxx" value={form.phone ?? ''} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} />
+          <Field label={t('common.email')} type="email" placeholder="name@email.com" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <label className="block"><span className="mb-1.5 block text-sm font-medium text-ink-soft">{t('common.address')}</span>
+            <textarea className="field h-auto py-2.5" rows={2} placeholder={t('owners.addressPlaceholder')} value={form.address ?? ''} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </label>
           <div className="flex justify-end gap-2 pt-2">
-            <button className="btn-ghost" onClick={() => { setEdit(false); setForm(c); }}>ยกเลิก</button>
-            <button className="btn-gold" disabled={saving} onClick={save}>{saving ? 'กำลังบันทึก…' : 'บันทึก'}</button>
+            <button className="btn-ghost" onClick={() => { setEdit(false); setForm(c); }}>{t('common.cancel')}</button>
+            <button className="btn-gold" disabled={saving} onClick={save}>{saving ? t('common.saving') : t('common.save')}</button>
           </div>
         </div>
       </Modal>
 
       <ConfirmDialog open={delOpen} onClose={() => setDelOpen(false)} busy={deleting}
-        title="ลบลูกค้า" tone="danger" confirmLabel="ลบลูกค้า"
-        message={<>ลบ <b>{c.fullName}</b> ออกจากระบบ? ใช้กรณีสร้าง/แปลงผิด (ลูกค้าที่มีสัญญาจะลบไม่ได้)</>}
+        title={t('customers.deleteTitle')} tone="danger" confirmLabel={t('customers.deleteTitle')}
+        message={t.rich('customers.deleteMsg', { name: c.fullName, b: (ch) => <b>{ch}</b> })}
         onConfirm={async () => {
           setDeleting(true);
-          try { await api(`/customers/${c.id}`, { method: 'DELETE' }); toast.success('ลบลูกค้าแล้ว'); router.push('/customers'); }
-          catch (e) { toast.error((e as { message?: string }).message || 'ลบไม่สำเร็จ'); setDeleting(false); setDelOpen(false); }
+          try { await api(`/customers/${c.id}`, { method: 'DELETE' }); toast.success(t('customers.toastDeleted')); router.push('/customers'); }
+          catch (e) { toast.error((e as { message?: string }).message || t('customers.toastDeleteFailed')); setDeleting(false); setDelOpen(false); }
         }} />
     </div>
   );

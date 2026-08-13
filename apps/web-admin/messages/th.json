@@ -597,5 +597,33 @@
     "rescheduleTitle": "เลื่อนนัด",
     "rescheduleConfirm": "ยืนยันเลื่อนนัด",
     "fieldNewWhen": "วันเวลานัดใหม่"
+  },
+  "customers": {
+    "countUnit": "{n} ราย",
+    "rentingActive": "กำลังเช่าอยู่",
+    "colTenant": "ผู้เช่า",
+    "colRentedProp": "ทรัพย์ที่เช่า",
+    "colOwner": "เจ้าของ",
+    "colContracts": "สัญญา",
+    "contractCount": "{n} สัญญา",
+    "empty": "ยังไม่มีลูกค้า — ลูกค้าจะถูกสร้างเมื่อแปลงจากผู้สนใจ",
+    "notFound": "ไม่พบลูกค้า",
+    "statContracts": "สัญญา",
+    "statCurrentRent": "ค่าเช่าปัจจุบัน",
+    "deleteThis": "ลบลูกค้ารายนี้",
+    "renting": "กำลังเช่า",
+    "noActive": "ยังไม่มีสัญญาที่เช่าอยู่",
+    "viewContract": "ดูสัญญา ›",
+    "fieldProperty": "ทรัพย์",
+    "fieldOwner": "เจ้าของ",
+    "fieldRent": "ค่าเช่า",
+    "fieldEndDate": "วันสิ้นสุด",
+    "daysLeft": " · เหลือ {n} วัน",
+    "historyContracts": "ประวัติสัญญา",
+    "editTitle": "แก้ไขข้อมูลลูกค้า",
+    "deleteTitle": "ลบลูกค้า",
+    "deleteMsg": "ลบ <b>{name}</b> ออกจากระบบ? ใช้กรณีสร้าง/แปลงผิด (ลูกค้าที่มีสัญญาจะลบไม่ได้)",
+    "toastDeleted": "ลบลูกค้าแล้ว",
+    "toastDeleteFailed": "ลบไม่สำเร็จ"
   }
 }

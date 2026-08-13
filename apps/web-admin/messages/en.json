@@ -597,5 +597,33 @@
     "rescheduleTitle": "Reschedule",
     "rescheduleConfirm": "Confirm reschedule",
     "fieldNewWhen": "New date/time"
+  },
+  "customers": {
+    "countUnit": "{n} customers",
+    "rentingActive": "Currently renting",
+    "colTenant": "Tenant",
+    "colRentedProp": "Rented property",
+    "colOwner": "Owner",
+    "colContracts": "Contracts",
+    "contractCount": "{n} contracts",
+    "empty": "No customers yet — created when a lead converts",
+    "notFound": "Customer not found",
+    "statContracts": "Contracts",
+    "statCurrentRent": "Current rent",
+    "deleteThis": "Delete this customer",
+    "renting": "Currently renting",
+    "noActive": "No active rental yet",
+    "viewContract": "View contract ›",
+    "fieldProperty": "Property",
+    "fieldOwner": "Owner",
+    "fieldRent": "Rent",
+    "fieldEndDate": "End date",
+    "daysLeft": " · {n} days left",
+    "historyContracts": "Contract history",
+    "editTitle": "Edit customer",
+    "deleteTitle": "Delete customer",
+    "deleteMsg": "Remove <b>{name}</b> from the system? Use for wrong create / convert (customers with contracts can't be deleted)",
+    "toastDeleted": "Customer deleted",
+    "toastDeleteFailed": "Delete failed"
   }
 }

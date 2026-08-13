@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useList } from '@/lib/useList';
 import { useDebouncedValue } from '@/lib/useDebounce';
 import { Col, FilterBar, ListView, PageHeader, Pagination, PhoneLink, Segmented, PAGE_SIZE } from '@/components/ui';
@@ -12,18 +13,17 @@ interface Customer {
   rentedOwner?: { fullName: string; phone?: string } | null;  // R2: เจ้าของทรัพย์นั้น
 }
 
-const SORT_OPTIONS = [
-  { value: 'name', label: 'ชื่อ (ก–ฮ)' },
-  { value: 'new', label: 'ใหม่สุด' },
-];
-// toggle กำลังเช่าอยู่ (status ผู้เช่า: มีสัญญา active)
-const RENTING_OPTIONS = [
-  { value: '', label: 'ทั้งหมด' },
-  { value: 'active', label: 'กำลังเช่าอยู่' },
-];
-
 export default function CustomersPage() {
+  const t = useTranslations();
   const router = useRouter();
+  const SORT_OPTIONS = [
+    { value: 'name', label: t('owners.sortName') },
+    { value: 'new', label: t('owners.sortNewest') },
+  ];
+  const RENTING_OPTIONS = [
+    { value: '', label: t('common.all') },
+    { value: 'active', label: t('customers.rentingActive') },
+  ];
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [sort, setSort] = useState('name');
@@ -37,7 +37,7 @@ export default function CustomersPage() {
 
   const cols: Col<Customer>[] = [
     // 1) ผู้เช่า = ชื่อ + เบอร์ (twoLine เกาะชุด · muted กดโทรได้)
-    { header: 'ผู้เช่า', primary: true, twoLine: true, cell: (c) => (
+    { header: t('customers.colTenant'), primary: true, twoLine: true, cell: (c) => (
       <div className="min-w-0">
         <div className="truncate font-medium text-ink">{c.fullName}</div>
         <PhoneLink phone={c.phone} className="text-xs text-muted" />
@@ -45,38 +45,38 @@ export default function CustomersPage() {
     ) },
     // 2) ทรัพย์ที่เช่า = รหัส(mono ทอง) + ชื่อทรัพย์ แบบหน้าทรัพย์ (ไม่มีรูป) · จากสัญญา active/ล่าสุด
     //    ไม่ใส่ width → auto เฉลี่ยช่องไฟเท่าหน้าอื่น · title ตัด … ด้วย max-w
-    { header: 'ทรัพย์ที่เช่า', sub: true, cell: (c) => c.rentedProperty ? (
+    { header: t('customers.colRentedProp'), sub: true, cell: (c) => c.rentedProperty ? (
       <span className="block min-w-0 max-w-[16rem]">
         <span className="block font-mono text-xs text-gold-dark">{c.rentedProperty.code}</span>
         <span className="block truncate text-muted">{c.rentedProperty.titleTh}</span>
       </span>
     ) : <span className="text-faint">—</span> },
     // 3) เจ้าของ = ชื่อ + เบอร์ · ซ่อนมือถือ (แก่นลูกค้า = ผู้เช่า/ทรัพย์/สัญญา · เจ้าของเป็นบริบท → iPad/คอม)
-    { header: 'เจ้าของ', sub: true, cell: (c) => c.rentedOwner ? (
+    { header: t('customers.colOwner'), sub: true, cell: (c) => c.rentedOwner ? (
       <span className="hidden min-w-0 max-w-[12rem] sm:block">
         <span className="block truncate text-ink-soft">{c.rentedOwner.fullName}</span>
         {c.rentedOwner.phone && <PhoneLink phone={c.rentedOwner.phone} className="text-xs text-muted" />}
       </span>
     ) : <span className="hidden text-faint sm:block">—</span> },
     // 4) สัญญา = จำนวนสัญญาทั้งหมดของลูกค้า
-    { header: 'สัญญา', right: true, cell: (c) => <span className="text-muted">{c.contractCount ?? 0} สัญญา</span> },
+    { header: t('customers.colContracts'), right: true, cell: (c) => <span className="text-muted">{t('customers.contractCount', { n: c.contractCount ?? 0 })}</span> },
   ];
 
   return (
     <div>
-      <PageHeader title="ลูกค้า" count={`${meta.total ?? 0} ราย`} />
+      <PageHeader title={t('nav.customers')} count={t('customers.countUnit', { n: meta.total ?? 0 })} />
       {/* quick-filter: กำลังเช่าอยู่ (แยกผู้เช่าปัจจุบันจากลูกค้าเก่า) */}
       <div className="mt-4 -mb-1">
         <Segmented options={RENTING_OPTIONS} value={renting} onChange={(v) => { setPage(1); setRenting(v); }} />
       </div>
       <FilterBar
-        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหาชื่อ/เบอร์…' }}
+        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: t('owners.searchPlaceholder') }}
         sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: SORT_OPTIONS }}
       />
 
       <div className="mt-4 mouse:card mouse:overflow-hidden">
         <ListView items={rows} cols={cols} keyOf={(c) => c.id} loading={loading}
-          empty="ยังไม่มีลูกค้า — ลูกค้าจะถูกสร้างเมื่อแปลงจาก Lead" emptyIcon="users"
+          empty={t('customers.empty')} emptyIcon="users"
           onRow={(c) => router.push(`/customers/${c.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
