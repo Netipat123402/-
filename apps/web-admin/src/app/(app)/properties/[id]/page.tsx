@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
+import { useMasterData } from '@/lib/masterData';
 import { mediaUrl } from '@/lib/api';
 import { PROPERTY_STATUS, bahtFormat } from '@/lib/status';
 import { ConfirmDialog, DetailHeader, InfoGroup, InfoRow, Modal, PhoneLink, ProgressBar, RailBlock, SectionLabel, StatusBadge } from '@/components/ui';
@@ -36,6 +37,7 @@ interface Completeness {
 export default function PropertyDetailPage() {
   const t = useTranslations();
   const { api, upload, can } = useAuth();
+  const md = useMasterData(); // amenity/province localize ตาม locale
   const toast = useToast();
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -52,8 +54,6 @@ export default function PropertyDetailPage() {
   const [editInitial, setEditInitial] = useState<PropertyInitial | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [amenityLabels, setAmenityLabels] = useState<Record<string, string>>({});
-
   const load = useCallback(async (): Promise<Property | null> => {
     try {
       const r = await api<Property>(`/properties/${id}`);
@@ -69,13 +69,6 @@ export default function PropertyDetailPage() {
     finally { setLoading(false); }
   }, [api, id]);
   useEffect(() => { load(); }, [load]);
-
-  // ป้ายชื่อสิ่งอำนวยความสะดวกเป็นภาษาไทย (จาก master-data) — ไม่โชว์ key ดิบ
-  useEffect(() => {
-    api<Record<string, { code: string; labelTh: string }[]>>('/public/master-data')
-      .then((m) => { const map: Record<string, string> = {}; (m.data.amenity ?? []).forEach((a) => { map[a.code] = a.labelTh; }); setAmenityLabels(map); })
-      .catch(() => { /* */ });
-  }, [api]);
 
   // optimistic (ออปชัน): อัปเดต p ในเครื่องทันทีก่อนยิง API → ปุ่มที่กดบ่อย (เช่น ตั้งทรัพย์แนะนำ) เด้งทันมือ
   // สำเร็จ → load() ยืนยันความจริง · ล้มเหลว → คืนค่าเดิม (rollback)
@@ -337,7 +330,7 @@ export default function PropertyDetailPage() {
           {hasLocation && (
             <InfoGroup label={t('propertyDetail.location')} className="mb-4">
               <InfoRow label={t('propertyDetail.project')} value={p.projectName || undefined} hideEmpty />
-              <InfoRow label={t('common.province')} value={p.province || undefined} hideEmpty />
+              <InfoRow label={t('common.province')} value={md.provinceLabel(p.province)} hideEmpty />
               <InfoRow label={t('propertyDetail.district')} value={p.district || undefined} hideEmpty />
             </InfoGroup>
           )}
@@ -350,7 +343,7 @@ export default function PropertyDetailPage() {
             <InfoGroup label={t('propertyDetail.amenities')} className="mb-4">
               <RailBlock className="py-2.5">
                 <div className="flex flex-wrap gap-1.5">
-                  {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{amenityLabels[a] ?? a}</span>)}
+                  {amenities.map((a) => <span key={a} className="badge bg-canvas text-ink-soft">{md.amenityLabel(a)}</span>)}
                 </div>
               </RailBlock>
             </InfoGroup>

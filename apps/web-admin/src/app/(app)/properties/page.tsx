@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useDebouncedValue } from '@/lib/useDebounce';
+import { useMasterData } from '@/lib/masterData';
 import { mediaUrl } from '@/lib/api';
 import { PROPERTY_STATUS, PROPERTY_TYPE, bahtFormat } from '@/lib/status';
 import { Col, FilterBar, ListView, Modal, PageHeader, Pagination, Segmented, StatusBadge , PAGE_SIZE} from '@/components/ui';
@@ -28,6 +29,7 @@ const RENT_STEP = 1000;
 export default function PropertiesPage() {
   const { api, can } = useAuth();
   const t = useTranslations();
+  const md = useMasterData(); // จังหวัด: filter options + localize ค่าที่เก็บ (labelTh)
   const router = useRouter();
   const sp = useSearchParams();
   const statusOptions = [
@@ -62,16 +64,10 @@ export default function PropertiesPage() {
   const dq = useDebouncedValue(q, 300); // BUG-M3: ค้นหายิง API หลังหยุดพิมพ์ (เดิม q ตรง ๆ = ทุกตัวอักษร)
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [provinceOpts, setProvinceOpts] = useState<{ value: string; label: string }[]>([]);
   const [showNew, setShowNew] = useState(false);
 
-  // โหลดรายชื่อจังหวัด (master-data เดียวกับฟอร์ม) สำหรับฟิลเตอร์
-  useEffect(() => {
-    // ค่าฟิลเตอร์ใช้ "ชื่อจังหวัด" (labelTh) ให้ตรงกับที่ DB เก็บจริง — ไม่ใช่ code (ไม่งั้นกรองไม่เจอ)
-    api<Record<string, { code: string; labelTh: string }[]>>('/public/master-data')
-      .then((m) => setProvinceOpts((m.data.province ?? []).map((p) => ({ value: p.labelTh, label: p.labelTh }))))
-      .catch(() => { /* ignore */ });
-  }, [api]);
+  // จังหวัด: value = labelTh (ให้ตรงกับที่ DB เก็บจริง กรองเจอ) · label = แปลตาม locale
+  const provinceOpts = md.options('province', 'labelTh');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -114,7 +110,7 @@ export default function PropertiesPage() {
       ),
     },
     // ทำเล = คีย์สแกนอสังหา (ที่ตั้ง) → แยกจากชนิด · โชว์ทุกจอ (มือถือ+)
-    { header: t('properties.col.location'), sub: true, cell: (p) => p.province || <span className="text-faint">—</span> },
+    { header: t('properties.col.location'), sub: true, cell: (p) => md.provinceLabel(p.province) || <span className="text-faint">—</span> },
     // ประเภท = ชนิดทรัพย์อย่างเดียว (§10: 1 คอลัมน์ 1 ความหมาย) — เลิกพ่วง "· N นอน"
     //   เดิมพ่วงห้องนอน = ซ้ำกับชื่อทรัพย์ที่มี "— N นอน" อยู่แล้ว + ปนความหมาย · ห้องนอนอยู่ในหน้า detail
     { header: t('properties.col.type'), sub: true, cell: (p) => (

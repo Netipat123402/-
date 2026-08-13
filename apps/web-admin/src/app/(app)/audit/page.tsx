@@ -63,7 +63,7 @@ function fmtVal(entityType: string | undefined, field: string, val: unknown, t: 
   if (Array.isArray(val)) return val.join(', ');
   const s = String(val);
   if (field === 'status' && entityType && STATUS_MAPS[entityType]?.[s]) return t(STATUS_MAPS[entityType][s].labelKey);
-  if (field === 'propertyType') return PROPERTY_TYPE[s] ?? s;
+  if (field === 'propertyType') return PROPERTY_TYPE[s] ? t(`propertyType.${s}`) : s;
   if (field === 'monthlyRent') { const n = Number(val); return Number.isFinite(n) ? `฿${bahtFormat(n)}` : s; }
   if (field === 'areaSqm') return `${s} ตร.ม.`;
   if (field === 'depositMonths') return `${s} เดือน`;

@@ -1,14 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useSearchLookup } from '@/lib/lookups';
+import { useMasterData } from '@/lib/masterData';
 import { Combobox, SectionLabel } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
-interface Master { code: string; labelTh: string }
 interface Owner { id: string; fullName: string }
 
 export interface PropertyInitial {
@@ -38,12 +38,9 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
   const t = useTranslations();
   const { api } = useAuth();
   const router = useRouter();
-  const [types, setTypes] = useState<Master[]>([]);
-  const [provinces, setProvinces] = useState<Master[]>([]);
-  const [amenityOpts, setAmenityOpts] = useState<Master[]>([]);
+  const md = useMasterData(); // province/amenity + labelEn/labelTh ตาม locale
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
-  const [loadErr, setLoadErr] = useState(false); // โหลด master-data ล้มเหลว (มักเพราะ session หมดอายุ)
   const [step, setStep] = useState(0);
   const [fe, setFe] = useState<{ ownerId?: string; titleTh?: string; monthlyRent?: string }>({});
   // ค้นหาเจ้าของฝั่ง server (MR-24 pattern) — รองรับเจ้าของ >100 ราย (เดิม limit=100 ตัดรายที่ 101+ ทิ้งเงียบๆ)
@@ -63,21 +60,6 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
     setF((s) => ({ ...s, [k]: v }));
     if (k in fe) setFe((e) => ({ ...e, [k]: undefined }));
   }
-
-  const loadData = useCallback(async () => {
-    setLoadErr(false);
-    try {
-      const m = await api<Record<string, Master[]>>('/public/master-data');
-      setTypes(m.data.property_type ?? []);
-      setProvinces(m.data.province ?? []);
-      setAmenityOpts(m.data.amenity ?? []);
-    } catch {
-      // เดิม catch เงียบ → dropdown จังหวัด/ตัวเลือกว่างโดยไม่บอก = ดูเหมือน "พัง"
-      setLoadErr(true);
-    }
-  }, [api]);
-
-  useEffect(() => { loadData(); }, [loadData]);
 
   // ตรวจ error เฉพาะของแต่ละสเต็ป
   function stepErrors(s: number) {
@@ -137,9 +119,9 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
   const Label = ({ children }: { children: React.ReactNode }) =>
     <span className="mb-1.5 block text-sm font-medium text-ink-soft">{children}</span>;
 
-  // ตัวเลือกแบบโชว์ทั้งหมด (PDF น.57) · wrap = responsive
+  // ตัวเลือกแบบโชว์ทั้งหมด (PDF น.57) · wrap = responsive · label = แปลแล้ว (ตาม locale)
   const ChipGroup = ({ options, value, onChange }: {
-    options: { code: string; labelTh: string }[]; value?: string; onChange: (v: string) => void;
+    options: { code: string; label: string }[]; value?: string; onChange: (v: string) => void;
   }) => (
     <div className="flex flex-wrap gap-2">
       {options.map((o) => (
@@ -147,11 +129,16 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
           className={`rounded-lg border px-3 py-2 text-sm transition ${
             value === o.code ? 'border-gold bg-gold/15 text-gold-dark' : 'border-border bg-surface text-ink-soft hover:border-ink/40'
           }`}>
-          {o.labelTh}
+          {o.label}
         </button>
       ))}
     </div>
   );
+
+  // ประเภททรัพย์ = enum catalog (t) · code จาก master-data (ตรงกับ catalog keys) · fallback = 4 code หลัก
+  const typeCodes = (md.data.property_type ?? []).map((x) => x.code);
+  const typeOptions = (typeCodes.length ? typeCodes : ['condo', 'house', 'townhome', 'apartment'])
+    .map((code) => ({ code, label: t(`propertyType.${code}`) }));
 
   return (
     <form onSubmit={submit} className="space-y-5">
@@ -170,10 +157,10 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
         ))}
       </div>
 
-      {loadErr && (
+      {md.error && (
         <div className="flex items-center justify-between gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning">
           <span>{t('propertyForm.loadErr')}</span>
-          <button type="button" onClick={loadData} className="shrink-0 font-medium underline">{t('common.retry')}</button>
+          <button type="button" onClick={md.reload} className="shrink-0 font-medium underline">{t('common.retry')}</button>
         </div>
       )}
 
@@ -190,7 +177,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
           <h2 className="mb-4 font-semibold sm:hidden">{t('propertyForm.steps.main')}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2"><Label>{t('propertyForm.type')} *</Label>
-              <ChipGroup options={types.length ? types : [{ code: 'condo', labelTh: t('propertyType.condo') }]} value={f.propertyType} onChange={(v) => set('propertyType', v)} />
+              <ChipGroup options={typeOptions} value={f.propertyType} onChange={(v) => set('propertyType', v)} />
             </div>
             <div className="sm:col-span-2">
               <Combobox label={`${t('propertyForm.owner')}${mode === 'create' ? ' *' : ''}`} placeholder={t('propertyForm.ownerPlaceholder')} error={fe.ownerId}
@@ -217,7 +204,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
               <input className="field" placeholder={t('propertyForm.projectPlaceholder')} value={f.projectName} onChange={(e) => set('projectName', e.target.value)} />
             </label>
             <Combobox label={t('common.province')} value={f.province ?? ''} onChange={(v) => set('province', v)}
-              options={provinces.map((p) => ({ value: p.labelTh, label: p.labelTh }))} />
+              options={md.options('province', 'labelTh')} />
             <label><Label>{t('propertyForm.district')}</Label>
               <input className="field" value={f.district} onChange={(e) => set('district', e.target.value)} />
             </label>
@@ -258,7 +245,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
                 <input className="field" value={f.floor} onChange={(e) => set('floor', e.target.value)} />
               </label>
               <div className="sm:col-span-3"><Label>{t('propertyDetail.furnishing')}</Label>
-                <ChipGroup options={FURNISHED.map((c) => ({ code: c, labelTh: t(`propertyForm.furnish.${c}`) }))} value={f.furnished} onChange={(v) => set('furnished', v)} />
+                <ChipGroup options={FURNISHED.map((c) => ({ code: c, label: t(`propertyForm.furnish.${c}`) }))} value={f.furnished} onChange={(v) => set('furnished', v)} />
               </div>
             </div>
           </div>
@@ -269,6 +256,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
         <div className="card space-y-5 p-5">
           <h2 className="font-semibold sm:hidden">{t('propertyForm.steps.amenities')}</h2>
           {(() => {
+            const amenityOpts = md.data.amenity ?? [];
             const known = new Set(AMENITY_GROUPS.flatMap((g) => g.codes));
             const buckets = AMENITY_GROUPS.map((g) => ({ title: g.title, items: amenityOpts.filter((a) => g.codes.includes(a.code)) }));
             const others = amenityOpts.filter((a) => !known.has(a.code));
@@ -282,7 +270,7 @@ export default function PropertyForm({ initial, mode, onClose, onSaved }: { init
                       className={`rounded-lg px-3 py-1.5 text-sm transition ${
                         f.amenities?.[a.code] ? 'bg-gold text-[#1c1b18]' : 'border border-border bg-surface text-ink-soft hover:bg-raised'
                       }`}>
-                      {a.labelTh}
+                      {md.label(a)}
                     </button>
                   ))}
                 </div>

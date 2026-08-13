@@ -141,6 +141,12 @@
     "townhome": "ทาวน์โฮม",
     "apartment": "อพาร์ทเมนท์"
   },
+  "leadSource": {
+    "public_web": "เว็บไซต์",
+    "walk_in": "Walk-in",
+    "phone": "โทรศัพท์",
+    "referral": "แนะนำ"
+  },
   "properties": {
     "tab": {
       "all": "ทั้งหมด",

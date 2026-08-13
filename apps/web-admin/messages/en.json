@@ -141,6 +141,12 @@
     "townhome": "Townhome",
     "apartment": "Apartment"
   },
+  "leadSource": {
+    "public_web": "Website",
+    "walk_in": "Walk-in",
+    "phone": "Phone",
+    "referral": "Referral"
+  },
   "properties": {
     "tab": {
       "all": "All",
