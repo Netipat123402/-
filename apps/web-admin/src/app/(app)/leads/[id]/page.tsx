@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { useLookup } from '@/lib/lookups';
@@ -20,6 +21,7 @@ interface LeadDetail {
 }
 
 export default function LeadDetailPage() {
+  const t = useTranslations();
   const { api, user, can } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -48,12 +50,12 @@ export default function LeadDetailPage() {
       toast.success(successMsg);
       if (opts?.back) router.push('/leads'); else await load();
     } catch (e) {
-      toast.error((e as { message?: string }).message || 'ทำรายการไม่สำเร็จ');
+      toast.error((e as { message?: string }).message || t('common.actionFailed'));
     } finally { setBusy(false); }
   }
 
   if (loading) return <div className="mx-auto max-w-3xl"><div className="h-40 animate-pulse rounded-card bg-canvas" /></div>;
-  if (!lead) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบ Lead <Link href="/leads" className="text-gold-dark underline">กลับ</Link></div>;
+  if (!lead) return <div className="mx-auto max-w-3xl text-center text-muted">{t('leads.notFound')} <Link href="/leads" className="text-gold-dark underline">{t('common.back')}</Link></div>;
 
   const interests = lead.interests ?? [];
 
@@ -76,32 +78,32 @@ export default function LeadDetailPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
               <div className="shrink-0 text-center sm:text-left xl:text-center">
                 <StatusBadge map={LEAD_STATUS} value={lead.status} />
-                <div className="mt-1 text-xs text-faint">ช่องทาง {LEAD_SOURCE[lead.source] ?? lead.source}</div>
+                <div className="mt-1 text-xs text-faint">{t('leads.channel')} {LEAD_SOURCE[lead.source] ? t(`leadSource.${lead.source}`) : lead.source}</div>
               </div>
               {lead.status === 'new' && can('lead', 'assign') ? (
                 <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                   <button className="btn-gold btn-sm" disabled={busy}
-                    onClick={() => act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }), 'รับ Lead มาดูแลแล้ว')}>
-                    รับดูแล Lead นี้
+                    onClick={() => act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: user!.id, startWorking: true }) }), t('leads.toastTaken'))}>
+                    {t('leads.takeBtn')}
                   </button>
                 </div>
               ) : lead.status === 'working' ? (
                 <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
                   {can('appointment', 'create') && (
                     <button className="btn-gold btn-sm" disabled={busy} onClick={() => router.push(`/appointments?newLead=${lead.id}`)}>
-                      <Icon name="calendar" size={15} /> สร้างนัดดูทรัพย์
+                      <Icon name="calendar" size={15} /> {t('leads.createApptBtn')}
                     </button>
                   )}
                   {can('lead', 'convert') && !lead.customerId && (
                     <button className="btn-ghost btn-sm" disabled={busy}
-                      onClick={() => act(() => api(`/leads/${lead.id}/convert`, { method: 'POST' }), 'แปลงเป็นลูกค้าแล้ว')}>
-                      แปลงเป็นลูกค้า
+                      onClick={() => act(() => api(`/leads/${lead.id}/convert`, { method: 'POST' }), t('leads.toastConverted'))}>
+                      {t('leads.convertBtn')}
                     </button>
                   )}
                 </div>
               ) : lead.status === 'closed' ? (
                 <div className="rounded-lg border border-border bg-canvas px-3 py-2 text-center text-xs text-muted sm:ml-auto sm:shrink-0">
-                  {lead.customerId ? 'ปิดสำเร็จ — แปลงเป็นลูกค้าแล้ว' : 'ปิด Lead แล้ว (ไม่สำเร็จ)'}
+                  {lead.customerId ? t('leads.closedConverted') : t('leads.closedLost')}
                 </div>
               ) : null}
             </div>
@@ -109,23 +111,23 @@ export default function LeadDetailPage() {
           {/* action รอง — quiet */}
           {(lead.status !== 'closed' || (can('lead', 'delete') && !lead.customerId)) && (
             <div className="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
-              {lead.status === 'working' && can('lead', 'assign') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => setTransferOpen(true)}>โอนให้คนอื่น</button>}
-              {lead.status !== 'closed' && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setCloseOpen(true)}>ปิด Lead</button>}
-              {can('lead', 'delete') && !lead.customerId && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setDelOpen(true)}>ลบ Lead</button>}
+              {lead.status === 'working' && can('lead', 'assign') && <button className="text-muted transition hover:text-ink" disabled={busy} onClick={() => setTransferOpen(true)}>{t('leads.transferBtn')}</button>}
+              {lead.status !== 'closed' && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setCloseOpen(true)}>{t('leads.closeBtn')}</button>}
+              {can('lead', 'delete') && !lead.customerId && <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => setDelOpen(true)}>{t('leads.deleteBtn')}</button>}
             </div>
           )}
         </div>
 
         {/* เนื้อหา — label-value ราง (กฎ 1) */}
         <div className="mt-6 xl:order-1 xl:mt-0">
-          <InfoGroup label="ความต้องการ" className="mb-4">
-            <InfoRow label="โจทย์" value={lead.message || undefined} stack hideEmpty />
-            <InfoRow label="อยากเข้าชม" value={lead.preferredViewAt ? fmtDate(lead.preferredViewAt) : undefined} hideEmpty />
-            {!lead.message && !lead.preferredViewAt && <p className="py-6 text-center text-sm text-muted">ยังไม่ได้ระบุ</p>}
+          <InfoGroup label={t('leads.secReq')} className="mb-4">
+            <InfoRow label={t('leads.fieldBrief')} value={lead.message || undefined} stack hideEmpty />
+            <InfoRow label={t('leads.wantView')} value={lead.preferredViewAt ? fmtDate(lead.preferredViewAt) : undefined} hideEmpty />
+            {!lead.message && !lead.preferredViewAt && <p className="py-6 text-center text-sm text-muted">{t('leads.notSpecified')}</p>}
           </InfoGroup>
 
-          <InfoGroup label="ทรัพย์ที่สนใจ" className="mb-4">
-            {interests.length === 0 ? <p className="py-6 text-center text-sm text-muted">ยังไม่ได้ระบุทรัพย์ที่สนใจ</p> : (
+          <InfoGroup label={t('leads.secInterest')} className="mb-4">
+            {interests.length === 0 ? <p className="py-6 text-center text-sm text-muted">{t('leads.noInterest')}</p> : (
               <RailBlock className="py-1">
                 <div className="divide-y divide-border/60">
                   {interests.map((it) => (
@@ -141,46 +143,46 @@ export default function LeadDetailPage() {
             )}
           </InfoGroup>
 
-          <InfoGroup label="ติดต่อ" className="mb-4">
-            <InfoRow label="อีเมล" value={lead.email || undefined} />
+          <InfoGroup label={t('leads.secContact')} className="mb-4">
+            <InfoRow label={t('common.email')} value={lead.email || undefined} />
           </InfoGroup>
 
-          <InfoGroup label="การดูแล" className="mb-4">
-            <InfoRow label="ผู้ดูแล" value={lead.assignedTo?.fullName ?? (lead.assignedToId ? '—' : 'ยังไม่มอบหมาย')} />
-            <InfoRow label="เข้ามาเมื่อ" value={lead.createdAt ? fmtDate(lead.createdAt) : undefined} />
-            {lead.status === 'closed' && lead.lostReason && <InfoRow label="เหตุผลที่ปิด" value={lead.lostReason} stack />}
+          <InfoGroup label={t('leads.secCare')} className="mb-4">
+            <InfoRow label={t('leads.assignee')} value={lead.assignedTo?.fullName ?? (lead.assignedToId ? '—' : t('leads.unassigned'))} />
+            <InfoRow label={t('leads.enteredAt')} value={lead.createdAt ? fmtDate(lead.createdAt) : undefined} />
+            {lead.status === 'closed' && lead.lostReason && <InfoRow label={t('leads.closeReason')} value={lead.lostReason} stack />}
           </InfoGroup>
         </div>
       </div>
 
       {/* โอนให้คนอื่น */}
-      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferTo(''); }} title="โอน Lead ให้คนอื่น"
+      <Modal open={transferOpen} onClose={() => { setTransferOpen(false); setTransferTo(''); }} title={t('leads.transferTitle')}
         footer={
           <div className="flex justify-end gap-2">
-            <button type="button" className="btn-ghost" onClick={() => { setTransferOpen(false); setTransferTo(''); }}>ยกเลิก</button>
+            <button type="button" className="btn-ghost" onClick={() => { setTransferOpen(false); setTransferTo(''); }}>{t('common.cancel')}</button>
             <button type="button" className="btn-gold" disabled={busy || !transferTo}
-              onClick={() => { if (transferTo) { setTransferOpen(false); act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: transferTo }) }), 'โอน Lead ให้ผู้ดูแลใหม่แล้ว'); setTransferTo(''); } }}>
-              โอน Lead
+              onClick={() => { if (transferTo) { setTransferOpen(false); act(() => api(`/leads/${lead.id}/assign`, { method: 'POST', body: JSON.stringify({ assignedToId: transferTo }) }), t('leads.toastTransferred')); setTransferTo(''); } }}>
+              {t('leads.transferConfirm')}
             </button>
           </div>
         }>
-        <Combobox label="ผู้ดูแลใหม่" value={transferTo} onChange={setTransferTo}
+        <Combobox label={t('leads.newAssignee')} value={transferTo} onChange={setTransferTo}
           options={assignable.options} loading={assignable.loading} loadError={assignable.error} onRetry={assignable.reload}
-          placeholder="— เลือกผู้ดูแล —" />
+          placeholder={t('leads.selectAssignee')} />
       </Modal>
 
       {/* ปิด Lead (ไม่สำเร็จ) — ขอเหตุผล */}
       <ConfirmDialog open={closeOpen} onClose={() => setCloseOpen(false)} busy={busy}
-        title="ปิด Lead (ไม่สำเร็จ)" tone="danger" confirmLabel="ปิด Lead" withReason
-        message={<>ปิด Lead <b>{lead.fullName}</b>? จะนับเป็นไม่สำเร็จ</>}
-        reasonPlaceholder="เหตุผลที่ปิด (ถ้ามี)"
-        onConfirm={(reason) => { setCloseOpen(false); act(() => api(`/leads/${lead.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'closed', lostReason: reason }) }), 'ปิด Lead แล้ว'); }} />
+        title={t('leads.closeTitle')} tone="danger" confirmLabel={t('leads.closeConfirm')} withReason
+        message={t.rich('leads.closeMsg', { name: lead.fullName, b: (c) => <b>{c}</b> })}
+        reasonPlaceholder={t('leads.closeReasonPlaceholder')}
+        onConfirm={(reason) => { setCloseOpen(false); act(() => api(`/leads/${lead.id}/status`, { method: 'PATCH', body: JSON.stringify({ toStatus: 'closed', lostReason: reason }) }), t('leads.toastClosed')); }} />
 
       {/* ลบ Lead */}
       <ConfirmDialog open={delOpen} onClose={() => setDelOpen(false)} busy={busy}
-        title="ลบ Lead" tone="danger" confirmLabel="ลบ Lead"
-        message={<>ลบ Lead <b>{lead.fullName}</b> ทิ้ง? ใช้กรณีสร้างผิด/สแปม — ถ้าแค่ติดต่อไม่ได้ ใช้ “ปิด Lead” แทน</>}
-        onConfirm={() => { setDelOpen(false); act(() => api(`/leads/${lead.id}`, { method: 'DELETE' }), 'ลบ Lead แล้ว', { back: true }); }} />
+        title={t('leads.deleteTitle')} tone="danger" confirmLabel={t('leads.deleteConfirm')}
+        message={t.rich('leads.deleteMsg', { name: lead.fullName, b: (c) => <b>{c}</b> })}
+        onConfirm={() => { setDelOpen(false); act(() => api(`/leads/${lead.id}`, { method: 'DELETE' }), t('leads.toastDeleted'), { back: true }); }} />
     </div>
   );
 }
