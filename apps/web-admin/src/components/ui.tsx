@@ -102,12 +102,13 @@ export function EmptyState({ text, action, icon = 'search' }: { text: string; ac
 }
 
 /** สถานะโหลดไม่สำเร็จ + ปุ่มลองใหม่ (MR-26) — ใช้ในหน้าที่ fetch เอง (ไม่ใช่ useList) */
-export function ErrorState({ onRetry, text = "Couldn't load data" }: { onRetry?: () => void; text?: string }) {
+export function ErrorState({ onRetry, text }: { onRetry?: () => void; text?: string }) {
+  const t = useTranslations();
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger"><Icon name="alert-triangle" size={22} /></span>
-      <p className="text-sm text-muted">{text}</p>
-      {onRetry && <button className="btn-ghost btn-sm" onClick={onRetry}>Retry</button>}
+      <p className="text-sm text-muted">{text ?? t('common.loadFailed')}</p>
+      {onRetry && <button className="btn-ghost btn-sm" onClick={onRetry}>{t('common.retry')}</button>}
     </div>
   );
 }
@@ -484,6 +485,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
 
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId(); // ผูก aria-labelledby → screen reader อ่านหัวข้อกล่อง
+  const t = useTranslations();
 
   // ปิดผ่าน gesture ที่ "พลาดได้" (backdrop/Esc/×): มีข้อมูลค้าง → ถามก่อน, ไม่งั้นปิดเลย
   const requestClose = () => { if (confirmOnClose) setAskDiscard(true); else onClose(); };
@@ -507,7 +509,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
         className={`flex max-h-[90dvh] w-full animate-modal-in flex-col overflow-hidden rounded-xl2 border border-border bg-surface shadow-lift outline-none ${size === 'xl' ? 'max-w-2xl' : 'max-w-lg'}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <h2 id={titleId} className="font-semibold">{title}</h2>
-          <button onClick={requestClose} aria-label="Close" className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={20} /></button>
+          <button onClick={requestClose} aria-label={t('common.close')} className="-mr-1 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
         {footer && <div className="shrink-0 border-t border-border bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{footer}</div>}
@@ -515,8 +517,8 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
     </div>
     {/* ถามก่อนทิ้งข้อมูล — ซ้อนบนฟอร์ม (BUG-L2) */}
     <ConfirmDialog open={askDiscard} onClose={() => setAskDiscard(false)}
-      title="Discard changes?" tone="danger" confirmLabel="Discard"
-      message="Your changes haven't been saved. Close this window?"
+      title={t('common.discardTitle')} tone="danger" confirmLabel={t('common.discard')}
+      message={t('common.discardMsg')}
       onConfirm={() => { setAskDiscard(false); onClose(); }} />
     </>,
     document.body,
@@ -529,14 +531,15 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', con
  * - ขอเหตุผล: withReason → มี textarea, ส่งค่าผ่าน onConfirm(reason)
  */
 export function ConfirmDialog({
-  open, onClose, title, message, confirmLabel = 'Confirm', tone = 'default',
-  withReason, reasonRequired, reasonLabel = 'Reason (optional)', reasonPlaceholder, busy, onConfirm,
+  open, onClose, title, message, confirmLabel, tone = 'default',
+  withReason, reasonRequired, reasonLabel, reasonPlaceholder, busy, onConfirm,
 }: {
   open: boolean; onClose: () => void; title: string; message?: React.ReactNode;
   confirmLabel?: string; tone?: 'default' | 'danger'; withReason?: boolean;
   reasonRequired?: boolean; reasonLabel?: string; reasonPlaceholder?: string; busy?: boolean;
   onConfirm: (reason?: string) => void;
 }) {
+  const t = useTranslations();
   const [reason, setReason] = useState('');
   useEffect(() => { if (open) setReason(''); }, [open]);
   const reasonMissing = !!(withReason && reasonRequired && !reason.trim());
@@ -544,17 +547,17 @@ export function ConfirmDialog({
     <Modal open={open} onClose={onClose} title={title}
       footer={
         <div className="flex justify-end gap-2">
-          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>Cancel</button>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>{t('common.cancel')}</button>
           <button type="button" disabled={busy || reasonMissing} className={tone === 'danger' ? 'btn-danger' : 'btn-gold'}
             onClick={() => onConfirm(withReason ? (reason.trim() || undefined) : undefined)}>
-            {busy ? 'Working…' : confirmLabel}
+            {busy ? t('common.working') : (confirmLabel ?? t('common.confirm'))}
           </button>
         </div>
       }>
       {message && <p className="text-sm leading-relaxed text-ink-soft">{message}</p>}
       {withReason && (
         <label className={`block ${message ? 'mt-4' : ''}`}>
-          <span className="mb-1.5 block text-sm font-medium text-ink-soft">{reasonLabel}</span>
+          <span className="mb-1.5 block text-sm font-medium text-ink-soft">{reasonLabel ?? t('common.reasonOptional')}</span>
           <textarea className="field h-auto py-2.5" rows={3} placeholder={reasonPlaceholder}
             value={reason} onChange={(e) => setReason(e.target.value)} />
         </label>
@@ -585,7 +588,7 @@ export function Field({ label, error, hint, ...props }: {
  * Combobox — ช่องเลือกที่ "พิมพ์ค้นหา + เลื่อน" ได้ (สำหรับลิสต์ยาว เช่น ทรัพย์/เจ้าของ/จังหวัด)
  * หน้าตา error/hint รูปแบบเดียวกับ Field
  */
-export function Combobox({ label, error, hint, value, onChange, options, placeholder = '— Select —', disabled, searchable = true, size, onSearch, loading, loadError, onRetry }: {
+export function Combobox({ label, error, hint, value, onChange, options, placeholder, disabled, searchable = true, size, onSearch, loading, loadError, onRetry }: {
   label: string; error?: string; hint?: string;
   value: string; onChange: (v: string) => void;
   options: { value: string; label: string }[];
@@ -597,6 +600,8 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
   loadError?: boolean;             // โหลดตัวเลือกล้มเหลว → โชว์ "ลองใหม่" แทน "ไม่พบรายการ"
   onRetry?: () => void;            // คู่กับ loadError
 }) {
+  const t = useTranslations();
+  const ph = placeholder ?? t('common.selectPlaceholder');
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const labelId = useId(); // a11y: ผูก label (span) กับปุ่ม combobox → screen reader อ่านชื่อช่อง
@@ -653,7 +658,7 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
         aria-haspopup="listbox" aria-expanded={open}
         onClick={toggle}
         className={`field flex items-center justify-between text-left ${size === 'sm' ? 'h-9 text-sm' : ''} ${error ? 'border-danger focus:border-danger focus:ring-danger/20' : ''} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
-        <span className={`truncate ${selected ? '' : 'text-faint'}`}>{selected ? selected.label : placeholder}</span>
+        <span className={`truncate ${selected ? '' : 'text-faint'}`}>{selected ? selected.label : ph}</span>
         <Icon name="chevron-down" size={16} className={`ml-2 shrink-0 text-faint transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && !disabled && pos && (
@@ -663,20 +668,20 @@ export function Combobox({ label, error, hint, value, onChange, options, placeho
             <div className="shrink-0 border-b border-border p-2">
               {/* autoFocus เฉพาะเมาส์ (เดสก์ท็อป) — มือถือไม่เด้งคีย์บอร์ดบังเมนูตอนเปิด (แตะช่องเองถ้าจะกรอง) */}
               <input autoFocus={typeof window !== 'undefined' && !window.matchMedia?.('(any-pointer: coarse)').matches}
-                className="field h-9" placeholder="Type to search…" value={q}
+                className="field h-9" placeholder={t('common.typeToSearch')} value={q}
                 onChange={(e) => { setQ(e.target.value); onSearch?.(e.target.value); }} />
             </div>
           )}
           <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1">
             {loading ? (
-              <li className="px-3 py-2 text-sm text-muted">Searching…</li>
+              <li className="px-3 py-2 text-sm text-muted">{t('common.searching')}</li>
             ) : loadError ? (
               <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm text-warning">
-                <span>Couldn't load</span>
-                {onRetry && <button type="button" onClick={onRetry} className="font-medium underline">Retry</button>}
+                <span>{t('common.loadFailed')}</span>
+                {onRetry && <button type="button" onClick={onRetry} className="font-medium underline">{t('common.retry')}</button>}
               </li>
             ) : filtered.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-muted">No results</li>
+              <li className="px-3 py-2 text-sm text-muted">{t('common.noResults')}</li>
             ) : filtered.map((o) => (
               <li key={o.value || '__empty'}>
                 <button type="button" onClick={() => { onChange(o.value); setOpen(false); }}
@@ -801,6 +806,7 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
+  const t = useTranslations();
   const defOf = (f: FilterDef) => f.options?.[0]?.value ?? ''; // date filter (ไม่มี options) → ค่าว่าง = ไม่กรอง
   const activeCount = filters.filter((f) => f.value !== defOf(f)).length + (range?.active ? 1 : 0);
   const clearAll = () => { filters.forEach((f) => f.onChange(defOf(f))); range?.onClear(); };
@@ -809,7 +815,7 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
   return (
     <div className="mt-4 flex flex-wrap items-center gap-2">
       {search && (
-        <input className={`field min-w-0 flex-1 sm:max-w-[280px] ${searchWide ? 'lg:max-w-none' : ''}`} placeholder={search.placeholder ?? 'Search…'}
+        <input className={`field min-w-0 flex-1 sm:max-w-[280px] ${searchWide ? 'lg:max-w-none' : ''}`} placeholder={search.placeholder ?? t('common.searchDots')}
           value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} />
       )}
 
@@ -828,11 +834,11 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
           {range && <InlineRange range={range} />}
           {sort && (
             <div className="w-44">
-              <Combobox label="" size="sm" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} placeholder="Sort" />
+              <Combobox label="" size="sm" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} placeholder={t('common.sort')} />
             </div>
           )}
           {activeCount > 0 && (
-            <button type="button" onClick={clearAll} className="btn-ghost btn-sm shrink-0 text-muted">Clear ({activeCount})</button>
+            <button type="button" onClick={clearAll} className="btn-ghost btn-sm shrink-0 text-muted">{t('common.clear')} ({activeCount})</button>
           )}
         </div>
       )}
@@ -842,20 +848,20 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
         <div className="shrink-0 sm:ml-auto lg:hidden">
           <button type="button" onClick={() => setOpen(true)} aria-expanded={open}
             className={`btn-ghost btn-sm ${activeCount ? 'border-gold text-gold-dark' : ''}`}>
-            <Icon name="menu" size={16} /> Filters
+            <Icon name="menu" size={16} /> {t('common.filters')}
             {activeCount > 0 && (
               <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gold px-1 text-2xs font-medium text-[#1c1b18]">{activeCount}</span>
             )}
           </button>
           {/* แผ่นตัวกรองลอยกลางจอ (Modal มาตรฐานเดียวกับฟอร์ม) — ไม่เด้งล่าง ไม่ล้น เหมือนกันทุกหมวด */}
-          <Modal open={open} onClose={() => setOpen(false)} title="Filters"
+          <Modal open={open} onClose={() => setOpen(false)} title={t('common.filters')}
             footer={
               <div className="flex items-center justify-between gap-2">
                 <button type="button" onClick={clearAll} disabled={activeCount === 0}
                   className="text-sm text-muted enabled:hover:text-ink disabled:opacity-40">
-                  Clear filters{activeCount > 0 ? ` (${activeCount})` : ''}
+                  {t('common.clearFilters')}{activeCount > 0 ? ` (${activeCount})` : ''}
                 </button>
-                <button type="button" className="btn-gold" onClick={() => setOpen(false)}>Done</button>
+                <button type="button" className="btn-gold" onClick={() => setOpen(false)}>{t('common.done')}</button>
               </div>
             }>
             <div className="space-y-4">
@@ -880,7 +886,7 @@ export function FilterBar({ search, sort, filters = [], range, searchWide }: {
                 )
               ))}
               {sort && (
-                <Combobox label="Sort" searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} />
+                <Combobox label={t('common.sort')} searchable={false} value={sort.value} onChange={sort.onChange} options={sort.options} />
               )}
             </div>
           </Modal>
@@ -919,9 +925,10 @@ export function ListView<T>({
   emptyAction?: React.ReactNode; // ปุ่มชวนทำต่อตอนว่าง (เช่น "เพิ่ม…" เมื่อยังไม่มีข้อมูล / "ล้างตัวกรอง" เมื่อกรองแล้วไม่เจอ)
   leading?: (it: T) => React.ReactNode; // ภาพ/ไอคอนนำหน้า — จัดให้ข้อความ (หัว+รอง) เรียงขอบเดียวกันถัดจากภาพ
 }) {
+  const t = useTranslations();
   // โหลดครั้งแรก (ยังไม่มีข้อมูล) → skeleton เต็มหน้า (PAGE_SIZE แถว) เพื่อสำรองความสูง = หน้าจริง
   if (loading && items.length === 0) return <ListSkeleton rows={PAGE_SIZE} />;
-  if (!loading && items.length === 0) return <EmptyState text={empty ?? 'No data yet'} icon={emptyIcon} action={emptyAction} />;
+  if (!loading && items.length === 0) return <EmptyState text={empty ?? t('common.noData')} icon={emptyIcon} action={emptyAction} />;
 
   const primary = cols.find((c) => c.primary);
   const subs = cols.filter((c) => c.sub);

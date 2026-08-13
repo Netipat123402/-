@@ -133,7 +133,27 @@
     "unitSqm": "{n} sq.m.",
     "unitMonths": "{n} months",
     "retry": "Retry",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "sort": "Sort",
+    "filters": "Filters",
+    "clear": "Clear",
+    "done": "Done",
+    "noResults": "No results",
+    "noData": "No data yet",
+    "close": "Close",
+    "confirm": "Confirm",
+    "viewAllN": "View all ({n})",
+    "collapse": "Collapse",
+    "searchDots": "Search…",
+    "open": "Open",
+    "discardTitle": "Discard changes?",
+    "discardMsg": "Your changes haven't been saved. Close this window?",
+    "discard": "Discard",
+    "reasonOptional": "Reason (optional)",
+    "selectPlaceholder": "— Select —",
+    "working": "Working…",
+    "typeToSearch": "Type to search…",
+    "searching": "Searching…"
   },
   "propertyType": {
     "condo": "Condo",
@@ -311,5 +331,74 @@
     "saving": "Saving…",
     "create": "Create property",
     "saveEdit": "Save changes"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{m} min ago",
+    "hoursAgo": "{h} hr ago"
+  },
+  "docType": {
+    "title_deed": "Title deed",
+    "id_card": "ID card",
+    "house_registration": "House registration",
+    "lease": "Lease agreement",
+    "receipt": "Receipt / deposit",
+    "power_of_attorney": "Power of attorney",
+    "property_photo": "Property photo",
+    "other": "Other"
+  },
+  "docStatus": {
+    "uploaded": "Uploaded",
+    "verified": "Verified",
+    "active": "Active",
+    "archived": "Archived"
+  },
+  "documents": {
+    "attach": "Attach document",
+    "uploading": "Uploading document {pct}%",
+    "none": "No documents yet",
+    "manage": "Manage document",
+    "verify": "Mark verified",
+    "archive": "Archive",
+    "deleteTitle": "Delete document",
+    "deleteMsg": "Delete this document? This can't be undone.",
+    "archiveTitle": "Archive document",
+    "archiveMsg": "Archive this document? It won't show in the active list.",
+    "toastAttached": "Document attached",
+    "toastUploadFailed": "Upload failed",
+    "toastOpenFailed": "Can't open file",
+    "toastVerified": "Document verified",
+    "toastFailed": "Failed",
+    "toastDeleted": "Document deleted",
+    "toastDeleteFailed": "Delete failed",
+    "toastArchived": "Archived"
+  },
+  "search": {
+    "placeholder": "Search properties / leads / customers / commands…",
+    "placeholderShort": "Search / commands…",
+    "clearAria": "Clear",
+    "commands": "Commands",
+    "goto": "Go to",
+    "addProperty": "Add property"
+  },
+  "notif": {
+    "title": "Notifications",
+    "markAll": "Mark all read",
+    "empty": "Nothing to do",
+    "viewAll": "View all",
+    "updates": "Updates",
+    "bucketToday": "Due today",
+    "bucketWeek": "This week",
+    "bucketMonth": "This month",
+    "moreItems": "+ {n} more",
+    "today": "Today",
+    "dueToday": "Due today · {date}",
+    "dueIn": "Due {date} · in {days}d",
+    "apptTitle": "Appt {code}",
+    "contractTitle": "Contract {code}",
+    "aria": "Notifications"
+  },
+  "activity": {
+    "none": "No history yet"
   }
 }

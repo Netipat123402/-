@@ -93,6 +93,20 @@ export function fmtRelative(iso?: string): string {
   return fmtDate(iso);
 }
 
+type TFn = (key: string, values?: Record<string, string | number>) => string;
+/** เวลาสัมพัทธ์ i18n (รับ t) — "เมื่อสักครู่/X นาที/X ชม." · เกิน 24 ชม. → fallback (default fmtDate)
+ *  ใช้ในคอมโพเนนต์ร่วมที่มี t (ActivityTimeline/NotificationBell) แทน timeAgo ซ้ำๆ ในแต่ละไฟล์ */
+export function relTime(iso: string, t: TFn, fallback?: (d: Date) => string): string {
+  const d = parse(iso);
+  if (!d) return '';
+  const m = Math.floor((Date.now() - d.getTime()) / 60000);
+  if (m < 1) return t('time.justNow');
+  if (m < 60) return t('time.minutesAgo', { m });
+  const h = Math.floor(m / 60);
+  if (h < 24) return t('time.hoursAgo', { h });
+  return fallback ? fallback(d) : fmtDate(iso);
+}
+
 /** เวลานับถอยหลัง (อนาคต) เช่น "อีก 5 นาที" / "อีก 2 ชม." / "พรุ่งนี้" / "อีก 3 วัน"
  *  เกิน ~7 วัน → คืนวันที่เต็ม (fmtDate). อดีต → "เลยกำหนดแล้ว".
  *  ใช้เป็น urgency hint ของนัด/สัญญาใกล้ครบ (คู่กับ fmtRelative ที่ทำเฉพาะอดีต) */

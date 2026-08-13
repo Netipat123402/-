@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { Icon, type IconName } from '@/components/Icon';
 
@@ -13,20 +14,20 @@ interface Results {
 }
 const EMPTY: Results = { properties: [], leads: [], customers: [], owners: [] };
 
-// F2: คำสั่ง/ทางลัด (command palette) — ไปยังหน้า + สร้างใหม่ · กรองตามสิทธิ์เหมือน sidebar
-type Action = { id: string; label: string; icon: IconName; href: string; perm?: [string, string] };
+// F2: คำสั่ง/ทางลัด (command palette) — ไปยังหน้า + สร้างใหม่ · กรองตามสิทธิ์เหมือน sidebar · labelKey แปลตอน render
+type Action = { id: string; labelKey: string; icon: IconName; href: string; perm?: [string, string] };
 const ALL_ACTIONS: Action[] = [
-  { id: 'a-home', label: 'แดชบอร์ด', icon: 'home', href: '/' },
-  { id: 'a-prop', label: 'ทรัพย์', icon: 'building', href: '/properties', perm: ['property', 'read'] },
-  { id: 'a-prop-new', label: 'เพิ่มทรัพย์ใหม่', icon: 'plus', href: '/properties/new', perm: ['property', 'create'] },
-  { id: 'a-owner', label: 'เจ้าของ', icon: 'key', href: '/owners', perm: ['owner', 'read'] },
-  { id: 'a-lead', label: 'Lead', icon: 'user-plus', href: '/leads', perm: ['lead', 'read'] },
-  { id: 'a-appt', label: 'นัดหมาย', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] },
-  { id: 'a-cal', label: 'ปฏิทิน', icon: 'calendar', href: '/calendar', perm: ['appointment', 'read'] },
-  { id: 'a-cust', label: 'ลูกค้า', icon: 'users', href: '/customers', perm: ['customer', 'read'] },
-  { id: 'a-contract', label: 'สัญญา', icon: 'file-text', href: '/contracts', perm: ['contract', 'read'] },
-  { id: 'a-users', label: 'ผู้ใช้งาน', icon: 'users', href: '/users', perm: ['user', 'read'] },
-  { id: 'a-settings', label: 'ตั้งค่า', icon: 'menu', href: '/settings', perm: ['setting', 'read'] },
+  { id: 'a-home', labelKey: 'nav.dashboard', icon: 'home', href: '/' },
+  { id: 'a-prop', labelKey: 'nav.properties', icon: 'building', href: '/properties', perm: ['property', 'read'] },
+  { id: 'a-prop-new', labelKey: 'search.addProperty', icon: 'plus', href: '/properties/new', perm: ['property', 'create'] },
+  { id: 'a-owner', labelKey: 'nav.owners', icon: 'key', href: '/owners', perm: ['owner', 'read'] },
+  { id: 'a-lead', labelKey: 'nav.leads', icon: 'user-plus', href: '/leads', perm: ['lead', 'read'] },
+  { id: 'a-appt', labelKey: 'nav.appointments', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] },
+  { id: 'a-cal', labelKey: 'nav.calendar', icon: 'calendar', href: '/calendar', perm: ['appointment', 'read'] },
+  { id: 'a-cust', labelKey: 'nav.customers', icon: 'users', href: '/customers', perm: ['customer', 'read'] },
+  { id: 'a-contract', labelKey: 'nav.contracts', icon: 'file-text', href: '/contracts', perm: ['contract', 'read'] },
+  { id: 'a-users', labelKey: 'nav.users', icon: 'users', href: '/users', perm: ['user', 'read'] },
+  { id: 'a-settings', labelKey: 'nav.settings', icon: 'menu', href: '/settings', perm: ['setting', 'read'] },
 ];
 
 type Item = { id: string; label: string; sub?: string; href: string; icon?: IconName };
@@ -34,6 +35,7 @@ type Item = { id: string; label: string; sub?: string; href: string; icon?: Icon
 export default function GlobalSearch({ variant }: {
   variant?: 'page'; // 'page' = เรนเดอร์เป็นเนื้อหาในหน้า /search (ไม่ใช่ overlay/dropdown)
 } = {}) {
+  const t = useTranslations();
   const { api, can } = useAuth();
   const router = useRouter();
   const [q, setQ] = useState('');
@@ -87,17 +89,17 @@ export default function GlobalSearch({ variant }: {
   const sections = useMemo(() => {
     const actions = ALL_ACTIONS
       .filter((a) => !a.perm || can(a.perm[0], a.perm[1]))
-      .filter((a) => !ql || a.label.toLowerCase().includes(ql))
-      .map((a): Item => ({ id: a.id, label: a.label, href: a.href, icon: a.icon }));
+      .map((a): Item => ({ id: a.id, label: t(a.labelKey), href: a.href, icon: a.icon }))
+      .filter((a) => !ql || a.label.toLowerCase().includes(ql));
     const out: { title: string; items: Item[] }[] = [];
-    if (actions.length) out.push({ title: ql ? 'คำสั่ง' : 'ไปยัง', items: actions });
-    if (res.properties.length) out.push({ title: 'ทรัพย์', items: res.properties.map((p) => ({ id: p.id, label: p.titleTh, sub: p.code, href: `/properties/${p.id}` })) });
-    if (res.leads.length) out.push({ title: 'Lead', items: res.leads.map((l) => ({ id: l.id, label: l.fullName, sub: l.phone, href: `/leads/${l.id}` })) });
-    if (res.customers.length) out.push({ title: 'ลูกค้า', items: res.customers.map((c) => ({ id: c.id, label: c.fullName, sub: c.phone, href: `/customers/${c.id}` })) });
-    if (res.owners.length) out.push({ title: 'เจ้าของ', items: res.owners.map((o) => ({ id: o.id, label: o.fullName, sub: o.phone, href: `/owners/${o.id}` })) });
+    if (actions.length) out.push({ title: ql ? t('search.commands') : t('search.goto'), items: actions });
+    if (res.properties.length) out.push({ title: t('nav.properties'), items: res.properties.map((p) => ({ id: p.id, label: p.titleTh, sub: p.code, href: `/properties/${p.id}` })) });
+    if (res.leads.length) out.push({ title: t('nav.leads'), items: res.leads.map((l) => ({ id: l.id, label: l.fullName, sub: l.phone, href: `/leads/${l.id}` })) });
+    if (res.customers.length) out.push({ title: t('nav.customers'), items: res.customers.map((c) => ({ id: c.id, label: c.fullName, sub: c.phone, href: `/customers/${c.id}` })) });
+    if (res.owners.length) out.push({ title: t('nav.owners'), items: res.owners.map((o) => ({ id: o.id, label: o.fullName, sub: o.phone, href: `/owners/${o.id}` })) });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ql, res, can]);
+  }, [ql, res, can, t]);
 
   const flat = useMemo(() => sections.flatMap((s) => s.items), [sections]);
   useEffect(() => { setSel(0); }, [ql, res]); // รีเซ็ตแถวที่เลือกเมื่อรายการเปลี่ยน
@@ -140,15 +142,15 @@ export default function GlobalSearch({ variant }: {
         <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3.5 focus-within:border-gold">
           <Icon name="search" size={20} className="shrink-0 text-faint" />
           <input ref={inputRef} autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onNavKey}
-            placeholder="ค้นหา ทรัพย์ / Lead / ลูกค้า / คำสั่ง…"
+            placeholder={t('search.placeholder')}
             className="h-12 flex-1 border-0 bg-transparent text-base outline-none placeholder:text-faint" />
           {q && (
-            <button type="button" aria-label="ล้าง" onClick={() => setQ('')}
+            <button type="button" aria-label={t('search.clearAria')} onClick={() => setQ('')}
               className="shrink-0 rounded-lg p-1.5 text-muted hover:bg-raised hover:text-ink"><Icon name="x" size={18} /></button>
           )}
         </div>
         <div className="mt-3 overflow-hidden rounded-xl border border-border bg-surface py-1">
-          {content('ไม่พบผลลัพธ์')}
+          {content(t('common.noResults'))}
         </div>
       </div>
     );
@@ -162,7 +164,7 @@ export default function GlobalSearch({ variant }: {
         <input
           ref={inputRef}
           className="h-9 w-48 rounded-lg border border-border bg-canvas pl-9 pr-8 text-sm outline-none focus:w-64 focus:border-gold focus:bg-surface md:w-56"
-          placeholder="ค้นหา / คำสั่ง…"
+          placeholder={t('search.placeholderShort')}
           value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setOpen(true)} onKeyDown={onNavKey} />
         {/* E2: บอกใบ้คีย์ลัด "/" (กดเปิดค้นหา) — ซ่อนเมื่อเริ่มพิมพ์ */}
         {!q && (
@@ -170,7 +172,7 @@ export default function GlobalSearch({ variant }: {
         )}
         {open && (
           <div className="absolute left-0 top-11 z-50 max-h-96 w-80 overflow-y-auto rounded-xl2 border border-border bg-surface py-1 shadow-lift">
-            {content('ไม่พบผลลัพธ์')}
+            {content(t('common.noResults'))}
           </div>
         )}
       </div>

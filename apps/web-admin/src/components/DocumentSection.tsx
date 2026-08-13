@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { Combobox, ConfirmDialog, ProgressBar, SectionLabel, Spinner } from '@/components/ui';
@@ -13,16 +14,11 @@ interface Doc {
   currentVersion?: DocVersion;
 }
 
-const DOC_TYPE_TH: Record<string, string> = {
-  title_deed: 'โฉนด/กรรมสิทธิ์', id_card: 'บัตรประชาชน', house_registration: 'ทะเบียนบ้าน',
-  lease: 'สัญญาเช่า', receipt: 'ใบเสร็จ/มัดจำ', power_of_attorney: 'หนังสือมอบอำนาจ',
-  property_photo: 'รูปทรัพย์', other: 'อื่น ๆ',
-};
-const STATUS_TH: Record<string, { label: string; cls: string }> = {
-  uploaded: { label: 'อัปโหลดแล้ว', cls: 'bg-info/10 text-info' },
-  verified: { label: 'ตรวจสอบแล้ว', cls: 'bg-success/10 text-success' },
-  active: { label: 'ใช้งาน', cls: 'bg-success/10 text-success' },
-  archived: { label: 'เก็บถาวร', cls: 'bg-border text-ink-soft' },
+// ป้าย = catalog (docType.* / docStatus.*) แปลตอน render · code คงเดิม
+const DOC_TYPE_CODES = ['title_deed', 'id_card', 'house_registration', 'lease', 'receipt', 'power_of_attorney', 'property_photo', 'other'];
+const STATUS_CLS: Record<string, string> = {
+  uploaded: 'bg-info/10 text-info', verified: 'bg-success/10 text-success',
+  active: 'bg-success/10 text-success', archived: 'bg-border text-ink-soft',
 };
 
 export default function DocumentSection({
@@ -32,6 +28,7 @@ export default function DocumentSection({
   // แจ้งชุดเอกสารล่าสุดให้ parent (เช่น checklist ก่อนลงนามสัญญา) — เรียกทุกครั้งที่ load
   onDocsLoaded?: (docs: { documentType: string; status: string }[]) => void;
 }) {
+  const t = useTranslations();
   const { api, upload, apiBlob, can } = useAuth();
   const toast = useToast();
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -67,8 +64,8 @@ export default function DocumentSection({
     try {
       await upload('/documents/upload', fd, setUploadPct);
       await load();
-      toast.success('แนบเอกสารแล้ว');
-    } catch (e) { toast.error((e as { message?: string }).message || 'อัปโหลดไม่สำเร็จ'); }
+      toast.success(t('documents.toastAttached'));
+    } catch (e) { toast.error((e as { message?: string }).message || t('documents.toastUploadFailed')); }
     finally { setUploadPct(null); }
   }
 
@@ -87,7 +84,7 @@ export default function DocumentSection({
         window.open(url, '_blank');
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
       }
-    } catch (e) { toast.error((e as { message?: string }).message || 'เปิดไฟล์ไม่ได้'); }
+    } catch (e) { toast.error((e as { message?: string }).message || t('documents.toastOpenFailed')); }
     finally { setOpeningId(null); }
   }
   function closePreview() { if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }
@@ -96,22 +93,22 @@ export default function DocumentSection({
   async function verify(id: string) {
     setBusy(true);
     setDocs((ds) => ds.map((d) => (d.id === id ? { ...d, status: 'verified' } : d)));
-    try { await api(`/documents/${id}/verify`, { method: 'POST', body: '{}' }); toast.success('ตรวจสอบเอกสารแล้ว'); load(); }
-    catch (e) { toast.error((e as { message?: string }).message || 'ไม่สำเร็จ'); load(); }
+    try { await api(`/documents/${id}/verify`, { method: 'POST', body: '{}' }); toast.success(t('documents.toastVerified')); load(); }
+    catch (e) { toast.error((e as { message?: string }).message || t('documents.toastFailed')); load(); }
     finally { setBusy(false); }
   }
   async function remove(id: string) {
     setBusy(true);
     setDocs((ds) => ds.filter((d) => d.id !== id));
-    try { await api(`/documents/${id}`, { method: 'DELETE' }); toast.success('ลบเอกสารแล้ว'); load(); }
-    catch (e) { toast.error((e as { message?: string }).message || 'ลบไม่สำเร็จ'); load(); }
+    try { await api(`/documents/${id}`, { method: 'DELETE' }); toast.success(t('documents.toastDeleted')); load(); }
+    catch (e) { toast.error((e as { message?: string }).message || t('documents.toastDeleteFailed')); load(); }
     finally { setBusy(false); }
   }
   async function archive(id: string) {
     setBusy(true);
     setDocs((ds) => ds.map((d) => (d.id === id ? { ...d, status: 'archived' } : d)));
-    try { await api(`/documents/${id}/archive`, { method: 'POST', body: '{}' }); toast.success('เก็บถาวรแล้ว'); load(); }
-    catch (e) { toast.error((e as { message?: string }).message || 'ไม่สำเร็จ'); load(); }
+    try { await api(`/documents/${id}/archive`, { method: 'POST', body: '{}' }); toast.success(t('documents.toastArchived')); load(); }
+    catch (e) { toast.error((e as { message?: string }).message || t('documents.toastFailed')); load(); }
     finally { setBusy(false); }
   }
 
@@ -121,12 +118,12 @@ export default function DocumentSection({
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="w-44">
             <Combobox searchable={false} size="sm" label="" value={docType} onChange={setDocType}
-              options={Object.entries(DOC_TYPE_TH).map(([k, v]) => ({ value: k, label: v }))} />
+              options={DOC_TYPE_CODES.map((k) => ({ value: k, label: t(`docType.${k}`) }))} />
           </div>
           <input ref={fileRef} type="file" accept="image/*,application/pdf" hidden
             onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadDoc(f); e.target.value = ''; }} />
           <button className="btn-ghost h-9" disabled={busy || uploadPct !== null} onClick={() => fileRef.current?.click()}>
-            <Icon name="plus" size={16} /> แนบเอกสาร
+            <Icon name="plus" size={16} /> {t('documents.attach')}
           </button>
         </div>
       )}
@@ -134,27 +131,28 @@ export default function DocumentSection({
       {uploadPct !== null && (
         <div className="mb-4">
           <ProgressBar value={uploadPct} />
-          <p className="mt-1 text-xs text-muted">กำลังอัปโหลดเอกสาร {uploadPct}%</p>
+          <p className="mt-1 text-xs text-muted">{t('documents.uploading', { pct: uploadPct })}</p>
         </div>
       )}
 
       {loading ? (
         <div className="h-16 animate-pulse rounded-lg bg-canvas" />
       ) : docs.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted">ยังไม่มีเอกสาร</p>
+        <p className="py-6 text-center text-sm text-muted">{t('documents.none')}</p>
       ) : (
         // จัดกลุ่มตาม "ประเภทเอกสาร" (taxonomy) → หัวข้อกลุ่มทำให้หาเจอแม้ผ่านไปนาน + ลิสต์ไม่ปนมั่ว
         // จำกัด LIMIT แถวก่อน แล้วค่อยจัดกลุ่มจากชุดที่แสดง (กด"ดูทั้งหมด" เพื่อกางครบ)
         <div className="space-y-4">
-          {Object.keys(DOC_TYPE_TH)
-            .map((t) => ({ type: t, items: (showAll ? docs : docs.slice(0, LIMIT)).filter((d) => d.documentType === t) }))
+          {DOC_TYPE_CODES
+            .map((code) => ({ type: code, items: (showAll ? docs : docs.slice(0, LIMIT)).filter((d) => d.documentType === code) }))
             .filter((g) => g.items.length > 0)
             .map((g) => (
               <div key={g.type}>
-                <SectionLabel className="mb-1.5">{DOC_TYPE_TH[g.type]} <span className="font-normal text-faint">({g.items.length})</span></SectionLabel>
+                <SectionLabel className="mb-1.5">{t(`docType.${g.type}`)} <span className="font-normal text-faint">({g.items.length})</span></SectionLabel>
                 <ul className="divide-y divide-border">
                   {g.items.map((d) => {
-                    const st = STATUS_TH[d.status] ?? { label: d.status, cls: 'bg-border text-ink-soft' };
+                    const stCls = STATUS_CLS[d.status] ?? 'bg-border text-ink-soft';
+                    const stLabel = STATUS_CLS[d.status] ? t(`docStatus.${d.status}`) : d.status;
                     const isPdf = d.currentVersion?.mimeType?.includes('pdf');
                     // มีปุ่มจัดการรองหรือไม่ (ตรวจ/เก็บถาวร/ลบ) → ถ้ามีค่อยโชว์ปุ่มกาง ไม่งั้นเหลือแค่ "เปิด"
                     const canVerify = canEdit && d.status !== 'verified' && d.status !== 'archived' && can('document', 'verify');
@@ -169,12 +167,12 @@ export default function DocumentSection({
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium">{d.name}</p>
                           </div>
-                          <span className={`badge shrink-0 ${st.cls}`}>{st.label}</span>
+                          <span className={`badge shrink-0 ${stCls}`}>{stLabel}</span>
                           <button className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-gold-dark transition hover:underline disabled:opacity-60" disabled={openingId === d.id} onClick={() => openDoc(d)}>
-                            {openingId === d.id && <Spinner className="h-3.5 w-3.5" />}เปิด
+                            {openingId === d.id && <Spinner className="h-3.5 w-3.5" />}{t('common.open')}
                           </button>
                           {hasMenu && (
-                            <button aria-label="จัดการเอกสาร" aria-expanded={expanded}
+                            <button aria-label={t('documents.manage')} aria-expanded={expanded}
                               className="-mr-1 shrink-0 rounded-lg p-1 text-muted transition hover:bg-raised hover:text-ink"
                               onClick={() => setExpandedId(expanded ? null : d.id)}>
                               <Icon name="chevron-down" size={16} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
@@ -184,9 +182,9 @@ export default function DocumentSection({
                         {/* แถวจัดการ (กางเมื่อกด) — ปุ่มรองอยู่ที่นี่ทั้งหมด ลิสต์หลักจึงสะอาด */}
                         {hasMenu && expanded && (
                           <div className="mt-2 flex items-center justify-end gap-4 pl-12">
-                            {canVerify && <button className="text-sm text-success transition hover:underline" disabled={busy} onClick={() => verify(d.id)}>ตรวจสอบแล้ว</button>}
-                            {canArchive && <button className="text-sm text-muted transition hover:underline" disabled={busy} onClick={() => setPending({ kind: 'archive', id: d.id })}>เก็บถาวร</button>}
-                            {canDelete && <button className="text-sm text-danger transition hover:underline" disabled={busy} onClick={() => setPending({ kind: 'delete', id: d.id })}>ลบ</button>}
+                            {canVerify && <button className="text-sm text-success transition hover:underline" disabled={busy} onClick={() => verify(d.id)}>{t('documents.verify')}</button>}
+                            {canArchive && <button className="text-sm text-muted transition hover:underline" disabled={busy} onClick={() => setPending({ kind: 'archive', id: d.id })}>{t('documents.archive')}</button>}
+                            {canDelete && <button className="text-sm text-danger transition hover:underline" disabled={busy} onClick={() => setPending({ kind: 'delete', id: d.id })}>{t('common.delete')}</button>}
                           </div>
                         )}
                       </li>
@@ -200,18 +198,18 @@ export default function DocumentSection({
       {!loading && docs.length > LIMIT && (
         <button onClick={() => setShowAll((v) => !v)}
           className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-gold-dark hover:underline">
-          {showAll ? 'ย่อ' : `ดูทั้งหมด (${docs.length})`}
+          {showAll ? t('common.collapse') : t('common.viewAllN', { n: docs.length })}
           <Icon name="chevron-down" size={14} className={showAll ? 'rotate-180' : ''} />
         </button>
       )}
 
       <ConfirmDialog open={pending?.kind === 'delete'} onClose={() => setPending(null)} busy={busy}
-        title="ลบเอกสาร" tone="danger" confirmLabel="ลบเอกสาร"
-        message="ลบเอกสารนี้? การลบไม่สามารถย้อนกลับได้"
+        title={t('documents.deleteTitle')} tone="danger" confirmLabel={t('documents.deleteTitle')}
+        message={t('documents.deleteMsg')}
         onConfirm={() => { const id = pending!.id; setPending(null); remove(id); }} />
       <ConfirmDialog open={pending?.kind === 'archive'} onClose={() => setPending(null)} busy={busy}
-        title="เก็บถาวรเอกสาร" confirmLabel="เก็บถาวร"
-        message="เก็บถาวรเอกสารนี้? จะไม่แสดงในรายการใช้งานหลัก"
+        title={t('documents.archiveTitle')} confirmLabel={t('documents.archive')}
+        message={t('documents.archiveMsg')}
         onConfirm={() => { const id = pending!.id; setPending(null); archive(id); }} />
 
       {/* พรีวิวรูปเอกสารในหน้า (ไม่ต้องเปิดแท็บใหม่) — รูปเดียวต่อครั้ง */}

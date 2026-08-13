@@ -133,7 +133,27 @@
     "unitSqm": "{n} ตร.ม.",
     "unitMonths": "{n} เดือน",
     "retry": "ลองใหม่",
-    "cancel": "ยกเลิก"
+    "cancel": "ยกเลิก",
+    "sort": "เรียงลำดับ",
+    "filters": "ตัวกรอง",
+    "clear": "ล้าง",
+    "done": "เสร็จ",
+    "noResults": "ไม่พบรายการ",
+    "noData": "ยังไม่มีข้อมูล",
+    "close": "ปิด",
+    "confirm": "ยืนยัน",
+    "viewAllN": "ดูทั้งหมด ({n})",
+    "collapse": "ย่อ",
+    "searchDots": "ค้นหา…",
+    "open": "เปิด",
+    "discardTitle": "ทิ้งการแก้ไข?",
+    "discardMsg": "การแก้ไขยังไม่ถูกบันทึก ปิดหน้าต่างนี้?",
+    "discard": "ทิ้ง",
+    "reasonOptional": "เหตุผล (ไม่บังคับ)",
+    "selectPlaceholder": "— เลือก —",
+    "working": "กำลังทำงาน…",
+    "typeToSearch": "พิมพ์เพื่อค้นหา…",
+    "searching": "กำลังค้นหา…"
   },
   "propertyType": {
     "condo": "คอนโด",
@@ -311,5 +331,74 @@
     "saving": "กำลังบันทึก…",
     "create": "สร้างทรัพย์",
     "saveEdit": "บันทึกการแก้ไข"
+  },
+  "time": {
+    "justNow": "เมื่อสักครู่",
+    "minutesAgo": "{m} นาทีที่แล้ว",
+    "hoursAgo": "{h} ชม.ที่แล้ว"
+  },
+  "docType": {
+    "title_deed": "โฉนด/กรรมสิทธิ์",
+    "id_card": "บัตรประชาชน",
+    "house_registration": "ทะเบียนบ้าน",
+    "lease": "สัญญาเช่า",
+    "receipt": "ใบเสร็จ/มัดจำ",
+    "power_of_attorney": "หนังสือมอบอำนาจ",
+    "property_photo": "รูปทรัพย์",
+    "other": "อื่น ๆ"
+  },
+  "docStatus": {
+    "uploaded": "อัปโหลดแล้ว",
+    "verified": "ตรวจสอบแล้ว",
+    "active": "ใช้งาน",
+    "archived": "เก็บถาวร"
+  },
+  "documents": {
+    "attach": "แนบเอกสาร",
+    "uploading": "กำลังอัปโหลดเอกสาร {pct}%",
+    "none": "ยังไม่มีเอกสาร",
+    "manage": "จัดการเอกสาร",
+    "verify": "ตรวจสอบแล้ว",
+    "archive": "เก็บถาวร",
+    "deleteTitle": "ลบเอกสาร",
+    "deleteMsg": "ลบเอกสารนี้? การลบไม่สามารถย้อนกลับได้",
+    "archiveTitle": "เก็บถาวรเอกสาร",
+    "archiveMsg": "เก็บถาวรเอกสารนี้? จะไม่แสดงในรายการใช้งานหลัก",
+    "toastAttached": "แนบเอกสารแล้ว",
+    "toastUploadFailed": "อัปโหลดไม่สำเร็จ",
+    "toastOpenFailed": "เปิดไฟล์ไม่ได้",
+    "toastVerified": "ตรวจสอบเอกสารแล้ว",
+    "toastFailed": "ไม่สำเร็จ",
+    "toastDeleted": "ลบเอกสารแล้ว",
+    "toastDeleteFailed": "ลบไม่สำเร็จ",
+    "toastArchived": "เก็บถาวรแล้ว"
+  },
+  "search": {
+    "placeholder": "ค้นหา ทรัพย์ / ผู้สนใจ / ลูกค้า / คำสั่ง…",
+    "placeholderShort": "ค้นหา / คำสั่ง…",
+    "clearAria": "ล้าง",
+    "commands": "คำสั่ง",
+    "goto": "ไปยัง",
+    "addProperty": "เพิ่มทรัพย์ใหม่"
+  },
+  "notif": {
+    "title": "การแจ้งเตือน",
+    "markAll": "อ่านทั้งหมด",
+    "empty": "ไม่มีงานที่ต้องทำ",
+    "viewAll": "ดูทั้งหมด",
+    "updates": "อัปเดตงาน",
+    "bucketToday": "ต้องทำวันนี้",
+    "bucketWeek": "สัปดาห์นี้",
+    "bucketMonth": "เดือนนี้",
+    "moreItems": "+ อีก {n} รายการ",
+    "today": "วันนี้",
+    "dueToday": "ครบกำหนดวันนี้ · {date}",
+    "dueIn": "ครบกำหนด {date} · อีก {days} วัน",
+    "apptTitle": "นัด {code}",
+    "contractTitle": "สัญญา {code}",
+    "aria": "การแจ้งเตือน"
+  },
+  "activity": {
+    "none": "ยังไม่มีประวัติ"
   }
 }

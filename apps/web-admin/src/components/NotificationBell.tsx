@@ -2,8 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { Icon, type IconName } from '@/components/Icon';
+import { relTime, fmtDateShort } from '@/lib/format';
+
+type TFn = (key: string, values?: Record<string, string | number>) => string;
 
 interface Notif {
   id: string; category: string; title: string; body: string; status: string;
@@ -34,7 +38,6 @@ function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d
 const toISODate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 type Bucket = 'today' | 'week' | 'month';
-const BUCKET_LABEL: Record<Bucket, string> = { today: 'ต้องทำวันนี้', week: 'สัปดาห์นี้', month: 'เดือนนี้' };
 
 /** จัดช่วงเวลาแบบมองไปข้างหน้า (ไม่ทับกัน): วันนี้ / ภายใน 7 วัน / ภายใน 30 วัน */
 function bucketOf(ms: number): Bucket | null {
@@ -48,27 +51,20 @@ function bucketOf(ms: number): Bucket | null {
 
 interface WorkItem { id: string; bucket: Bucket; icon: IconName; title: string; meta: string; href: string; ts: number }
 
-function timeAgo(iso: string) {
-  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return 'เมื่อสักครู่';
-  if (m < 60) return `${m} นาทีที่แล้ว`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-function apptMeta(ts: number) {
+function apptMeta(ts: number, t: TFn) {
   const d = new Date(ts);
   const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const isToday = ts < startOfToday() + DAY;
-  return isToday ? `วันนี้ ${time}` : `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
+  return isToday ? `${t('notif.today')} ${time}` : `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · ${time}`;
 }
-function contractMeta(ts: number) {
+function contractMeta(ts: number, t: TFn) {
   const days = Math.round((ts - startOfToday()) / DAY);
   const date = new Date(ts).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  return days <= 0 ? `ครบกำหนดวันนี้ · ${date}` : `ครบกำหนด ${date} · อีก ${days} วัน`;
+  return days <= 0 ? t('notif.dueToday', { date }) : t('notif.dueIn', { date, days });
 }
 
 export default function NotificationBell() {
+  const t = useTranslations();
   const { api, can } = useAuth();
   const router = useRouter();
   const [rows, setRows] = useState<Notif[]>([]);
@@ -116,13 +112,13 @@ export default function NotificationBell() {
     for (const a of appts) {
       const ts = new Date(a.scheduledAt).getTime();
       const b = bucketOf(ts);
-      if (b) items.push({ id: `a-${a.id}`, bucket: b, icon: 'calendar', title: a.lead?.fullName || a.property?.titleTh || a.title || `นัด ${a.code}`, meta: apptMeta(ts), href: `/appointments/${a.id}`, ts });
+      if (b) items.push({ id: `a-${a.id}`, bucket: b, icon: 'calendar', title: a.lead?.fullName || a.property?.titleTh || a.title || t('notif.apptTitle', { code: a.code }), meta: apptMeta(ts, t), href: `/appointments/${a.id}`, ts });
     }
     for (const c of contracts) {
       if (!c.endDate) continue;
       const ts = new Date(c.endDate).getTime();
       const b = bucketOf(ts);
-      if (b) items.push({ id: `c-${c.id}`, bucket: b, icon: 'file-text', title: `สัญญา ${c.code}`, meta: contractMeta(ts), href: `/contracts/${c.id}`, ts });
+      if (b) items.push({ id: `c-${c.id}`, bucket: b, icon: 'file-text', title: t('notif.contractTitle', { code: c.code }), meta: contractMeta(ts, t), href: `/contracts/${c.id}`, ts });
     }
     items.sort((x, y) => x.ts - y.ts);
     return {
@@ -130,7 +126,7 @@ export default function NotificationBell() {
       week: items.filter((i) => i.bucket === 'week'),
       month: items.filter((i) => i.bucket === 'month'),
     } as Record<Bucket, WorkItem[]>;
-  }, [appts, contracts]);
+  }, [appts, contracts, t]);
 
   // badge = งานวันนี้ + อัปเดตที่ยังไม่อ่าน (สิ่งที่ต้องสนใจตอนนี้)
   const badge = byBucket.today.length + unreadEvents;
@@ -153,7 +149,7 @@ export default function NotificationBell() {
 
   return (
     <div className="relative" ref={boxRef}>
-      <button onClick={() => { setOpen((v) => !v); if (!open) loadAll(); }} aria-label="การแจ้งเตือน"
+      <button onClick={() => { setOpen((v) => !v); if (!open) loadAll(); }} aria-label={t('notif.aria')}
         className="relative flex h-9 w-9 touch:h-10 touch:w-10 items-center justify-center rounded-full text-ink-soft transition hover:bg-raised">
         <Icon name="bell" size={20} />
         {badge > 0 && (
@@ -166,14 +162,14 @@ export default function NotificationBell() {
       {open && (
         <div className="fixed right-3 top-16 z-50 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl2 border border-border bg-surface shadow-lift sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:w-[22rem]">
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <p className="text-sm font-semibold">การแจ้งเตือน</p>
+            <p className="text-sm font-semibold">{t('notif.title')}</p>
             {unreadEvents > 0 && (
-              <button onClick={markAll} className="text-xs text-gold-dark hover:underline">อ่านทั้งหมด</button>
+              <button onClick={markAll} className="text-xs text-gold-dark hover:underline">{t('notif.markAll')}</button>
             )}
           </div>
 
           {!hasAnything ? (
-            <p className="px-4 py-10 text-center text-sm text-muted">ไม่มีงานที่ต้องทำ</p>
+            <p className="px-4 py-10 text-center text-sm text-muted">{t('notif.empty')}</p>
           ) : (
             <div className="max-h-[24rem] divide-y divide-border overflow-y-auto overscroll-contain">
               {/* งานตามเวลา */}
@@ -184,7 +180,7 @@ export default function NotificationBell() {
                 return (
                   <div key={b} className="py-1">
                     <div className="flex items-center justify-between px-4 pb-1 pt-1.5">
-                      <span className={`text-2xs font-semibold uppercase tracking-wide ${b === 'today' ? 'text-gold-dark' : 'text-muted'}`}>{BUCKET_LABEL[b]}</span>
+                      <span className={`text-2xs font-semibold uppercase tracking-wide ${b === 'today' ? 'text-gold-dark' : 'text-muted'}`}>{t(b === 'today' ? 'notif.bucketToday' : b === 'week' ? 'notif.bucketWeek' : 'notif.bucketMonth')}</span>
                       <span className="text-2xs text-muted">{list.length}</span>
                     </div>
                     {shown.map((it) => (
@@ -201,7 +197,7 @@ export default function NotificationBell() {
                     {list.length > shown.length && (
                       <button onClick={() => go(b === 'today' ? '/calendar' : '/appointments')}
                         className="px-4 pb-1.5 pt-0.5 text-xs text-gold-dark hover:underline">
-                        + อีก {list.length - shown.length} รายการ
+                        {t('notif.moreItems', { n: list.length - shown.length })}
                       </button>
                     )}
                   </div>
@@ -212,7 +208,7 @@ export default function NotificationBell() {
               {rows.length > 0 && (
                 <div className="py-1">
                   <div className="px-4 pb-1 pt-1.5">
-                    <span className="text-2xs font-semibold uppercase tracking-wide text-muted">อัปเดตงาน</span>
+                    <span className="text-2xs font-semibold uppercase tracking-wide text-muted">{t('notif.updates')}</span>
                   </div>
                   {rows.slice(0, 5).map((n) => {
                     const unread = n.status !== 'read';
@@ -223,7 +219,7 @@ export default function NotificationBell() {
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
                             <span className={`truncate text-sm ${unread ? 'font-semibold text-ink' : 'font-normal text-ink-soft'}`}>{n.title}</span>
-                            <span className="shrink-0 text-2xs text-muted">{timeAgo(n.createdAt)}</span>
+                            <span className="shrink-0 text-2xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateShort(d.toISOString()))}</span>
                           </span>
                           <span className="block truncate text-xs text-muted">{n.body}</span>
                         </span>
@@ -237,7 +233,7 @@ export default function NotificationBell() {
 
           <button onClick={() => go('/notifications')}
             className="block w-full border-t border-border px-4 py-2.5 text-center text-xs font-medium text-gold-dark hover:bg-raised">
-            ดูทั้งหมด
+            {t('notif.viewAll')}
           </button>
         </div>
       )}
