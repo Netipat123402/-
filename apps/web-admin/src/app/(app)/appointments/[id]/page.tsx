@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { APPOINTMENT_STATUS } from '@/lib/status';
-import { fmtDateTime, fmtTimeRange, fmtUntil, fmtWeekdayDate } from '@/lib/format';
+import { fmtDateTime, fmtTimeRange, relUntil, fmtWeekdayDate } from '@/lib/format';
 import { DetailHeader, Field, InfoGroup, InfoRow, Modal, PhoneLink, StatusBadge } from '@/components/ui';
 import { Icon } from '@/components/Icon';
 
@@ -20,6 +21,7 @@ interface ApptDetail {
 }
 
 export default function AppointmentDetailPage() {
+  const t = useTranslations();
   const { api, can } = useAuth();
   const toast = useToast();
   const router = useRouter();
@@ -39,23 +41,23 @@ export default function AppointmentDetailPage() {
   async function act(fn: () => Promise<unknown>, successMsg: string) {
     setBusy(true);
     try { await fn(); toast.success(successMsg); await load(); }
-    catch (e) { toast.error((e as { message?: string }).message || 'ทำรายการไม่สำเร็จ'); }
+    catch (e) { toast.error((e as { message?: string }).message || t('common.actionFailed')); }
     finally { setBusy(false); }
   }
-  const run = (action: string, label: string) => act(() => api(`/appointments/${id}/${action}`, { method: 'POST', body: JSON.stringify({}) }), `${label}แล้ว`);
+  const run = (action: string, msg: string) => act(() => api(`/appointments/${id}/${action}`, { method: 'POST', body: JSON.stringify({}) }), msg);
   async function doReschedule() {
     if (!reAt) return;
     setReOpen(false);
-    await act(() => api(`/appointments/${id}/reschedule`, { method: 'POST', body: JSON.stringify({ scheduledAt: new Date(reAt).toISOString() }) }), 'เลื่อนนัดแล้ว');
+    await act(() => api(`/appointments/${id}/reschedule`, { method: 'POST', body: JSON.stringify({ scheduledAt: new Date(reAt).toISOString() }) }), t('appts.toastRescheduled'));
     setReAt('');
   }
   // นัดใหม่อีกครั้ง — ใช้ flow สร้างนัดที่หน้า list (prefill lead ถ้ามี · ทั่วไป = เปิดหน้าสร้าง)
   const rebook = () => router.push(appt?.lead ? `/appointments?newLead=${appt.lead.id}` : '/appointments');
 
   if (loading) return <div className="mx-auto max-w-3xl"><div className="h-40 animate-pulse rounded-card bg-canvas" /></div>;
-  if (!appt) return <div className="mx-auto max-w-3xl text-center text-muted">ไม่พบนัดหมาย <Link href="/appointments" className="text-gold-dark underline">กลับ</Link></div>;
+  if (!appt) return <div className="mx-auto max-w-3xl text-center text-muted">{t('appts.notFound')} <Link href="/appointments" className="text-gold-dark underline">{t('common.back')}</Link></div>;
 
-  const subject = appt.lead?.fullName || appt.title || `นัด ${appt.code}`;
+  const subject = appt.lead?.fullName || appt.title || t('appts.subjectFallback', { code: appt.code });
   const isUpcoming = appt.status === 'upcoming';
 
   return (
@@ -66,7 +68,7 @@ export default function AppointmentDetailPage() {
         statusMap={APPOINTMENT_STATUS}
         statusValue={appt.status}
         title={subject}
-        subtitle={appt.property ? 'นัดดูทรัพย์' : (appt.title ? 'นัดนอกรอบ' : undefined)}
+        subtitle={appt.property ? t('appts.subtitleViewing') : (appt.title ? t('appts.subtitleGeneral') : undefined)}
       />
 
       {/* B = เนื้อหา (ทรัพย์/ลูกค้า/สถานที่) + รางวันเวลา/สถานะ/ปุ่ม — โครง+ขนาดเดียวกับสัญญา/ลูกค้า */}
@@ -77,27 +79,27 @@ export default function AppointmentDetailPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5 xl:flex-col xl:items-stretch xl:gap-3">
               <div className="shrink-0 sm:text-left xl:text-center">
                 <div className="text-lg font-semibold tabular-nums text-ink">{fmtWeekdayDate(appt.scheduledAt)}</div>
-                <div className="text-sm tabular-nums text-muted">{fmtTimeRange(appt.scheduledAt, appt.durationMin)} · {appt.durationMin} นาที</div>
+                <div className="text-sm tabular-nums text-muted">{fmtTimeRange(appt.scheduledAt, appt.durationMin)} · {t('appts.minutes', { n: appt.durationMin })}</div>
               </div>
               <div className="flex shrink-0 items-center gap-2 xl:justify-center">
                 <StatusBadge map={APPOINTMENT_STATUS} value={appt.status} outline />
-                {isUpcoming && <span className="text-xs text-gold-dark">{fmtUntil(appt.scheduledAt)}</span>}
+                {isUpcoming && <span className="text-xs text-gold-dark">{relUntil(appt.scheduledAt, t)}</span>}
               </div>
               {isUpcoming && can('appointment', 'change_status') ? (
                 <div className="grid grid-cols-2 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
-                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run('complete', 'บันทึกว่าพบแล้ว')}>พบลูกค้าแล้ว</button>
-                  <button className="btn-ghost btn-sm" disabled={busy} onClick={() => { setReAt(''); setReOpen(true); }}>เลื่อนนัด</button>
+                  <button className="btn-gold btn-sm" disabled={busy} onClick={() => run('complete', t('appts.toastCompleted'))}>{t('appts.completeBtn')}</button>
+                  <button className="btn-ghost btn-sm" disabled={busy} onClick={() => { setReAt(''); setReOpen(true); }}>{t('appts.rescheduleBtn')}</button>
                 </div>
               ) : !isUpcoming && can('appointment', 'create') ? (
                 <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:shrink-0 xl:ml-0 xl:grid xl:grid-cols-1">
-                  <button className="btn-gold btn-sm" disabled={busy} onClick={rebook}><Icon name="calendar" size={15} /> นัดใหม่อีกครั้ง</button>
+                  <button className="btn-gold btn-sm" disabled={busy} onClick={rebook}><Icon name="calendar" size={15} /> {t('appts.rebookBtn')}</button>
                 </div>
               ) : null}
             </div>
             {isUpcoming && can('appointment', 'change_status') && (
               <div className="mt-3 flex justify-center gap-5 text-xs">
-                <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => run('cancel', 'ยกเลิกนัด')}>ยกเลิกนัด</button>
-                <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => run('no-show', 'บันทึกว่าไม่มาตามนัด')}>ลูกค้าไม่มา</button>
+                <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => run('cancel', t('appts.toastCancelled'))}>{t('appts.cancelBtn')}</button>
+                <button className="text-muted transition hover:text-danger" disabled={busy} onClick={() => run('no-show', t('appts.toastNoShow'))}>{t('appts.noShowBtn')}</button>
               </div>
             )}
           </div>
@@ -106,38 +108,38 @@ export default function AppointmentDetailPage() {
         {/* เนื้อหา — label-value ราง (กฎ 1) */}
         <div className="mt-6 xl:order-1 xl:mt-0">
           {appt.property && (
-            <InfoGroup label="ทรัพย์ที่นัดดู" className="mb-4">
-              <InfoRow label="ทรัพย์" href={`/properties/${appt.property.id}`} strong hideChevron
+            <InfoGroup label={t('appts.secProperty')} className="mb-4">
+              <InfoRow label={t('appts.fieldProp')} href={`/properties/${appt.property.id}`} strong hideChevron
                 value={<span><span className="block">{appt.property.titleTh}</span><span className="mt-0.5 block font-mono text-xs font-normal text-faint">{appt.property.code}</span></span>} />
             </InfoGroup>
           )}
           {appt.lead && (
-            <InfoGroup label="ลูกค้า" className="mb-4">
-              <InfoRow label="ชื่อ" value={appt.lead.fullName} href={`/leads/${appt.lead.id}`} strong hideChevron />
-              <InfoRow label="เบอร์โทร" value={appt.lead.phone ? <PhoneLink phone={appt.lead.phone} /> : undefined} hideEmpty />
+            <InfoGroup label={t('appts.secCustomer')} className="mb-4">
+              <InfoRow label={t('common.name')} value={appt.lead.fullName} href={`/leads/${appt.lead.id}`} strong hideChevron />
+              <InfoRow label={t('common.phone')} value={appt.lead.phone ? <PhoneLink phone={appt.lead.phone} /> : undefined} hideEmpty />
             </InfoGroup>
           )}
-          <InfoGroup label="สถานที่ · ผู้ดูแล" className="mb-4">
-            <InfoRow label="สถานที่นัด" value={appt.location || undefined} />
-            <InfoRow label="ผู้รับผิดชอบ" value={appt.agent?.fullName || undefined} />
+          <InfoGroup label={t('appts.secWhereWho')} className="mb-4">
+            <InfoRow label={t('appts.fieldLocation')} value={appt.location || undefined} />
+            <InfoRow label={t('appts.fieldAgentInCharge')} value={appt.agent?.fullName || undefined} />
           </InfoGroup>
           {appt.status === 'cancelled' && appt.cancelReason && (
-            <InfoGroup label="เหตุผลที่ยกเลิก" className="mb-4">
-              <InfoRow label="เหตุผล" value={appt.cancelReason} stack />
+            <InfoGroup label={t('appts.secCancelReason')} className="mb-4">
+              <InfoRow label={t('appts.fieldReason')} value={appt.cancelReason} stack />
             </InfoGroup>
           )}
         </div>
       </div>
 
       {/* เลื่อนนัด */}
-      <Modal open={reOpen} onClose={() => { setReOpen(false); setReAt(''); }} title="เลื่อนนัด"
+      <Modal open={reOpen} onClose={() => { setReOpen(false); setReAt(''); }} title={t('appts.rescheduleTitle')}
         footer={
           <div className="flex justify-end gap-2">
-            <button type="button" className="btn-ghost" onClick={() => { setReOpen(false); setReAt(''); }}>ยกเลิก</button>
-            <button type="button" className="btn-gold" disabled={busy || !reAt} onClick={doReschedule}>ยืนยันเลื่อนนัด</button>
+            <button type="button" className="btn-ghost" onClick={() => { setReOpen(false); setReAt(''); }}>{t('common.cancel')}</button>
+            <button type="button" className="btn-gold" disabled={busy || !reAt} onClick={doReschedule}>{t('appts.rescheduleConfirm')}</button>
           </div>
         }>
-        <Field label="วันเวลานัดใหม่ *" type="datetime-local"
+        <Field label={`${t('appts.fieldNewWhen')} *`} type="datetime-local"
           hint={reAt ? fmtDateTime(reAt) : undefined} value={reAt} onChange={(e) => setReAt(e.target.value)} />
       </Modal>
     </div>

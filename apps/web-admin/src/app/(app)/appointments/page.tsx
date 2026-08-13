@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
 import { useLookup, useSearchLookup } from '@/lib/lookups';
@@ -19,19 +20,6 @@ interface Appt {
   property?: { titleTh: string; monthlyRent?: string }; // R2: list ส่งค่าเช่า → สถานะ·ค่าเช่า แบบหน้าทรัพย์
 }
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'ทั้งหมด' },
-  { value: 'upcoming', label: 'รอพบ' },
-  { value: 'done', label: 'พบแล้ว' },
-  { value: 'cancelled', label: 'ยกเลิก' },
-];
-
-const TIME_OPTIONS = [
-  { value: '', label: 'ทุกวัน' },
-  { value: 'today', label: 'วันนี้' },
-  { value: 'week', label: 'สัปดาห์นี้' },
-];
-
 const fmt = fmtDateTime;
 
 // วันที่ local (ไม่ใช้ toISOString ซึ่งเลื่อนไปเป็น UTC ใกล้เที่ยงคืนได้)
@@ -45,10 +33,21 @@ function thisWeekRange() {
 }
 
 export default function AppointmentsPage() {
+  const t = useTranslations();
   const { api, user, can } = useAuth();
   const toast = useToast();
   const router = useRouter();
   const sp = useSearchParams();
+  // ค่า value คงเดิม (ส่ง API) · สถานะ reuse APPOINTMENT_STATUS labelKey
+  const STATUS_OPTIONS = [
+    { value: '', label: t('common.all') },
+    ...Object.entries(APPOINTMENT_STATUS).map(([v, m]) => ({ value: v, label: t(m.labelKey) })),
+  ];
+  const TIME_OPTIONS = [
+    { value: '', label: t('appts.timeAll') },
+    { value: 'today', label: t('appts.timeToday') },
+    { value: 'week', label: t('appts.timeWeek') },
+  ];
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState(sp.get('status') ?? '');
   const [date, setDate] = useState('');
@@ -116,7 +115,7 @@ export default function AppointmentsPage() {
         setOpen(true);
         router.replace('/appointments'); // ล้าง param กันเปิดซ้ำตอน refresh/back
       })
-      .catch(() => toast.error('ไม่พบ Lead สำหรับสร้างนัด'));
+      .catch(() => toast.error(t('appts.errNoLead')));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newLeadId]);
   // deep-link จากหน้าทรัพย์: /appointments?newProperty={id} → เปิดฟอร์ม "นัดดูทรัพย์" prefill ทรัพย์ (ผู้ใช้เลือก Lead เอง)
@@ -135,7 +134,7 @@ export default function AppointmentsPage() {
         setOpen(true);
         router.replace('/appointments'); // ล้าง param กันเปิดซ้ำตอน refresh/back
       })
-      .catch(() => toast.error('ไม่พบทรัพย์สำหรับสร้างนัด'));
+      .catch(() => toast.error(t('appts.errNoProp')));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newPropId]);
   function setField<K extends keyof typeof blank>(k: K, v: (typeof blank)[K]) {
@@ -148,12 +147,12 @@ export default function AppointmentsPage() {
     e.preventDefault();
     const v: FErr = {};
     if (mode === 'viewing') {
-      if (!form.leadId) v.leadId = 'กรุณาเลือก Lead';
-      if (!form.propertyId) v.propertyId = 'กรุณาเลือกทรัพย์';
+      if (!form.leadId) v.leadId = t('appts.valLead');
+      if (!form.propertyId) v.propertyId = t('appts.valProperty');
     } else if (!form.title.trim()) {
-      v.title = 'กรุณาระบุหัวข้อนัด';
+      v.title = t('appts.valTitle');
     }
-    if (!form.scheduledAt) v.scheduledAt = 'กรุณาเลือกวันเวลานัด';
+    if (!form.scheduledAt) v.scheduledAt = t('appts.valWhen');
     if (Object.keys(v).length) { setFe(v); return; }
     setSaving(true); setErr('');
     try {
@@ -164,16 +163,16 @@ export default function AppointmentsPage() {
         durationMin: Number(form.durationMin), location: form.location || undefined,
       }) });
       setOpen(false); setForm(blank); setFe({}); setSeedLead(null); setSeedProp(null); reload();
-      toast.success('สร้างนัดหมายแล้ว');
-    } catch (e2) { setErr((e2 as { message?: string }).message || 'สร้างนัดไม่สำเร็จ'); }
+      toast.success(t('appts.toastAdded'));
+    } catch (e2) { setErr((e2 as { message?: string }).message || t('appts.toastCreateFailed')); }
     finally { setSaving(false); }
   }
 
   // Phase 24 (ข้อ 5): "นัดกับ" = ชื่อคนก่อน (lead) → title (นัดนอกรอบ) → รหัส · ทรัพย์อยู่คอลัมน์รองแล้ว ไม่ซ้ำ
-  const subject = (a: Appt) => a.lead?.fullName || a.title || `นัด ${a.code}`;
+  const subject = (a: Appt) => a.lead?.fullName || a.title || t('appts.subjectFallback', { code: a.code });
   const cols: Col<Appt>[] = [
     // 1) นัดกับ = ชื่อ + เบอร์ (two-line เกาะชุด · เบอร์ muted กดโทรได้ เหมือน lead list) · นัดนอกรอบไม่มี lead → title + —
-    { header: 'นัดกับ', primary: true, twoLine: true, cell: (a) => (
+    { header: t('appts.colSubject'), primary: true, twoLine: true, cell: (a) => (
       <div className="min-w-0">
         <div className="truncate font-medium text-ink">{subject(a)}</div>
         {a.lead?.phone
@@ -182,13 +181,13 @@ export default function AppointmentsPage() {
       </div>
     ) },
     // 2) วันที่·เวลา (คอลัมน์แยก · tabular-nums)
-    { header: 'วันที่-เวลา', sub: true, cell: (a) => <span className="whitespace-nowrap tabular-nums text-muted">{fmt(a.scheduledAt)}</span> },
+    { header: t('appts.colDateTime'), sub: true, cell: (a) => <span className="whitespace-nowrap tabular-nums text-muted">{fmt(a.scheduledAt)}</span> },
     // 3) ทรัพย์ → โชว์ทุกจอรวมมือถือ (owner เคาะ: นัดดูทรัพย์ต้องรู้ว่าดูตัวไหน) · นัดนอกรอบไม่มีทรัพย์ → —
-    { header: 'ทรัพย์', sub: true, width: 'w-48', cell: (a) => a.property
+    { header: t('appts.colProperty'), sub: true, width: 'w-48', cell: (a) => a.property
       ? <span className="truncate text-muted">{a.property.titleTh}</span>
       : <span className="text-faint">—</span> },
     // 4) สถานะ · ค่าเช่า (แบบหน้าทรัพย์: สถานะบน · ค่าเช่าล่าง · จัดกึ่งกลางเข้าหากัน) · นัดนอกรอบไม่มีทรัพย์ → ไม่มีค่าเช่า
-    { header: 'สถานะ · ค่าเช่า', right: true, width: 'w-40', cell: (a) => (
+    { header: t('appts.colStatusRent'), right: true, width: 'w-40', cell: (a) => (
       <div className="flex flex-col items-center gap-1">
         <StatusBadge map={APPOINTMENT_STATUS} value={a.status} outline />
         {a.property?.monthlyRent != null && (
@@ -200,8 +199,8 @@ export default function AppointmentsPage() {
 
   return (
     <div>
-      <PageHeader title="นัดหมาย" count={`${meta.total ?? 0} รายการ`}
-        action={can('appointment', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> นัด</button>} />
+      <PageHeader title={t('nav.appointments')} count={t('common.itemCount', { n: meta.total ?? 0 })}
+        action={can('appointment', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> {t('appts.addBtn')}</button>} />
       {/* P11: สถานะ = quick-filter เห็นชัด แตะเดียว (ของใช้บ่อยสุด) — ไม่ต้องเปิดแผ่นตัวกรอง */}
       <div className="mt-4 -mb-1">
         <Segmented options={STATUS_OPTIONS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
@@ -212,69 +211,69 @@ export default function AppointmentsPage() {
       </div>
       <FilterBar
         searchWide
-        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: 'ค้นหารหัส/ลูกค้า/ทรัพย์…' }}
+        search={{ value: q, onChange: (v) => { setPage(1); setQ(v); }, placeholder: t('appts.searchPlaceholder') }}
         filters={[
           // ผู้รับผิดชอบ: ของฉัน = agent โฟกัสนัดตัวเอง (consistent กับลีด)
-          { key: 'mine', label: 'ผู้รับผิดชอบ', value: mine, onChange: (v) => { setPage(1); setMine(v); }, options: [{ value: '', label: 'ผู้รับผิดชอบทั้งหมด' }, { value: 'me', label: 'ของฉัน' }] },
-          { key: 'date', label: 'เลือกวันที่เอง', type: 'date', value: date, onChange: (v) => { setPage(1); setDate(v); setDateFrom(''); setDateTo(''); } },
+          { key: 'mine', label: t('appts.filterMine'), value: mine, onChange: (v) => { setPage(1); setMine(v); }, options: [{ value: '', label: t('appts.mineAll') }, { value: 'me', label: t('appts.mineMe') }] },
+          { key: 'date', label: t('appts.filterDate'), type: 'date', value: date, onChange: (v) => { setPage(1); setDate(v); setDateFrom(''); setDateTo(''); } },
         ]}
-        sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: [{ value: 'asc', label: 'วันนัด ใกล้→ไกล' }, { value: 'desc', label: 'วันนัด ไกล→ใกล้' }] }}
+        sort={{ value: sort, onChange: (v) => { setPage(1); setSort(v); }, options: [{ value: 'asc', label: t('appts.sortAsc') }, { value: 'desc', label: t('appts.sortDesc') }] }}
       />
 
       <div className="mt-4 mouse:card mouse:overflow-hidden">
         <ListView items={rows} cols={cols} keyOf={(a) => a.id} loading={loading}
           emptyIcon={filtered ? 'search' : 'calendar'}
-          empty={filtered ? 'ไม่พบนัดหมายตามเงื่อนไขที่เลือก' : 'ยังไม่มีนัดหมาย'}
+          empty={filtered ? t('appts.emptyNoMatch') : t('appts.emptyNone')}
           emptyAction={filtered
-            ? <button className="btn-ghost btn-sm" onClick={clearFilters}>ล้างตัวกรอง</button>
-            : (can('appointment', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> เพิ่มนัด</button>)}
+            ? <button className="btn-ghost btn-sm" onClick={clearFilters}>{t('common.clearFilters')}</button>
+            : (can('appointment', 'create') && <button className="btn-gold btn-sm" onClick={() => setOpen(true)}><Icon name="plus" size={16} /> {t('appts.addBtnFull')}</button>)}
           onRow={(a) => router.push(`/appointments/${a.id}`)} />
       </div>
       <Pagination meta={meta} page={page} setPage={setPage} />
 
       {/* create */}
-      <Modal open={open} onClose={close} title="สร้างนัดหมาย"
+      <Modal open={open} onClose={close} title={t('appts.addTitle')}
         confirmOnClose={!!(form.scheduledAt || form.location.trim() || form.title.trim())}>
         <form onSubmit={create} className="space-y-5">
           <Segmented
-            options={[{ value: 'viewing', label: 'นัดดูทรัพย์' }, { value: 'general', label: 'นัดนอกรอบ' }]}
+            options={[{ value: 'viewing', label: t('appts.modeViewing') }, { value: 'general', label: t('appts.modeGeneral') }]}
             value={mode} onChange={(v) => { setMode(v as 'viewing' | 'general'); setFe({}); }} />
 
           {/* หมวด 1 — ใคร/ทรัพย์ไหน (แยกหมวด §10 · หัวข้อไม่มีไอคอน §10b) */}
           <div className="space-y-3">
-            <SectionLabel>{mode === 'viewing' ? 'นัดกับใคร · ทรัพย์ไหน' : 'รายละเอียดนัด'}</SectionLabel>
+            <SectionLabel>{mode === 'viewing' ? t('appts.secWhoWhat') : t('appts.secDetail')}</SectionLabel>
             {mode === 'viewing' ? (
               <>
-                <Combobox label="Lead *" error={fe.leadId} placeholder="— เลือก Lead —" value={form.leadId} onChange={(v) => setField('leadId', v)} options={seedLead && !leads.options.some((o) => o.value === seedLead.value) ? [seedLead, ...leads.options] : leads.options} onSearch={leads.setQuery} loading={leads.loading} loadError={leads.error} onRetry={leads.reload} />
-                <Combobox label="ทรัพย์ *" error={fe.propertyId} placeholder="— เลือกทรัพย์ —" value={form.propertyId} onChange={(v) => setField('propertyId', v)} options={seedProp && !props.options.some((o) => o.value === seedProp.value) ? [seedProp, ...props.options] : props.options} onSearch={props.setQuery} loading={props.loading} loadError={props.error} onRetry={props.reload} />
+                <Combobox label={`${t('appts.fieldLead')} *`} error={fe.leadId} placeholder={t('appts.selectLead')} value={form.leadId} onChange={(v) => setField('leadId', v)} options={seedLead && !leads.options.some((o) => o.value === seedLead.value) ? [seedLead, ...leads.options] : leads.options} onSearch={leads.setQuery} loading={leads.loading} loadError={leads.error} onRetry={leads.reload} />
+                <Combobox label={`${t('appts.fieldProperty')} *`} error={fe.propertyId} placeholder={t('appts.selectProperty')} value={form.propertyId} onChange={(v) => setField('propertyId', v)} options={seedProp && !props.options.some((o) => o.value === seedProp.value) ? [seedProp, ...props.options] : props.options} onSearch={props.setQuery} loading={props.loading} loadError={props.error} onRetry={props.reload} />
               </>
             ) : (
-              <Field label="หัวข้อนัด *" error={fe.title} placeholder="เช่น ประชุมทีม, นัดเจ้าของทรัพย์" value={form.title} onChange={(e) => setField('title', e.target.value)} />
+              <Field label={`${t('appts.fieldTitle')} *`} error={fe.title} placeholder={t('appts.titlePlaceholder')} value={form.title} onChange={(e) => setField('title', e.target.value)} />
             )}
-            <Combobox label="พนักงานรับผิดชอบ" value={form.agentId} onChange={(v) => setField('agentId', v)} options={[{ value: '', label: '— ตัวฉันเอง —' }, ...agents.options]} loadError={agents.error} onRetry={agents.reload} />
+            <Combobox label={t('appts.fieldAgent')} value={form.agentId} onChange={(v) => setField('agentId', v)} options={[{ value: '', label: t('appts.agentSelf') }, ...agents.options]} loadError={agents.error} onRetry={agents.reload} />
           </div>
 
           {/* หมวด 2 — เมื่อไหร่ (วันเวลา + ระยะเวลา จับคู่แถวเดียว sm+) */}
           <div className="space-y-3">
-            <SectionLabel>เมื่อไหร่</SectionLabel>
+            <SectionLabel>{t('appts.secWhen')}</SectionLabel>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="วันเวลานัด *" type="datetime-local" error={fe.scheduledAt}
+              <Field label={`${t('appts.fieldWhen')} *`} type="datetime-local" error={fe.scheduledAt}
                 hint={form.scheduledAt ? fmtDateTime(form.scheduledAt) : undefined}
                 value={form.scheduledAt} onChange={(e) => setField('scheduledAt', e.target.value)} />
-              <Field label="ระยะเวลา (นาที)" type="number" value={form.durationMin} onChange={(e) => setField('durationMin', Number(e.target.value))} />
+              <Field label={t('appts.fieldDuration')} type="number" value={form.durationMin} onChange={(e) => setField('durationMin', Number(e.target.value))} />
             </div>
           </div>
 
           {/* หมวด 3 — ที่ไหน */}
           <div className="space-y-3">
-            <SectionLabel>ที่ไหน</SectionLabel>
-            <Field label="สถานที่นัด" value={form.location} onChange={(e) => setField('location', e.target.value)} />
+            <SectionLabel>{t('appts.secWhere')}</SectionLabel>
+            <Field label={t('appts.fieldLocation')} value={form.location} onChange={(e) => setField('location', e.target.value)} />
           </div>
 
           {err && <p className="text-sm text-danger">{err}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" className="btn-ghost" onClick={close}>ยกเลิก</button>
-            <button className="btn-gold" disabled={saving}>{saving ? 'กำลังสร้าง…' : 'สร้างนัด'}</button>
+            <button type="button" className="btn-ghost" onClick={close}>{t('common.cancel')}</button>
+            <button className="btn-gold" disabled={saving}>{saving ? t('appts.creating') : t('appts.createBtn')}</button>
           </div>
         </form>
       </Modal>

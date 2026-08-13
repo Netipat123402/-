@@ -107,6 +107,24 @@ export function relTime(iso: string, t: TFn, fallback?: (d: Date) => string): st
   return fallback ? fallback(d) : fmtDate(iso);
 }
 
+/** เวลานับถอยหลัง i18n (รับ t) — "อีก X นาที/ชม./พรุ่งนี้/X วัน" · เกิน 7 วัน → fmtDate
+ *  ใช้เป็น urgency hint ของนัดใกล้ครบ (คู่ relTime ที่ทำอดีต) — แทน fmtUntil (ไทยล้วน) ในหน้าที่มี t */
+export function relUntil(iso: string | undefined, t: TFn): string {
+  const d = parse(iso);
+  if (!d) return '';
+  const sec = Math.round((d.getTime() - Date.now()) / 1000);
+  if (sec < -60) return t('time.overdue');
+  if (sec < 60) return t('time.dueNow');
+  const min = Math.round(sec / 60);
+  if (min < 60) return t('time.inMinutes', { m: min });
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return t('time.inHours', { h: hr });
+  const day = Math.round(hr / 24);
+  if (day === 1) return t('time.tomorrow');
+  if (day < 7) return t('time.inDays', { d: day });
+  return fmtDate(iso);
+}
+
 /** เวลานับถอยหลัง (อนาคต) เช่น "อีก 5 นาที" / "อีก 2 ชม." / "พรุ่งนี้" / "อีก 3 วัน"
  *  เกิน ~7 วัน → คืนวันที่เต็ม (fmtDate). อดีต → "เลยกำหนดแล้ว".
  *  ใช้เป็น urgency hint ของนัด/สัญญาใกล้ครบ (คู่กับ fmtRelative ที่ทำเฉพาะอดีต) */
