@@ -38,7 +38,9 @@ export default function SidebarAccount({ collapsed }: { collapsed: boolean }) {
   const roleLabel = role && KNOWN_ROLES.includes(role) ? t(`users.role.${role}`) : role;
 
   return (
-    <div className="relative shrink-0 border-t border-border" ref={ref}>
+    // translate="no": identity/บัญชี ไม่ควรถูกเบราว์เซอร์แปลซ้ำ (แอปมี i18n เอง) ·
+    // กัน Google Translate แทรก <font> ดัน DOM → absolute popover เพี้ยน/ตกขอบ
+    <div className="relative shrink-0 border-t border-border" ref={ref} translate="no">
       <button onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu" aria-expanded={open} aria-label={t('shell.account')}
         title={collapsed ? user.fullName : undefined}
@@ -59,7 +61,7 @@ export default function SidebarAccount({ collapsed }: { collapsed: boolean }) {
 
       {open && (
         <div role="menu"
-          className={`absolute bottom-full z-50 mb-2 overflow-hidden rounded-xl2 border border-border bg-surface shadow-lift ${collapsed ? 'left-2 w-56' : 'left-2 right-2'}`}>
+          className={`absolute bottom-full z-50 mb-2 max-h-[calc(100dvh-4rem)] overflow-y-auto rounded-xl2 border border-border bg-surface shadow-lift ${collapsed ? 'left-2 w-56' : 'left-2 right-2'}`}>
           <div className="border-b border-border px-4 py-3">
             <p className="truncate font-medium">{user.fullName}</p>
             <p className="truncate text-xs text-muted">{user.email}</p>
