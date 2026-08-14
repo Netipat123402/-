@@ -810,5 +810,32 @@
     "retentionCustomer": "Customer data retention",
     "years": "{n} years",
     "systemNote": "These system values can be adjusted in a later phase."
+  },
+  "community": {
+    "title": "Community",
+    "subtitle": "Bulletin board from users — approve before showing on the site",
+    "postCount": "{n} posts",
+    "category": {
+      "looking_room": "Looking for room",
+      "looking_condo": "Looking for condo",
+      "for_rent": "For rent",
+      "looking_tenant": "Looking for tenant",
+      "buy_sell": "Buy & sell"
+    },
+    "status": {
+      "pending": "Pending",
+      "published": "Published",
+      "archived": "Archived",
+      "rejected": "Rejected"
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "archive": "Archive",
+    "approvedToast": "Approved",
+    "rejectedToast": "Rejected",
+    "archivedToast": "Archived",
+    "actionFailed": "Action failed",
+    "emptyPending": "No posts awaiting approval",
+    "emptyOther": "No posts in this category"
   }
 }

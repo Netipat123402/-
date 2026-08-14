@@ -1,85 +1,83 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { useList } from '@/lib/useList';
 import { useToast } from '@/components/Toast';
 import { EmptyState, ListSkeleton, PageHeader, Pagination, Segmented, PAGE_SIZE } from '@/components/ui';
 import { Icon } from '@/components/Icon';
+import { relTime } from '@/lib/format';
 
 interface Post {
   id: string; category: string; body: string; displayName: string;
   status: string; createdAt: string; publishedAt?: string;
 }
 
-const CATEGORY_TH: Record<string, string> = {
-  looking_room: 'หาห้อง', looking_condo: 'หาคอนโด', for_rent: 'ปล่อยเช่า',
-  looking_tenant: 'หาผู้เช่า', buy_sell: 'ซื้อขาย',
+const ACT_TOAST: Record<'approve' | 'reject' | 'archive', string> = {
+  approve: 'community.approvedToast', reject: 'community.rejectedToast', archive: 'community.archivedToast',
 };
-const STATUS_TABS = [
-  { value: 'pending', label: 'รออนุมัติ' },
-  { value: 'published', label: 'เผยแพร่แล้ว' },
-  { value: 'archived', label: 'เก็บถาวร' },
-  { value: 'rejected', label: 'ไม่อนุมัติ' },
-];
-
-function timeAgo(iso: string) {
-  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return 'เมื่อสักครู่';
-  if (m < 60) return `${m} นาทีที่แล้ว`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 export default function CommunityPage() {
   const { api } = useAuth();
   const toast = useToast();
+  const t = useTranslations();
   const [status, setStatus] = useState('pending');
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState('');
   const { rows, meta, loading, reload } = useList<Post>(`/community?status=${status}&page=${page}&limit=${PAGE_SIZE}`, { pollMs: 20000 });
 
-  async function act(id: string, action: 'approve' | 'reject' | 'archive', label: string) {
+  const statusTabs = [
+    { value: 'pending', label: t('community.status.pending') },
+    { value: 'published', label: t('community.status.published') },
+    { value: 'archived', label: t('community.status.archived') },
+    { value: 'rejected', label: t('community.status.rejected') },
+  ];
+  const categoryLabel = (c: string) => {
+    const known = ['looking_room', 'looking_condo', 'for_rent', 'looking_tenant', 'buy_sell'];
+    return known.includes(c) ? t(`community.category.${c}`) : c;
+  };
+
+  async function act(id: string, action: 'approve' | 'reject' | 'archive') {
     setBusy(id);
-    try { await api(`/community/${id}/${action}`, { method: 'PATCH' }); reload(); toast.success(`${label}แล้ว`); }
-    catch (e) { toast.error((e as { message?: string }).message || 'ทำรายการไม่สำเร็จ'); }
+    try { await api(`/community/${id}/${action}`, { method: 'PATCH' }); reload(); toast.success(t(ACT_TOAST[action])); }
+    catch (e) { toast.error((e as { message?: string }).message || t('community.actionFailed')); }
     finally { setBusy(''); }
   }
 
   return (
     <div>
-      <PageHeader title="ชุมชน" subtitle="กระดานประกาศจากผู้ใช้ — อนุมัติก่อนแสดงบนเว็บ" count={`${meta.total ?? 0} โพสต์`} />
+      <PageHeader title={t('community.title')} subtitle={t('community.subtitle')} count={t('community.postCount', { n: meta.total ?? 0 })} />
 
       <div className="mt-4">
-        <Segmented options={STATUS_TABS} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
+        <Segmented options={statusTabs} value={status} onChange={(v) => { setPage(1); setStatus(v); }} />
       </div>
 
       <div className="mt-4 card overflow-hidden">
         {loading ? <ListSkeleton /> : rows.length === 0 ? (
-          <EmptyState text={status === 'pending' ? 'ไม่มีโพสต์รออนุมัติ' : 'ไม่มีโพสต์ในหมวดนี้'} icon="users" />
+          <EmptyState text={status === 'pending' ? t('community.emptyPending') : t('community.emptyOther')} icon="users" />
         ) : (
           <ul className="divide-y divide-border">
             {rows.map((p) => (
               <li key={p.id} className="px-4 py-4">
                 <div className="flex items-center gap-2">
-                  <span className="badge bg-gold/15 text-gold-dark">{CATEGORY_TH[p.category] ?? p.category}</span>
-                  <span className="text-xs text-muted">{timeAgo(p.createdAt)}</span>
+                  <span className="badge bg-gold/15 text-gold-dark">{categoryLabel(p.category)}</span>
+                  <span className="text-xs text-muted">{relTime(p.createdAt, t)}</span>
                 </div>
                 <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-soft">{p.body}</p>
                 <p className="mt-2 text-xs text-muted">— {p.displayName}</p>
 
                 {status === 'pending' && (
                   <div className="mt-3 flex gap-2">
-                    <button className="btn-gold btn-sm" disabled={!!busy} onClick={() => act(p.id, 'approve', 'อนุมัติ')}>
-                      <Icon name="check" size={15} /> อนุมัติ
+                    <button className="btn-gold btn-sm" disabled={!!busy} onClick={() => act(p.id, 'approve')}>
+                      <Icon name="check" size={15} /> {t('community.approve')}
                     </button>
-                    <button className="btn-ghost btn-sm text-danger" disabled={!!busy} onClick={() => act(p.id, 'reject', 'ไม่อนุมัติ')}>ไม่อนุมัติ</button>
+                    <button className="btn-ghost btn-sm text-danger" disabled={!!busy} onClick={() => act(p.id, 'reject')}>{t('community.reject')}</button>
                   </div>
                 )}
                 {status === 'published' && (
                   <div className="mt-3">
-                    <button className="btn-ghost btn-sm" disabled={!!busy} onClick={() => act(p.id, 'archive', 'เก็บถาวร')}>เก็บถาวร</button>
+                    <button className="btn-ghost btn-sm" disabled={!!busy} onClick={() => act(p.id, 'archive')}>{t('community.archive')}</button>
                   </div>
                 )}
               </li>

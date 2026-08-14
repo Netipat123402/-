@@ -810,5 +810,32 @@
     "retentionCustomer": "เก็บข้อมูลลูกค้า",
     "years": "{n} ปี",
     "systemNote": "ค่าระบบเหล่านี้ปรับได้ในเฟสถัดไป"
+  },
+  "community": {
+    "title": "ชุมชน",
+    "subtitle": "กระดานประกาศจากผู้ใช้ — อนุมัติก่อนแสดงบนเว็บ",
+    "postCount": "{n} โพสต์",
+    "category": {
+      "looking_room": "หาห้อง",
+      "looking_condo": "หาคอนโด",
+      "for_rent": "ปล่อยเช่า",
+      "looking_tenant": "หาผู้เช่า",
+      "buy_sell": "ซื้อขาย"
+    },
+    "status": {
+      "pending": "รออนุมัติ",
+      "published": "เผยแพร่แล้ว",
+      "archived": "เก็บถาวร",
+      "rejected": "ไม่อนุมัติ"
+    },
+    "approve": "อนุมัติ",
+    "reject": "ไม่อนุมัติ",
+    "archive": "เก็บถาวร",
+    "approvedToast": "อนุมัติแล้ว",
+    "rejectedToast": "ไม่อนุมัติแล้ว",
+    "archivedToast": "เก็บถาวรแล้ว",
+    "actionFailed": "ทำรายการไม่สำเร็จ",
+    "emptyPending": "ไม่มีโพสต์รออนุมัติ",
+    "emptyOther": "ไม่มีโพสต์ในหมวดนี้"
   }
 }
