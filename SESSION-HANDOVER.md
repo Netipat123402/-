@@ -108,8 +108,12 @@
         - FE: **[`lib/notif.ts`](apps/web-admin/src/lib/notif.ts) helper ร่วม** (`notifTitle/notifBody` + `notifValues`: date at→fmtDateTime/date→fmtDate · whatKey→resolve · fields[]→changes) ใช้ทั้ง `NotificationBell` + `notifications/page` · fallback stored title/body (row เก่า)
         - **หน้า `/notifications` เต็ม (ตกสำรวจ C-system!) migrate เต็ม:** chrome/cat labels/CategoryBar/relTime ร่วม · **fix หมวด owner ตกหล่น** (+CAT_META.owner +notif.cat.owner=Owners/เจ้าของ)
         - messages `notif.*` (63 key: 20 event title/body · what.* · ownerField/Flag · cat.* · page chrome) EN/TH glossary lead→ผู้สนใจ
-        - **verify authed live end-to-end:** POST public lead (LD-2026-0004) → notif ใหม่ render i18n · สลับ EN↔TH พร้อม params (New lead from website ↔ ผู้สนใจใหม่จากเว็บไซต์) · legacy fallback · chrome+cat+mobile responsive · API :4000 คืนคอลัมน์ใหม่ (client ใหม่โหลดแล้ว) · 63 key cross-check ครบ 2 ภาษา · typecheck api+web ผ่าน
-        - 🔸 **artifact:** test lead **"i18n Verify Test" (LD-2026-0004)** ค้างใน DB จาก verify (ลบได้ที่หน้า ผู้สนใจ) · ⚠️ `migrate status` โชว์ 0011/0012 "not applied" = drift เดิม (ไม่ใช่ของ session นี้ · อย่า `migrate dev`)
+        - **verify authed live end-to-end (สมบูรณ์ทุก rendering path):**
+          - simple params: POST public lead → notif render i18n สลับ EN↔TH (New lead from website ↔ ผู้สนใจใหม่จากเว็บไซต์)
+          - **complex paths (synthetic notif · psql INSERT→view EN/TH→DELETE · ไม่แตะ entity จริง):** `fields[]→changes` (owner edit: "Phone: X → Y · Address · ID card (hidden)") · `whatKey→what` nested (contract: added term "…") · `date at→fmtDateTime` (appt: "20 Aug 26 · 14:30") — ครบทั้ง EN+TH
+          - legacy fallback (row เก่าคงไทย) · chrome+cat+mobile responsive · API :4000 คืนคอลัมน์ใหม่ · 63 key cross-check ครบ 2 ภาษา · typecheck api+web ผ่าน
+        - **cleanup ครบ:** test lead LD-2026-0004 soft-deleted · leadWeb+synthetic notif ลบหมด · DB กลับ 12 notif เดิม
+        - ⚠️ `migrate status` โชว์ 0011/0012 "not applied" = drift เดิม (ไม่ใช่ของ session นี้ · อย่า `migrate dev`)
   - **⭐ แม่แบบต่อ entity/หน้า (พิสูจน์แล้ว 7 entity · ทำเร็วขึ้นเรื่อยๆ):**
     - สร้าง namespace ต่อ entity ผ่าน **สคริปต์ Python** (`scratchpad/add_*.py` — load json object_pairs_hook=OrderedDict → เพิ่ม key → dump ensure_ascii=False indent=2) แม่นกว่าแก้ JSON มือ
     - client: `const t = useTranslations()` · ย้าย option const (STATUS/SORT) เข้า component แปลด้วย t · **status options reuse `*_STATUS` labelKey** (`Object.entries(X).map(([v,m])=>({value:v,label:t(m.labelKey)}))`)
