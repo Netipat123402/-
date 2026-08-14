@@ -393,7 +393,9 @@
     "clearAria": "Clear",
     "commands": "Commands",
     "goto": "Go to",
-    "addProperty": "Add property"
+    "addProperty": "Add property",
+    "pageTitle": "Search",
+    "pageSubtitle": "Properties · Leads · Customers · Owners — or type a command to jump to a page"
   },
   "notif": {
     "title": "Notifications",
