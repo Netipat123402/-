@@ -161,7 +161,11 @@
     "fullName": "ชื่อ-นามสกุล",
     "address": "ที่อยู่",
     "note": "โน้ต",
-    "idCard": "เลขบัตรประชาชน"
+    "idCard": "เลขบัตรประชาชน",
+    "role": "บทบาท",
+    "status": "สถานะ",
+    "show": "แสดง",
+    "hide": "ซ่อน"
   },
   "propertyType": {
     "condo": "คอนโด",
@@ -837,5 +841,55 @@
     "actionFailed": "ทำรายการไม่สำเร็จ",
     "emptyPending": "ไม่มีโพสต์รออนุมัติ",
     "emptyOther": "ไม่มีโพสต์ในหมวดนี้"
+  },
+  "users": {
+    "title": "ผู้ใช้งาน",
+    "accountCount": "{n} บัญชี",
+    "accountShort": "บัญชี",
+    "searchPlaceholder": "ค้นหาชื่อ/อีเมล…",
+    "emptyList": "ยังไม่มีผู้ใช้",
+    "createTitle": "สร้างบัญชีผู้ใช้",
+    "password": "รหัสผ่าน",
+    "passwordHint": "อย่างน้อย 8 ตัว มีทั้งตัวอักษรและตัวเลข",
+    "passwordHintShort": "อย่างน้อย 8 ตัว มีตัวอักษร+ตัวเลข",
+    "creating": "กำลังสร้าง…",
+    "createBtn": "สร้างบัญชี",
+    "createdToast": "สร้างบัญชีแล้ว",
+    "createFailed": "สร้างไม่สำเร็จ",
+    "valFullName": "กรุณากรอกชื่อ-นามสกุล",
+    "valEmail": "อีเมลไม่ถูกต้อง",
+    "valPhone": "เบอร์โทรต้องมี 10 หลัก",
+    "valPassword": "รหัสผ่านอย่างน้อย 8 ตัว และต้องมีทั้งตัวอักษรและตัวเลข",
+    "editAccount": "แก้ไขบัญชี",
+    "suspendOption": "ระงับการใช้งาน",
+    "saveEdit": "บันทึกการแก้ไข",
+    "savedEditToast": "บันทึกการแก้ไขแล้ว",
+    "setNewPassword": "ตั้งรหัสผ่านใหม่",
+    "resetPwBtn": "รีเซ็ตรหัสผ่าน",
+    "resetPwNote": "รีเซ็ตแล้วบัญชีนี้จะถูกบังคับออกจากระบบทุกอุปกรณ์",
+    "resetPwToast": "รีเซ็ตรหัสผ่านแล้ว — บัญชีนี้ถูกบังคับเข้าสู่ระบบใหม่",
+    "resetFailed": "รีเซ็ตไม่สำเร็จ",
+    "deleteBtn": "ลบบัญชีนี้ถาวร",
+    "deleteNote": "งานที่บัญชีนี้ดูแลอยู่จะกลายเป็น “ยังไม่มีผู้รับผิดชอบ”",
+    "deleteTitle": "ลบบัญชีถาวร",
+    "confirmDelete": "ลบถาวร",
+    "deleteMessage": "ลบบัญชี <b>{name}</b> ({email}) อย่างถาวร? การลบไม่สามารถย้อนกลับได้",
+    "deletedToast": "ลบบัญชีแล้ว",
+    "deleteFailed": "ลบไม่สำเร็จ",
+    "role": {
+      "super_admin": "ผู้ดูแลสูงสุด",
+      "property_manager": "ผู้จัดการ",
+      "sales_agent": "พนักงานขาย",
+      "company_admin": "ผู้บริหาร",
+      "branch_manager": "ผจก.สาขา",
+      "team_lead": "หัวหน้าทีม",
+      "back_office": "หลังบ้าน",
+      "auditor": "ผู้ตรวจสอบ"
+    },
+    "status": {
+      "active": "ใช้งาน",
+      "invited": "รอเปิดใช้",
+      "suspended": "ระงับ"
+    }
   }
 }

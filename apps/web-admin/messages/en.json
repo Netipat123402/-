@@ -161,7 +161,11 @@
     "fullName": "Full name",
     "address": "Address",
     "note": "Note",
-    "idCard": "ID card number"
+    "idCard": "ID card number",
+    "role": "Role",
+    "status": "Status",
+    "show": "Show",
+    "hide": "Hide"
   },
   "propertyType": {
     "condo": "Condo",
@@ -837,5 +841,55 @@
     "actionFailed": "Action failed",
     "emptyPending": "No posts awaiting approval",
     "emptyOther": "No posts in this category"
+  },
+  "users": {
+    "title": "Users",
+    "accountCount": "{n} accounts",
+    "accountShort": "Account",
+    "searchPlaceholder": "Search name / email…",
+    "emptyList": "No users yet",
+    "createTitle": "Create user account",
+    "password": "Password",
+    "passwordHint": "At least 8 characters with both letters and numbers",
+    "passwordHintShort": "At least 8 chars with letters + numbers",
+    "creating": "Creating…",
+    "createBtn": "Create account",
+    "createdToast": "Account created",
+    "createFailed": "Create failed",
+    "valFullName": "Please enter your full name",
+    "valEmail": "Invalid email",
+    "valPhone": "Phone must be 10 digits",
+    "valPassword": "Password must be at least 8 characters and include both letters and numbers",
+    "editAccount": "Edit account",
+    "suspendOption": "Suspend account",
+    "saveEdit": "Save changes",
+    "savedEditToast": "Changes saved",
+    "setNewPassword": "Set new password",
+    "resetPwBtn": "Reset password",
+    "resetPwNote": "After reset, this account is signed out on all devices",
+    "resetPwToast": "Password reset — this account is forced to sign in again",
+    "resetFailed": "Reset failed",
+    "deleteBtn": "Delete this account permanently",
+    "deleteNote": "Work owned by this account will become “Unassigned”",
+    "deleteTitle": "Delete account permanently",
+    "confirmDelete": "Delete permanently",
+    "deleteMessage": "Delete account <b>{name}</b> ({email}) permanently? This cannot be undone.",
+    "deletedToast": "Account deleted",
+    "deleteFailed": "Delete failed",
+    "role": {
+      "super_admin": "Super admin",
+      "property_manager": "Manager",
+      "sales_agent": "Sales agent",
+      "company_admin": "Executive",
+      "branch_manager": "Branch manager",
+      "team_lead": "Team lead",
+      "back_office": "Back office",
+      "auditor": "Auditor"
+    },
+    "status": {
+      "active": "Active",
+      "invited": "Invited",
+      "suspended": "Suspended"
+    }
   }
 }
