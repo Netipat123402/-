@@ -7,7 +7,25 @@ import { Icon } from '@/components/Icon';
 import { thaiifyActivity } from '@/lib/status';
 import { relTime, fmtDateTime } from '@/lib/format';
 
-interface Activity { id: string; action: string; summary?: string; createdAt: string; }
+interface ActivityI18n { key: string; params?: Record<string, string | number> }
+interface Activity {
+  id: string; action: string; summary?: string; createdAt: string;
+  metadata?: { i18n?: ActivityI18n } | null;
+}
+
+// enum สถานะที่ฝังใน param (from/to/status) → แปลผ่าน activity.status.* · date param (at) → format
+const STATUS_ENUMS = new Set(['draft', 'available', 'rented', 'new', 'working', 'closed', 'upcoming', 'done', 'cancelled', 'no_show', 'active', 'ended']);
+type TFn = (key: string, values?: Record<string, string | number>) => string;
+function localizeParams(params: Record<string, string | number> | undefined, t: TFn): Record<string, string | number> {
+  if (!params) return {};
+  const out: Record<string, string | number> = { ...params };
+  for (const k of ['from', 'to', 'status']) {
+    const v = out[k];
+    if (typeof v === 'string' && STATUS_ENUMS.has(v)) out[k] = t(`activity.status.${v}`);
+  }
+  if (typeof out.at === 'string') out.at = fmtDateTime(out.at);
+  return out;
+}
 
 /** ไทม์ไลน์กิจกรรม (Activity log) ของ entity — path เช่น /properties/:id/activities */
 export default function ActivityTimeline({ path, limit = 5 }: { path: string; limit?: number }) {
@@ -35,7 +53,11 @@ export default function ActivityTimeline({ path, limit = 5 }: { path: string; li
         {shown.map((a) => (
           <li key={a.id} className="relative">
             <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-gold" />
-            <p className="text-sm">{a.summary ? thaiifyActivity(a.summary) : a.action}</p>
+            <p className="text-sm">{
+              a.metadata?.i18n?.key
+                ? t(a.metadata.i18n.key, localizeParams(a.metadata.i18n.params, t))
+                : (a.summary ? thaiifyActivity(a.summary) : a.action)
+            }</p>
             <p className="text-xs text-muted">{relTime(a.createdAt, t, () => fmtDateTime(a.createdAt))}</p>
           </li>
         ))}

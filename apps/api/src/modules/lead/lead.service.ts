@@ -72,7 +72,7 @@ export class LeadService {
         throw e;
       }
     }
-    await this.activity.log({ entityType: 'lead', entityId: lead.id, action: 'create', actorId: user.id, summary: `สร้าง Lead ${lead.code}` });
+    await this.activity.log({ entityType: 'lead', entityId: lead.id, action: 'create', actorId: user.id, summary: `สร้าง Lead ${lead.code}`, i18nKey: 'activity.lead.create', i18nParams: { code: lead.code } });
     await this.audit.record(user, { action: 'create', entityType: 'lead', entityId: lead.id, newValue: { code: lead.code }, ...meta });
     return lead;
   }
@@ -153,9 +153,9 @@ export class LeadService {
       where: { id },
       data: { assignedToId: dto.assignedToId, ...(alsoStart ? { status: LeadStatus.working } : {}), updatedBy: user.id },
     });
-    await this.activity.log({ entityType: 'lead', entityId: id, action: 'assign', actorId: user.id, summary: `มอบหมาย Lead ให้ ${dto.assignedToId}` });
+    await this.activity.log({ entityType: 'lead', entityId: id, action: 'assign', actorId: user.id, summary: `มอบหมาย Lead ให้ ${dto.assignedToId}`, i18nKey: 'activity.lead.assign', i18nParams: { assignee: dto.assignedToId } });
     if (alsoStart) {
-      await this.activity.log({ entityType: 'lead', entityId: id, action: 'status_change', actorId: user.id, summary: `Lead: ${existing.status} → working`, metadata: { from: existing.status, to: 'working' } });
+      await this.activity.log({ entityType: 'lead', entityId: id, action: 'status_change', actorId: user.id, summary: `Lead: ${existing.status} → working`, metadata: { from: existing.status, to: 'working' }, i18nKey: 'activity.lead.status', i18nParams: { from: existing.status, to: 'working' } });
     }
     // แจ้งเตือนเฉพาะเมื่อมอบให้ "คนอื่น" (รับดูแลเอง = ไม่ต้องเด้งหาตัวเอง)
     if (dto.assignedToId !== user.id) {
@@ -178,7 +178,7 @@ export class LeadService {
     const updated = await this.prisma.lead.update({
       where: { id }, data: { status: to, lostReason: to === 'closed' ? (lostReason ?? lead.lostReason) : lead.lostReason, updatedBy: user.id },
     });
-    await this.activity.log({ entityType: 'lead', entityId: id, action: 'status_change', actorId: user.id, summary: `Lead: ${lead.status} → ${to}`, metadata: { from: lead.status, to, lostReason } });
+    await this.activity.log({ entityType: 'lead', entityId: id, action: 'status_change', actorId: user.id, summary: `Lead: ${lead.status} → ${to}`, metadata: { from: lead.status, to, lostReason }, i18nKey: 'activity.lead.status', i18nParams: { from: lead.status, to } });
     await this.audit.record(user, { action: 'change_status', entityType: 'lead', entityId: id, oldValue: { status: lead.status }, newValue: { status: to }, ...meta });
     return updated;
   }
@@ -200,7 +200,7 @@ export class LeadService {
       if (claim.count === 0) throw new ConflictException('Lead นี้ถูกแปลงเป็นลูกค้าแล้ว');
       return customer;
     });
-    await this.activity.log({ entityType: 'customer', entityId: result.id, action: 'create', actorId: user.id, summary: `แปลงจาก Lead ${lead.code}` });
+    await this.activity.log({ entityType: 'customer', entityId: result.id, action: 'create', actorId: user.id, summary: `แปลงจาก Lead ${lead.code}`, i18nKey: 'activity.customer.convertFromLead', i18nParams: { code: lead.code } });
     await this.audit.record(user, { action: 'convert', entityType: 'lead', entityId: id, newValue: { customerId: result.id }, ...meta });
     return result;
   }

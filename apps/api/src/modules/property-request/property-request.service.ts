@@ -95,7 +95,7 @@ export class PropertyRequestService {
       }
     }
 
-    await this.activity.log({ entityType: 'property_request', entityId: req.id, action: 'create', actorId: user.id, summary: `ขอเพิ่มทรัพย์ ${req.code}: ${req.titleTh}` });
+    await this.activity.log({ entityType: 'property_request', entityId: req.id, action: 'create', actorId: user.id, summary: `ขอเพิ่มทรัพย์ ${req.code}: ${req.titleTh}`, i18nKey: 'activity.request.create', i18nParams: { code: req.code, title: req.titleTh } });
     await this.audit.record(user, { action: 'create', entityType: 'property_request', entityId: req.id, newValue: { code: req.code, title: req.titleTh }, ...meta });
     await this.notifications.notifyRoles(REVIEWER_ROLES, {
       category: 'property', entityType: 'property_request', entityId: req.id,
@@ -213,7 +213,7 @@ export class PropertyRequestService {
       return prop;
     });
 
-    await this.activity.log({ entityType: 'property_request', entityId: id, action: 'convert', actorId: user.id, summary: `สร้างประกาศ ${property.code} จากคำขอ ${req.code}` });
+    await this.activity.log({ entityType: 'property_request', entityId: id, action: 'convert', actorId: user.id, summary: `สร้างประกาศ ${property.code} จากคำขอ ${req.code}`, i18nKey: 'activity.request.convert', i18nParams: { code: property.code, reqCode: req.code } });
     await this.audit.record(user, { action: 'convert', entityType: 'property_request', entityId: id, newValue: { propertyId: property.id, code: property.code }, ...meta });
     await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property', entityId: property.id, title: 'คำขอของคุณถูกสร้างเป็นประกาศแล้ว', body: `${property.code} — อยู่ระหว่างจัดข้อมูล/รออนุมัติ` });
     return property;

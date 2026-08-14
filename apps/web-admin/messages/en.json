@@ -419,7 +419,52 @@
     "aria": "Notifications"
   },
   "activity": {
-    "none": "No history yet"
+    "none": "No history yet",
+    "status": {
+      "draft": "Draft",
+      "available": "Available",
+      "rented": "Rented",
+      "new": "New",
+      "working": "Working",
+      "closed": "Closed",
+      "upcoming": "Upcoming",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "no_show": "No-show",
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "appointment": {
+      "create": "Created appointment {code}",
+      "reschedule": "Rescheduled to {at}",
+      "status": "Appointment: {from} → {to}"
+    },
+    "property": {
+      "create": "Created property {code}",
+      "update": "Edited property {code}",
+      "status": "Status: {from} → {to}",
+      "statusFromContract": "Status: {from} → {to} (from contract)"
+    },
+    "contract": {
+      "create": "Created contract {code}",
+      "sign": "Signed contract (effective)",
+      "status": "Contract: {from} → {to}",
+      "renewTo": "Renewed → {code}",
+      "renewFrom": "Renewed from {code}",
+      "receipt": "Issued receipt {no} (฿{amount})"
+    },
+    "request": {
+      "create": "Requested property {code}: {title}",
+      "convert": "Created listing {code} from request {reqCode}"
+    },
+    "lead": {
+      "create": "Created lead {code}",
+      "assign": "Assigned lead to {assignee}",
+      "status": "Lead: {from} → {to}"
+    },
+    "customer": {
+      "convertFromLead": "Converted from lead {code}"
+    }
   },
   "owners": {
     "pageTitle": "Owners",

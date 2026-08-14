@@ -7,8 +7,12 @@ export interface ActivityEntry {
   entityId: string;
   action: string;
   actorId?: string;
+  /** ข้อความ fallback (ไทย) — คงไว้สำหรับ row เก่า/LINE-email · FE ใช้ i18n ก่อนถ้ามี */
   summary?: string;
   metadata?: Prisma.InputJsonValue;
+  /** i18n (C-backend) — key ใน catalog FE `activity.*` + params · FE render `t(key, params)` */
+  i18nKey?: string;
+  i18nParams?: Record<string, string | number>;
 }
 
 /**
@@ -28,6 +32,13 @@ export class ActivityService {
    */
   async log(entry: ActivityEntry): Promise<void> {
     try {
+      // fold i18n (key+params) เข้า metadata.i18n — รวมกับ metadata เดิม (เช่น from/to/reason)
+      const base = (entry.metadata && typeof entry.metadata === 'object' && !Array.isArray(entry.metadata))
+        ? (entry.metadata as Record<string, unknown>)
+        : undefined;
+      const metadata: Prisma.InputJsonValue | undefined = entry.i18nKey
+        ? { ...base, i18n: { key: entry.i18nKey, ...(entry.i18nParams ? { params: entry.i18nParams } : {}) } }
+        : entry.metadata;
       await this.prisma.activityLog.create({
         data: {
           entityType: entry.entityType,
@@ -35,7 +46,7 @@ export class ActivityService {
           action: entry.action,
           actorId: entry.actorId ?? null,
           summary: entry.summary ?? null,
-          metadata: entry.metadata,
+          metadata,
         },
       });
     } catch (e) {

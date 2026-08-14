@@ -143,7 +143,7 @@ export class ContractService {
       }
     }
     // ทรัพย์ยังคง available ระหว่างสัญญาเป็นร่าง (live-contract guard กันทำสัญญาซ้อน) → กลายเป็น rented ตอนสัญญามีผล
-    await this.activity.log({ entityType: 'contract', entityId: contract.id, action: 'create', actorId: user.id, summary: `สร้างสัญญา ${contract.code}` });
+    await this.activity.log({ entityType: 'contract', entityId: contract.id, action: 'create', actorId: user.id, summary: `สร้างสัญญา ${contract.code}`, i18nKey: 'activity.contract.create', i18nParams: { code: contract.code } });
     await this.audit.record(user, { action: 'create', entityType: 'contract', entityId: contract.id, newValue: { code: contract.code }, ...meta });
     return contract;
   }
@@ -254,7 +254,7 @@ export class ContractService {
     });
     // ทรัพย์ available → rented (สัญญามีผล ทรัพย์ไม่ว่างแล้ว)
     await this.propertySync.sync(c.propertyId, 'rented', user.id);
-    await this.activity.log({ entityType: 'contract', entityId: id, action: 'sign', actorId: user.id, summary: 'เซ็นสัญญา (มีผลบังคับ)' });
+    await this.activity.log({ entityType: 'contract', entityId: id, action: 'sign', actorId: user.id, summary: 'เซ็นสัญญา (มีผลบังคับ)', i18nKey: 'activity.contract.sign' });
     await this.audit.record(user, { action: 'sign', entityType: 'contract', entityId: id, oldValue: { status: c.status }, newValue: { status: 'active' }, ...meta });
     return updated;
   }
@@ -285,7 +285,7 @@ export class ContractService {
     } else if (to === 'ended') {
       await this.propertySync.sync(c.propertyId, 'available', user.id);
     }
-    await this.activity.log({ entityType: 'contract', entityId: id, action: 'status_change', actorId: user.id, summary: `สัญญา: ${c.status} → ${to}`, metadata: { from: c.status, to, reason } });
+    await this.activity.log({ entityType: 'contract', entityId: id, action: 'status_change', actorId: user.id, summary: `สัญญา: ${c.status} → ${to}`, metadata: { from: c.status, to, reason }, i18nKey: 'activity.contract.status', i18nParams: { from: c.status, to } });
     await this.audit.record(user, { action: 'change_status', entityType: 'contract', entityId: id, oldValue: { status: c.status }, newValue: { status: to, reason }, ...meta });
     return updated;
   }
@@ -342,8 +342,8 @@ export class ContractService {
     }
 
     // ทรัพย์ยังคง rented (สัญญาใหม่จะมีผลต่อเนื่อง) — ไม่ต้อง sync
-    await this.activity.log({ entityType: 'contract', entityId: old.id, action: 'status_change', actorId: user.id, summary: `ต่อสัญญา → ${created.code}`, metadata: { renewedTo: created.id } });
-    await this.activity.log({ entityType: 'contract', entityId: created.id, action: 'create', actorId: user.id, summary: `สัญญาต่ออายุจาก ${old.code}` });
+    await this.activity.log({ entityType: 'contract', entityId: old.id, action: 'status_change', actorId: user.id, summary: `ต่อสัญญา → ${created.code}`, metadata: { renewedTo: created.id }, i18nKey: 'activity.contract.renewTo', i18nParams: { code: created.code } });
+    await this.activity.log({ entityType: 'contract', entityId: created.id, action: 'create', actorId: user.id, summary: `สัญญาต่ออายุจาก ${old.code}`, i18nKey: 'activity.contract.renewFrom', i18nParams: { code: old.code } });
     await this.audit.record(user, { action: 'renew', entityType: 'contract', entityId: old.id, oldValue: { status: old.status }, newValue: { status: 'ended', newContractId: created.id, newCode: created.code }, ...meta });
     return created;
   }

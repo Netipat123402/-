@@ -419,7 +419,52 @@
     "aria": "การแจ้งเตือน"
   },
   "activity": {
-    "none": "ยังไม่มีประวัติ"
+    "none": "ยังไม่มีประวัติ",
+    "status": {
+      "draft": "ร่าง",
+      "available": "ว่าง",
+      "rented": "ไม่ว่าง",
+      "new": "ใหม่",
+      "working": "กำลังดูแล",
+      "closed": "ปิดจบ",
+      "upcoming": "รอพบ",
+      "done": "พบแล้ว",
+      "cancelled": "ยกเลิก",
+      "no_show": "ไม่มาตามนัด",
+      "active": "มีผล",
+      "ended": "สิ้นสุด"
+    },
+    "appointment": {
+      "create": "สร้างนัด {code}",
+      "reschedule": "เลื่อนนัดเป็น {at}",
+      "status": "นัด: {from} → {to}"
+    },
+    "property": {
+      "create": "สร้างทรัพย์ {code}",
+      "update": "แก้ไขทรัพย์ {code}",
+      "status": "เปลี่ยนสถานะ {from} → {to}",
+      "statusFromContract": "เปลี่ยนสถานะ {from} → {to} (จากสัญญา)"
+    },
+    "contract": {
+      "create": "สร้างสัญญา {code}",
+      "sign": "เซ็นสัญญา (มีผลบังคับ)",
+      "status": "สัญญา: {from} → {to}",
+      "renewTo": "ต่อสัญญา → {code}",
+      "renewFrom": "สัญญาต่ออายุจาก {code}",
+      "receipt": "ออกใบเสร็จ {no} (฿{amount})"
+    },
+    "request": {
+      "create": "ขอเพิ่มทรัพย์ {code}: {title}",
+      "convert": "สร้างประกาศ {code} จากคำขอ {reqCode}"
+    },
+    "lead": {
+      "create": "สร้างผู้สนใจ {code}",
+      "assign": "มอบหมายผู้สนใจให้ {assignee}",
+      "status": "ผู้สนใจ: {from} → {to}"
+    },
+    "customer": {
+      "convertFromLead": "แปลงจากผู้สนใจ {code}"
+    }
   },
   "owners": {
     "pageTitle": "เจ้าของทรัพย์",

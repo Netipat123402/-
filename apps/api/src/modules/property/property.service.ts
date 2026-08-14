@@ -93,6 +93,8 @@ export class PropertyService {
       action: 'create',
       actorId: user.id,
       summary: `สร้างทรัพย์ ${property.code}`,
+      i18nKey: 'activity.property.create',
+      i18nParams: { code: property.code },
     });
     await this.audit.record(user, {
       action: 'create',
@@ -174,6 +176,8 @@ export class PropertyService {
       action: 'update',
       actorId: user.id,
       summary: `แก้ไขทรัพย์ ${existing.code}`,
+      i18nKey: 'activity.property.update',
+      i18nParams: { code: existing.code },
     });
     await this.audit.record(user, {
       action: 'update',
@@ -456,6 +460,8 @@ export class PropertyService {
       actorId: user.id,
       summary: `เปลี่ยนสถานะ ${from} → ${toStatus}`,
       metadata: { from, to: toStatus, reason },
+      i18nKey: 'activity.property.status',
+      i18nParams: { from, to: toStatus },
     });
     await this.audit.record(user, {
       action,

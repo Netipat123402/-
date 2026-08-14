@@ -58,7 +58,7 @@ export class ReceiptService {
       return created;
     });
 
-    await this.activity.log({ entityType: 'contract', entityId: c.id, action: 'receipt', actorId: user.id, summary: `ออกใบเสร็จ ${receiptNo} (฿${dto.amount})` });
+    await this.activity.log({ entityType: 'contract', entityId: c.id, action: 'receipt', actorId: user.id, summary: `ออกใบเสร็จ ${receiptNo} (฿${dto.amount})`, i18nKey: 'activity.contract.receipt', i18nParams: { no: receiptNo, amount: dto.amount } });
     await this.audit.record(user, { action: 'receipt', entityType: 'contract', entityId: c.id, newValue: { receiptNo, amount: dto.amount, documentId: doc.id }, ...meta });
     return { document: doc, receiptNo };
   }

@@ -34,7 +34,7 @@ export class PropertySyncService {
         data: { property: { connect: { id: propertyId } }, fromStatus: from, toStatus: effectiveTo, reason: 'sync จากสัญญา', changedBy: userId },
       }),
     ]);
-    await this.activity.log({ entityType: 'property', entityId: propertyId, action: 'status_change', actorId: userId, summary: `เปลี่ยนสถานะ ${from} → ${effectiveTo} (จากสัญญา)` });
+    await this.activity.log({ entityType: 'property', entityId: propertyId, action: 'status_change', actorId: userId, summary: `เปลี่ยนสถานะ ${from} → ${effectiveTo} (จากสัญญา)`, i18nKey: 'activity.property.statusFromContract', i18nParams: { from, to: effectiveTo } });
     if (effectiveTo !== to) {
       await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
         category: 'property', entityType: 'property', entityId: propertyId,

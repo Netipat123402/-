@@ -157,7 +157,7 @@ export class AppointmentService {
         data: { status: 'working' },
       });
     }
-    await this.activity.log({ entityType: 'appointment', entityId: appt.id, action: 'create', actorId: user.id, summary: `สร้างนัด ${appt.code}` });
+    await this.activity.log({ entityType: 'appointment', entityId: appt.id, action: 'create', actorId: user.id, summary: `สร้างนัด ${appt.code}`, i18nKey: 'activity.appointment.create', i18nParams: { code: appt.code } });
     await this.notifications.notifyUser(dto.agentId, {
       category: 'appointment', entityType: 'appointment', entityId: appt.id,
       title: isViewing ? 'มีนัดดูทรัพย์ใหม่' : 'มีนัดใหม่',
@@ -237,7 +237,7 @@ export class AppointmentService {
       if (this.isOverlapError(e)) throw new ConflictException('เวลานัดชนกับนัดอื่นของเจ้าหน้าที่คนนี้');
       throw e;
     }
-    await this.activity.log({ entityType: 'appointment', entityId: id, action: 'reschedule', actorId: user.id, summary: `เลื่อนนัดเป็น ${dto.scheduledAt.toISOString()}` });
+    await this.activity.log({ entityType: 'appointment', entityId: id, action: 'reschedule', actorId: user.id, summary: `เลื่อนนัดเป็น ${dto.scheduledAt.toISOString()}`, i18nKey: 'activity.appointment.reschedule', i18nParams: { at: dto.scheduledAt.toISOString() } });
     await this.notifications.notifyUser(appt.agentId, {
       category: 'appointment', entityType: 'appointment', entityId: id,
       title: 'นัดถูกเลื่อนเวลา',
@@ -281,7 +281,7 @@ export class AppointmentService {
       where: { id: appt.id },
       data: { status: to, cancelReason: to === 'cancelled' ? reason : appt.cancelReason, updatedBy: user.id },
     });
-    await this.activity.log({ entityType: 'appointment', entityId: appt.id, action: 'status_change', actorId: user.id, summary: `นัด: ${appt.status} → ${to}`, metadata: { from: appt.status, to, reason } });
+    await this.activity.log({ entityType: 'appointment', entityId: appt.id, action: 'status_change', actorId: user.id, summary: `นัด: ${appt.status} → ${to}`, metadata: { from: appt.status, to, reason }, i18nKey: 'activity.appointment.status', i18nParams: { from: appt.status, to } });
     await this.audit.record(user, { action: 'change_status', entityType: 'appointment', entityId: appt.id, oldValue: { status: appt.status }, newValue: { status: to, reason }, ...meta });
     return updated;
   }
