@@ -48,7 +48,8 @@
     "menuAndProfile": "เมนูและโปรไฟล์",
     "language": "ภาษา",
     "lightMode": "โหมดสว่าง",
-    "darkMode": "โหมดมืด"
+    "darkMode": "โหมดมืด",
+    "account": "บัญชี"
   },
   "dashboard": {
     "toDo": "สิ่งที่ต้องทำ",

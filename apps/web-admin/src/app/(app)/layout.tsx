@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import NotificationBell from '@/components/NotificationBell';
 import GlobalSearch from '@/components/GlobalSearch';
-import ProfileMenu from '@/components/ProfileMenu';
+import SidebarAccount from '@/components/SidebarAccount';
 import PropertyForm from '@/components/PropertyForm';
 import PullToRefresh from '@/components/PullToRefresh';
 import { ToastProvider } from '@/components/Toast';
@@ -211,6 +211,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex flex-1 flex-col overflow-y-auto">
             <NavLinks />
           </div>
+          {/* บัญชีผู้ใช้ (ล่างสุด · Linear/Slack) — กดเด้ง popover ขึ้นบน · แทนโปรไฟล์มุมขวาบนเดิม */}
+          <SidebarAccount collapsed={railCollapsed} />
           <button onClick={toggleRail}
             title={railCollapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
             aria-label={railCollapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
@@ -303,12 +305,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Icon name="plus" size={22} />
             </button>
           )}
-          {/* ดันไอคอนขวาให้ชิดขวา (เอาปุ่มสลับบัญชีที่ทำค้างกลางหัวออกแล้ว — เข้าโปรไฟล์ผ่าน bottom-nav/มุมขวา) */}
+          {/* ดันไอคอนขวาให้ชิดขวา · โปรไฟล์ย้ายไปล่าง sidebar (เดสก์ท็อป) / bottom-nav drawer (มือถือ) แล้ว */}
           <div className="flex-1" />
           <div className="flex items-center gap-1 sm:gap-2">
             <GlobalSearch />
             <NotificationBell />
-            <ProfileMenu />
           </div>
         </header>
 

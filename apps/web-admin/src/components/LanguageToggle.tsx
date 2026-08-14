@@ -7,7 +7,7 @@ import { Icon } from '@/components/Icon';
 /**
  * สลับภาษา EN ↔ TH (bilingual · อังกฤษหลัก + ไทยรอง) — เก็บใน cookie NEXT_LOCALE
  * server (i18n/request.ts) อ่าน cookie นี้ · router.refresh() ให้ RSC โหลด messages ใหม่
- * ใช้เป็นแถวเมนูเต็มกว้าง (ProfileMenu / drawer มือถือ) — โทนเดียวกับ ThemeToggle
+ * ใช้เป็นแถวเมนูเต็มกว้าง (SidebarAccount / drawer มือถือ) — โทนเดียวกับ ThemeToggle
  */
 export default function LanguageToggle({ onToggle }: { onToggle?: () => void }) {
   const locale = useLocale();

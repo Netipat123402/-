@@ -7,7 +7,7 @@ import { Icon } from '@/components/Icon';
 /**
  * สลับธีมสว่าง/มืด (เฉพาะ web-admin) — เก็บค่าใน localStorage 'ros-theme'
  * ค่าเริ่มต้น = สว่าง · no-flash จัดการที่ root layout (สคริปต์ก่อนเพนต์)
- * ใช้เป็นแถวเมนูเต็มกว้าง (ใน ProfileMenu / drawer มือถือ)
+ * ใช้เป็นแถวเมนูเต็มกว้าง (ใน SidebarAccount / drawer มือถือ)
  */
 export default function ThemeToggle({ onToggle }: { onToggle?: () => void }) {
   const t = useTranslations('shell');
