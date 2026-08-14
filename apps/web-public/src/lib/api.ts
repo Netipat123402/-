@@ -42,12 +42,11 @@ export async function publicGet<T>(
   return { data: json.data as T, meta: json.meta };
 }
 
-/** URL รูปทรัพย์จาก storageKey (เสิร์ฟ static จาก API /uploads)
- *  ใช้ host เดียวกับที่เปิดเว็บ → รูปขึ้นทั้ง localhost และ LAN/มือถือ (เหมือน web-admin) */
+/** URL รูปทรัพย์จาก storageKey — relative same-origin `/uploads/*` (proxy ผ่าน next.config rewrite → API)
+ *  src เท่ากัน server+client → กัน hydration mismatch (เดิม window.location vs env LAN IP ไม่ตรง → รูปแตกบน localhost)
+ *  ใช้ได้ทั้ง localhost + LAN/มือถือ + prod · prod ตั้ง NEXT_PUBLIC_MEDIA_BASE เป็น CDN/origin จริง (absolute) ได้ */
 export function mediaUrl(storageKey: string): string {
-  const base = typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:4000`
-    : (process.env.NEXT_PUBLIC_MEDIA_BASE || 'http://localhost:4000');
+  const base = process.env.NEXT_PUBLIC_MEDIA_BASE || '';
   return `${base}/uploads/${storageKey}`;
 }
 
