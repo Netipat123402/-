@@ -891,5 +891,72 @@
       "invited": "รอเปิดใช้",
       "suspended": "ระงับ"
     }
+  },
+  "audit": {
+    "title": "บันทึกกิจกรรม",
+    "subtitle": "{n} รายการ · อัปเดตเรียลไทม์",
+    "actionFilter": "การกระทำ",
+    "allActions": "ทุกการกระทำ",
+    "rangeFilter": "ช่วงเวลา",
+    "range": {
+      "all": "ทุกช่วงเวลา",
+      "today": "วันนี้",
+      "last7": "7 วันล่าสุด",
+      "last30": "30 วันล่าสุด"
+    },
+    "empty": "ไม่พบบันทึกกิจกรรม",
+    "atEntity": "ทำที่ {label}",
+    "sqmUnit": "ตร.ม.",
+    "monthsUnit": "เดือน",
+    "yes": "ใช่",
+    "no": "ไม่",
+    "action": {
+      "login": "เข้าสู่ระบบ",
+      "logout": "ออกจากระบบ",
+      "login_failed": "เข้าระบบล้มเหลว",
+      "create": "สร้าง",
+      "update": "แก้ไข",
+      "delete": "ลบ",
+      "approve": "เผยแพร่",
+      "reject": "ถอนประกาศ",
+      "change_status": "เปลี่ยนสถานะ",
+      "submit_review": "ขอเผยแพร่",
+      "sign": "ลงนาม",
+      "assign": "มอบหมาย",
+      "convert": "แปลงลูกค้า",
+      "renew": "ต่อสัญญา",
+      "receipt": "ออกใบเสร็จ",
+      "upload": "อัปโหลด",
+      "download": "ดาวน์โหลด"
+    },
+    "entity": {
+      "property": "ทรัพย์",
+      "lead": "ผู้สนใจ",
+      "owner": "เจ้าของ",
+      "customer": "ลูกค้า",
+      "appointment": "นัดหมาย",
+      "contract": "สัญญา"
+    },
+    "field": {
+      "status": "สถานะ",
+      "titleTh": "ชื่อ",
+      "propertyType": "ประเภท",
+      "province": "จังหวัด",
+      "district": "อำเภอ/เขต",
+      "projectName": "โครงการ",
+      "monthlyRent": "ราคา/เดือน",
+      "depositMonths": "มัดจำ",
+      "bedrooms": "ห้องนอน",
+      "bathrooms": "ห้องน้ำ",
+      "areaSqm": "พื้นที่",
+      "floor": "ชั้น",
+      "assignedToId": "ผู้รับผิดชอบ",
+      "reason": "เหตุผล",
+      "isFeatured": "ทรัพย์แนะนำ",
+      "fullName": "ชื่อ",
+      "phone": "เบอร์โทร",
+      "email": "อีเมล",
+      "roles": "บทบาท"
+    }
   }
 }

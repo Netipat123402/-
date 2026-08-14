@@ -10,6 +10,7 @@ import { Icon } from '@/components/Icon';
 import {
   PROPERTY_STATUS, LEAD_STATUS, APPOINTMENT_STATUS, CONTRACT_STATUS, PROPERTY_TYPE, bahtFormat,
 } from '@/lib/status';
+import { relTime } from '@/lib/format';
 
 interface Change { field: string; from: unknown; to: unknown; }
 interface AuditLog {
@@ -19,43 +20,38 @@ interface AuditLog {
   ipAddress?: string | null; entityLabel?: string | null; changes?: Change[];
 }
 
-const ACTION_TH: Record<string, { label: string; color: string }> = {
-  login: { label: 'เข้าสู่ระบบ', color: 'bg-success/10 text-success' },
-  logout: { label: 'ออกจากระบบ', color: 'bg-border text-ink-soft' },
-  login_failed: { label: 'เข้าระบบล้มเหลว', color: 'bg-danger/10 text-danger' },
-  create: { label: 'สร้าง', color: 'bg-info/10 text-info' },
-  update: { label: 'แก้ไข', color: 'bg-warning/10 text-warning' },
-  delete: { label: 'ลบ', color: 'bg-danger/10 text-danger' },
-  approve: { label: 'เผยแพร่', color: 'bg-success/10 text-success' },
-  reject: { label: 'ถอนประกาศ', color: 'bg-warning/10 text-warning' },
-  change_status: { label: 'เปลี่ยนสถานะ', color: 'bg-gold/15 text-gold-dark' },
-  submit_review: { label: 'ขอเผยแพร่', color: 'bg-warning/10 text-warning' },
-  sign: { label: 'ลงนาม', color: 'bg-success/10 text-success' },
-  assign: { label: 'มอบหมาย', color: 'bg-info/10 text-info' },
-  convert: { label: 'แปลงลูกค้า', color: 'bg-gold/15 text-gold-dark' },
-  renew: { label: 'ต่อสัญญา', color: 'bg-gold/15 text-gold-dark' },
-  receipt: { label: 'ออกใบเสร็จ', color: 'bg-info/10 text-info' },
-  upload: { label: 'อัปโหลด', color: 'bg-info/10 text-info' },
-  download: { label: 'ดาวน์โหลด', color: 'bg-info/10 text-info' },
+// color แยกจาก label (color ไม่ผ่าน i18n · label ผ่าน audit.action.*)
+const ACTION_COLOR: Record<string, string> = {
+  login: 'bg-success/10 text-success',
+  logout: 'bg-border text-ink-soft',
+  login_failed: 'bg-danger/10 text-danger',
+  create: 'bg-info/10 text-info',
+  update: 'bg-warning/10 text-warning',
+  delete: 'bg-danger/10 text-danger',
+  approve: 'bg-success/10 text-success',
+  reject: 'bg-warning/10 text-warning',
+  change_status: 'bg-gold/15 text-gold-dark',
+  submit_review: 'bg-warning/10 text-warning',
+  sign: 'bg-success/10 text-success',
+  assign: 'bg-info/10 text-info',
+  convert: 'bg-gold/15 text-gold-dark',
+  renew: 'bg-gold/15 text-gold-dark',
+  receipt: 'bg-info/10 text-info',
+  upload: 'bg-info/10 text-info',
+  download: 'bg-info/10 text-info',
 };
 
-const ENTITY_TH: Record<string, string> = {
-  property: 'ทรัพย์', lead: 'Lead', owner: 'เจ้าของ', customer: 'ลูกค้า',
-  appointment: 'นัดหมาย', contract: 'สัญญา',
-};
-
-// ชื่อฟิลด์เป็นไทย (สำหรับ diff "ค่าเดิม → ค่าใหม่")
-const FIELD_TH: Record<string, string> = {
-  status: 'สถานะ', titleTh: 'ชื่อ', propertyType: 'ประเภท', province: 'จังหวัด',
-  district: 'อำเภอ/เขต', projectName: 'โครงการ', monthlyRent: 'ราคา/เดือน',
-  depositMonths: 'มัดจำ', bedrooms: 'ห้องนอน', bathrooms: 'ห้องน้ำ', areaSqm: 'พื้นที่',
-  floor: 'ชั้น', assignedToId: 'ผู้รับผิดชอบ', reason: 'เหตุผล', isFeatured: 'ทรัพย์แนะนำ',
-  fullName: 'ชื่อ', phone: 'เบอร์โทร', email: 'อีเมล', roles: 'บทบาท',
-};
+const KNOWN_ENTITIES = ['property', 'lead', 'owner', 'customer', 'appointment', 'contract'];
+// ฟิลด์ที่มี label แปล (diff "ค่าเดิม → ค่าใหม่") · นอกลิสต์ = โชว์ key ดิบ
+const KNOWN_FIELDS = ['status', 'titleTh', 'propertyType', 'province', 'district', 'projectName', 'monthlyRent', 'depositMonths', 'bedrooms', 'bathrooms', 'areaSqm', 'floor', 'assignedToId', 'reason', 'isFeatured', 'fullName', 'phone', 'email', 'roles'];
 
 const STATUS_MAPS: Record<string, Record<string, { labelKey: string }>> = {
   property: PROPERTY_STATUS, lead: LEAD_STATUS, appointment: APPOINTMENT_STATUS, contract: CONTRACT_STATUS,
 };
+
+/** fallback เวลา audit — วันเวลาแบบสากล (en-GB) "5 Jan 14:30" · ไม่มีอักษรไทย ใช้ได้ 2 ภาษา */
+const auditTimeFallback = (d: Date) =>
+  `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
 
 /** แปลงค่าในฟิลด์ให้อ่านง่าย (สถานะ/ประเภท/ราคา/พื้นที่ …) */
 function fmtVal(entityType: string | undefined, field: string, val: unknown, t: (k: string) => string): string {
@@ -65,29 +61,12 @@ function fmtVal(entityType: string | undefined, field: string, val: unknown, t: 
   if (field === 'status' && entityType && STATUS_MAPS[entityType]?.[s]) return t(STATUS_MAPS[entityType][s].labelKey);
   if (field === 'propertyType') return PROPERTY_TYPE[s] ? t(`propertyType.${s}`) : s;
   if (field === 'monthlyRent') { const n = Number(val); return Number.isFinite(n) ? `฿${bahtFormat(n)}` : s; }
-  if (field === 'areaSqm') return `${s} ตร.ม.`;
-  if (field === 'depositMonths') return `${s} เดือน`;
-  if (typeof val === 'boolean') return val ? 'ใช่' : 'ไม่';
+  if (field === 'areaSqm') return `${s} ${t('audit.sqmUnit')}`;
+  if (field === 'depositMonths') return `${s} ${t('audit.monthsUnit')}`;
+  if (typeof val === 'boolean') return val ? t('audit.yes') : t('audit.no');
   return s;
 }
 
-const RANGE_OPTIONS = [
-  { value: '', label: 'ทุกช่วงเวลา' },
-  { value: '1', label: 'วันนี้' },
-  { value: '7', label: '7 วันล่าสุด' },
-  { value: '30', label: '30 วันล่าสุด' },
-];
-
-/** เวลาแบบสัมพัทธ์ — เน้นอ่านง่าย "ใคร · ทำอะไร · เมื่อไหร่" */
-function relTime(iso: string) {
-  const d = new Date(iso);
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return 'เมื่อสักครู่';
-  if (diff < 3600) return `${Math.floor(diff / 60)} นาทีที่แล้ว`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} ชม.ที่แล้ว`;
-  if (diff < 172800) return 'เมื่อวาน';
-  return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-}
 function fullTime(iso: string) {
   const d = new Date(iso);
   return `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} ${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
@@ -115,22 +94,32 @@ export default function AuditPage() {
     setOpen((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
 
+  const actionLabel = (a: string) => (ACTION_COLOR[a] ? t(`audit.action.${a}`) : a);
+  const entityLabel = (e: string) => (KNOWN_ENTITIES.includes(e) ? t(`audit.entity.${e}`) : e);
+  const fieldLabel = (f: string) => (KNOWN_FIELDS.includes(f) ? t(`audit.field.${f}`) : f);
+  const rangeOptions = [
+    { value: '', label: t('audit.range.all') },
+    { value: '1', label: t('audit.range.today') },
+    { value: '7', label: t('audit.range.last7') },
+    { value: '30', label: t('audit.range.last30') },
+  ];
+
   return (
     <div>
-      <PageHeader title="บันทึกกิจกรรม" subtitle={`${meta.total ?? 0} รายการ · อัปเดตเรียลไทม์`} />
+      <PageHeader title={t('audit.title')} subtitle={t('audit.subtitle', { n: meta.total ?? 0 })} />
 
       <FilterBar
         filters={[
-          { key: 'action', label: 'การกระทำ', value: action, onChange: (v) => { setPage(1); setAction(v); },
-            options: [{ value: '', label: 'ทุกการกระทำ' }, ...actions.map((a) => ({ value: a, label: ACTION_TH[a]?.label ?? a }))], searchable: true },
-          { key: 'range', label: 'ช่วงเวลา', value: range, onChange: (v) => { setPage(1); setRange(v); }, options: RANGE_OPTIONS },
+          { key: 'action', label: t('audit.actionFilter'), value: action, onChange: (v) => { setPage(1); setAction(v); },
+            options: [{ value: '', label: t('audit.allActions') }, ...actions.map((a) => ({ value: a, label: actionLabel(a) }))], searchable: true },
+          { key: 'range', label: t('audit.rangeFilter'), value: range, onChange: (v) => { setPage(1); setRange(v); }, options: rangeOptions },
         ]} />
 
       <div className="mt-4 card overflow-hidden">
-        {loading ? <ListSkeleton /> : rows.length === 0 ? <EmptyState text="ไม่พบบันทึกกิจกรรม" icon="clock" /> : (
+        {loading ? <ListSkeleton /> : rows.length === 0 ? <EmptyState text={t('audit.empty')} icon="clock" /> : (
           <ul className="divide-y divide-border">
             {rows.map((l) => {
-              const a = ACTION_TH[l.action] ?? { label: l.action, color: 'bg-border text-ink-soft' };
+              const color = ACTION_COLOR[l.action] ?? 'bg-border text-ink-soft';
               const changes = l.changes ?? [];
               const expandable = changes.length > 0 || !!l.ipAddress;
               const isOpen = open.has(l.id);
@@ -144,15 +133,15 @@ export default function AuditPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm leading-snug">
                         <span className="font-semibold">{l.actorName}</span>
-                        {' '}<span className={`badge ${a.color}`}>{a.label}</span>
-                        {l.entityType && <span className="text-muted">{' · '}{ENTITY_TH[l.entityType] ?? l.entityType}</span>}
+                        {' '}<span className={`badge ${color}`}>{actionLabel(l.action)}</span>
+                        {l.entityType && <span className="text-muted">{' · '}{entityLabel(l.entityType)}</span>}
                       </p>
                       {l.entityLabel && (
-                        <p className="mt-0.5 truncate text-xs text-muted">ทำที่ {l.entityLabel}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted">{t('audit.atEntity', { label: l.entityLabel })}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <time className="whitespace-nowrap text-xs text-muted" dateTime={l.createdAt}>{relTime(l.createdAt)}</time>
+                      <time className="whitespace-nowrap text-xs text-muted" dateTime={l.createdAt}>{relTime(l.createdAt, t, auditTimeFallback)}</time>
                       {expandable && (
                         <Icon name="chevron-down" size={16}
                           className={`text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -166,7 +155,7 @@ export default function AuditPage() {
                         <dl className="space-y-1.5">
                           {changes.map((c) => (
                             <div key={c.field} className="flex items-baseline gap-2 text-xs">
-                              <dt className="w-20 shrink-0 text-muted">{FIELD_TH[c.field] ?? c.field}</dt>
+                              <dt className="w-20 shrink-0 text-muted">{fieldLabel(c.field)}</dt>
                               <dd className="flex min-w-0 flex-1 items-baseline gap-1.5">
                                 <span className="truncate text-muted line-through decoration-faint/60">{fmtVal(l.entityType, c.field, c.from, t)}</span>
                                 <Icon name="chevron-right" size={12} className="shrink-0 text-faint" />

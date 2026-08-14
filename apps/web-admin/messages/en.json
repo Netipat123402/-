@@ -891,5 +891,72 @@
       "invited": "Invited",
       "suspended": "Suspended"
     }
+  },
+  "audit": {
+    "title": "Activity log",
+    "subtitle": "{n} entries · updates in real time",
+    "actionFilter": "Action",
+    "allActions": "All actions",
+    "rangeFilter": "Time range",
+    "range": {
+      "all": "All time",
+      "today": "Today",
+      "last7": "Last 7 days",
+      "last30": "Last 30 days"
+    },
+    "empty": "No activity found",
+    "atEntity": "on {label}",
+    "sqmUnit": "sq.m.",
+    "monthsUnit": "mo.",
+    "yes": "Yes",
+    "no": "No",
+    "action": {
+      "login": "Sign in",
+      "logout": "Sign out",
+      "login_failed": "Sign-in failed",
+      "create": "Create",
+      "update": "Edit",
+      "delete": "Delete",
+      "approve": "Publish",
+      "reject": "Unpublish",
+      "change_status": "Change status",
+      "submit_review": "Submit for review",
+      "sign": "Sign",
+      "assign": "Assign",
+      "convert": "Convert to customer",
+      "renew": "Renew contract",
+      "receipt": "Issue receipt",
+      "upload": "Upload",
+      "download": "Download"
+    },
+    "entity": {
+      "property": "Property",
+      "lead": "Lead",
+      "owner": "Owner",
+      "customer": "Customer",
+      "appointment": "Appointment",
+      "contract": "Contract"
+    },
+    "field": {
+      "status": "Status",
+      "titleTh": "Name",
+      "propertyType": "Type",
+      "province": "Province",
+      "district": "District",
+      "projectName": "Project",
+      "monthlyRent": "Rent / month",
+      "depositMonths": "Deposit",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "areaSqm": "Area",
+      "floor": "Floor",
+      "assignedToId": "Assignee",
+      "reason": "Reason",
+      "isFeatured": "Featured",
+      "fullName": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "roles": "Roles"
+    }
   }
 }
