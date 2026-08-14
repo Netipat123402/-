@@ -130,6 +130,9 @@
 - **flow test 3 บทบาท:** เดินเต็มวงจร **0 error · สิทธิ์ 15/15 ผ่าน** (เซลขอ→ผจก convert+เติมทุกช่อง+อัปรูป→ผู้บริหารอนุมัติ→สัญญา verify+sign+receipt→rented) · เซลสร้าง/แก้ทรัพย์=403 · ผจกอนุมัติ/เปิดบัตร/ลบ=403 · bypass changeStatus=409 → **flow ไม่ชน ไม่เพี้ยน · backend production-ready**
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
-- 🔑 **push commit ค้าง (~163 local · ต้อง token · +9 commit จาก session นี้: 5 C-system + handover + C-b1 activity + C-b2 notification + handover)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- ⚠️ **RESTART web-public :3000** — fix รูป (`43e5019`) แก้ next.config + .env.local → เจ้าของต้อง restart dev server :3000 ให้รับ config ใหม่ (worktree verify แล้วรูปขึ้นจริง)
+- 🖼 **web-public รูปทรัพย์ (`43e5019`) — 2 เรื่อง:** (1) **fix hydration mismatch** ที่ทำรูปแตกทั้งหมด — `mediaUrl` เดิมคืน env LAN IP (SSR) ≠ window.location (client) → React เก็บค่า server (192.168.1.2) → localhost เข้าไม่ถึง · แก้เป็น relative `/uploads/*` + next.config rewrite proxy (localhost+LAN+prod ใช้ได้) (2) **รูป illustration พรีเมียม** — `db/scripts/property-scenes.ts` (11 ฉาก line-study โทนครีม/ทอง) + `regen-demo-images.ts` แนบ 6 รูป/ทรัพย์ (4 ทรัพย์ demo) · web-admin โชว์อัตโนมัติ · CD=rented ไม่ขึ้น public
+  - 🔸 minor: ป้ายห้องใน SVG เป็นไทย baked (โหมด EN ก็เห็นไทย) — future ถ้าต้องการ label 2 ภาษา; รูปใหม่/regen: `cd db && DATABASE_URL=... npx tsx scripts/regen-demo-images.ts` (แตะเฉพาะ media 4 ทรัพย์) · uploads+.env.local = gitignored (บน disk แล้ว)
+- 🔑 **push commit ค้าง (~167 local · ต้อง token · +13 commit จาก session นี้)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
 - ⚠️ **schema drift:** DB มี trgm search index + `appointments.ends_at` ที่ไม่มีใน `schema.prisma` → **อย่ารัน `prisma migrate dev`** (มันจะเสนอ DROP) · ใช้ manual SQL + `migrate resolve --applied` (ทำแบบนี้ที่ 0013) · งานเก็บตก: sync model ให้ตรง DB
 - 🔸 polish เล็ก: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
