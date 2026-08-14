@@ -23,6 +23,13 @@
 
 **หลักที่ locked (เจ้าของเคาะแล้ว):** money-gate (เซ็น/ใบเสร็จ=เจ้าของ) · maker-checker (เซลขอ→ผู้จัดการลง→เจ้าของอนุมัติ) · completeness gate "จำเป็น 7/7" ก่อนขอเผยแพร่ · 3-tier edit governance (log→notify→re-approve) · เซลแก้/ถอนเฉพาะคำขอตัวเอง
 
+## 2.5) 🆕 Shell/UX + web-public polish (session ล่าสุด)
+- ✅ **แบรนด์ → "Notify"** (`79f714a`): เอาโลโก้กล่อง "R" ออก · wordmark "Notify" ล้วน (ยุบ="N") · **หมายเหตุ:** login/page-title/web-public/PWA/รูป SVG ยังเป็น "ROS" — full rebrand ยังไม่ทำ (รอเจ้าของเคาะ scope)
+- ✅ **ค้นหา role-aware** (`79f714a`): GlobalSearch "ไปยัง" ขับจาก `resolveNav` ตัวเดียวกับ sidebar → กลุ่ม/ลำดับตามบทบาท + หมวด "สร้างใหม่" (gate สิทธิ์) · leads/appointments +`?new=1` เปิด modal · verify admin(create property+lead+appt) vs sales(lead+appt) · เพิ่มบทบาทแก้ที่ nav.ts ที่เดียว
+- ✅ **แจ้งเตือน role-aware** (`06546a2`): หน้า /notifications แยก "ต้องคุณทำ"(⚠️) → "อัปเดต"(FYI) · `ACTION_CAT_BY_ROLE` (เจ้าของ=owner/property/contract · ผจก=property/contract · เซล=lead/appointment) · robust กับ row เก่า (ใช้ category) · **เหลือ:** bell dropdown ยังไม่จัด action-first (มี work-items อยู่แล้ว) — follow-up ถ้าต้องการ
+- ✅ **รูปทรัพย์พรีเมียม** (`43e5019`+`5f5881c`): SVG "architectural line study" (`db/scripts/property-scenes.ts`+`regen-demo-images.ts`) 6 ฉาก/ทรัพย์ แทน 1×1 · verify web-public grid+carousel สวยทุกจอ · uploads gitignored (regen ได้) · ⚠️ web-public :3000 ต้อง restart รับรูปใหม่
+- ✅ **บัญชี → ล่าง sidebar** (`c99159f`+`a13481a`): SidebarAccount (Linear/Slack) · popover ขึ้นบน · ตัด System ซ้ำ · `translate="no"` กัน Google Translate ดัน DOM
+
 ## 3) ทำอะไรไปแล้ว (สะสมทุก session)
 **A–H · Design polish (list/detail/form/filter):** ครบ 6/6 ทุกหมวด — grid+subgrid · main+ราง · แยกหมวดฟอร์ม · per-device · RailBlock · filter 6 หน้า (commit เดิมใน git log)
 
