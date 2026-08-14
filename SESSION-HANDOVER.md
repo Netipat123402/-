@@ -24,7 +24,8 @@
 **หลักที่ locked (เจ้าของเคาะแล้ว):** money-gate (เซ็น/ใบเสร็จ=เจ้าของ) · maker-checker (เซลขอ→ผู้จัดการลง→เจ้าของอนุมัติ) · completeness gate "จำเป็น 7/7" ก่อนขอเผยแพร่ · 3-tier edit governance (log→notify→re-approve) · เซลแก้/ถอนเฉพาะคำขอตัวเอง
 
 ## 2.5) 🆕 Shell/UX + web-public polish (session ล่าสุด)
-- ✅ **แบรนด์ → "Notify"** (`79f714a`): เอาโลโก้กล่อง "R" ออก · wordmark "Notify" ล้วน (ยุบ="N") · **หมายเหตุ:** login/page-title/web-public/PWA/รูป SVG ยังเป็น "ROS" — full rebrand ยังไม่ทำ (รอเจ้าของเคาะ scope)
+- ✅ **rebrand "Notify" เต็มระบบ เสร็จ** (`dfd6b38`): เจ้าของเคาะ "ทั้งระบบ = Notify" (ผมติงว่า Notify ไม่สื่ออสังหาฯ บน web-public เจ้าของยืนยันเอา) — web-admin login(box R→N·h1·footer)+layout/manifest · web-public Header/Footer(box R→N·wordmark)+layout/manifest(title+template+og)+PropertyCard/Gallery placeholder+CommunityBoard+lang.footerRights+privacy email · api receipt(companyName default+template footer) · db property-scenes ป้ายมุมรูป ROS→Notify + **regen 4 ทรัพย์ demo** · คง identity ink/gold + box treatment (sidebar=wordmark ล้วน · login/public=มี box) · **ไม่แตะ internal:** @ros/* pkg · localStorage keys · ros-api health · ros.local creds · verify authed 3 จอ (login+shell+public) typecheck 3 แอปผ่าน 0 error
+- ✅ **แบรนด์ sidebar → "Notify"** (`79f714a`): เอาโลโก้กล่อง "R" ออก · wordmark "Notify" ล้วน (ยุบ="N")
 - ✅ **ค้นหา role-aware** (`79f714a`): GlobalSearch "ไปยัง" ขับจาก `resolveNav` ตัวเดียวกับ sidebar → กลุ่ม/ลำดับตามบทบาท + หมวด "สร้างใหม่" (gate สิทธิ์) · leads/appointments +`?new=1` เปิด modal · verify admin(create property+lead+appt) vs sales(lead+appt) · เพิ่มบทบาทแก้ที่ nav.ts ที่เดียว
 - ✅ **แจ้งเตือน role-aware** (`06546a2`): หน้า /notifications แยก "ต้องคุณทำ"(⚠️) → "อัปเดต"(FYI) · `ACTION_CAT_BY_ROLE` (เจ้าของ=owner/property/contract · ผจก=property/contract · เซล=lead/appointment) · robust กับ row เก่า (ใช้ category) · **เหลือ:** bell dropdown ยังไม่จัด action-first (มี work-items อยู่แล้ว) — follow-up ถ้าต้องการ
 - ✅ **รูปทรัพย์พรีเมียม** (`43e5019`+`5f5881c`): SVG "architectural line study" (`db/scripts/property-scenes.ts`+`regen-demo-images.ts`) 6 ฉาก/ทรัพย์ แทน 1×1 · verify web-public grid+carousel สวยทุกจอ · uploads gitignored (regen ได้) · ⚠️ web-public :3000 ต้อง restart รับรูปใหม่
@@ -140,10 +141,11 @@
 - ⚠️ **RESTART web-public :3000** — fix รูป (`43e5019`) แก้ next.config + .env.local → เจ้าของต้อง restart dev server :3000 ให้รับ config ใหม่ (worktree verify แล้วรูปขึ้นจริง)
 - 🖼 **web-public รูปทรัพย์ (`43e5019`) — 2 เรื่อง:** (1) **fix hydration mismatch** ที่ทำรูปแตกทั้งหมด — `mediaUrl` เดิมคืน env LAN IP (SSR) ≠ window.location (client) → React เก็บค่า server (192.168.1.2) → localhost เข้าไม่ถึง · แก้เป็น relative `/uploads/*` + next.config rewrite proxy (localhost+LAN+prod ใช้ได้) (2) **รูป illustration พรีเมียม** — `db/scripts/property-scenes.ts` (11 ฉาก line-study โทนครีม/ทอง) + `regen-demo-images.ts` แนบ 6 รูป/ทรัพย์ (4 ทรัพย์ demo) · web-admin โชว์อัตโนมัติ · CD=rented ไม่ขึ้น public
   - 🔸 minor: ป้ายห้องใน SVG เป็นไทย baked (โหมด EN ก็เห็นไทย) — future ถ้าต้องการ label 2 ภาษา; รูปใหม่/regen: `cd db && DATABASE_URL=... npx tsx scripts/regen-demo-images.ts` (แตะเฉพาะ media 4 ทรัพย์) · uploads+.env.local = gitignored (บน disk แล้ว)
-- 🔑 **push commit ค้าง (~174 local · ต้อง token · +20 commit จากช่วงหลัง)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- 🔑 **push commit ค้าง (~174 local · ต้อง token · +21 commit จากช่วงหลัง)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- ⚠️ **RESTART web-public :3000 + web-admin :3001** รับ rebrand Notify (`dfd6b38`) — เจ้าของทดสอบต้อง restart dev server ให้เห็น "Notify" (worktree verify แล้วขึ้นจริง 3 จอ) · รูป SVG demo regen แล้วบน disk (uploads gitignored)
 - 📌 **งานเสนอไว้ (รอเจ้าของเคาะ · session หน้า):**
-  1. **rebrand "Notify" เต็มระบบ** — login/page-title(`· ROS`)/web-public header/PWA manifest(icon)/ป้ายในรูป SVG ยังเป็น "ROS" (ชุดใหญ่ · กวาดทีเดียว)
+  1. ~~rebrand "Notify" เต็มระบบ~~ ✅ **เสร็จ** (`dfd6b38`)
   2. **bell dropdown จัด action-first** ให้สอดคล้องหน้า /notifications (ตอนนี้มี work-items นัด/สัญญาเป็น action layer อยู่แล้ว)
-  3. ⚠️ **web-public :3000 ต้อง restart** รับรูปพรีเมียมใหม่ (ถ้ายังไม่ได้ restart)
+  3. 🔸 polish: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
 - ⚠️ **schema drift:** DB มี trgm search index + `appointments.ends_at` ที่ไม่มีใน `schema.prisma` → **อย่ารัน `prisma migrate dev`** (มันจะเสนอ DROP) · ใช้ manual SQL + `migrate resolve --applied` (ทำแบบนี้ที่ 0013) · งานเก็บตก: sync model ให้ตรง DB
 - 🔸 polish เล็ก: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
