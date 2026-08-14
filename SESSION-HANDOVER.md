@@ -7,8 +7,9 @@
 ## 1) สถานะรวม
 โปรเจกต์ **~functional 100%** · **RBAC + governance กันโกง ✅ ครบ roadmap 6/6** (Phase 1–6 + final system audit — commit `7cc7865`…`f4f3063`).
 🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** + **Sidebar ขยาย-ยุบได้** · **กำลังทำ: track C = i18n 2 ภาษา (อังกฤษหลัก+ไทยรอง สลับได้ · next-intl cookie)**
-✅ **สลับ EN↔TH ได้จริงแล้ว:** shell(nav/sidebar/drawer/profile) · dashboard · status badges(ทุก entity) · **Properties (ทั้ง entity: list+detail+edit+form)** · ปุ่มสลับภาษา 🌐
-🔴 **แต่ยังไม่สมบูรณ์ (owner จับได้):** ยังภาษาปนมั่ว — (1) master-data ไทยเสมอ (type chips/amenity/จังหวัด/LEAD_SOURCE ไม่สลับ) (2) component ร่วมยังไม่แปล (DocumentSection/ประวัติ/GlobalSearch…) โผล่ทุกหน้า (3) เหลือ 6 entity + system pages · **และ session นี้ไม่ได้ทำตาม CYCLE/responsive — ครั้งหน้าต้องทำตามกฎ** (ดู §4 KNOWN ISSUES + แผน · [[ros-rule-discipline-big-tasks]])
+✅ **สลับ EN↔TH ได้จริง — session นี้คืบเยอะ (ทำตาม CYCLE ครบทุก entity):** shell · dashboard · status badges · **master-data (province/amenity/propertyType/leadSource)** · **component ร่วมทั้งหมด (ui.tsx/DocumentSection/ActivityTimeline/GlobalSearch/NotificationBell)** · **ทั้ง 7 entity: Properties + owners + leads + appointments + customers + contracts + property-requests (list+detail+form)** · ปุ่มสลับ 🌐
+🟢 **owner's "ภาษาปน" แก้แล้ว:** master-data สลับได้ · component ร่วมสลับได้ · LEAD_SOURCE/PROPERTY_TYPE carry-over เก็บครบ · glossary "Lead→ผู้สนใจ" ทั่วแอป
+🔵 **เหลือ:** C-system (users/settings/community/search/audit — 5 หน้า) · C-backend (สตริงที่ server สร้าง: activity summary/notif title-body/audit — ลึก)
 📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
@@ -88,18 +89,25 @@
   - ✅ **Properties entity เสร็จ 100% (`428cde7`):** detail(117สตริง · confirm ใช้ t.rich) + edit + PropertyForm(wizard) + fix DetailHeader backLabel · namespace propertyDetail/propertyForm/furnished + common(back/delete/name/phone/email/documents/history/units...) · verify EN↔TH ครบ
   - ✅ **C-shared 1/2 · master-data i18n เสร็จ (`a8aad4d`):** owner เคาะวิธี **ไฮบริด world-class** — enum คงที่ (propertyType/leadSource/furnished)=catalog t() · data-driven (province/amenity)=labelEn/labelTh จาก API (มีครบแล้ว ไม่แตะ backend) · ค่าที่เก็บใน record คงเดิม (จังหวัด=labelTh + reverse-lookup · amenity=code) · [`lib/masterData.ts`](apps/web-admin/src/lib/masterData.ts) hook `useMasterData` (options/provinceLabel/amenityLabel/label ตาม locale) · **แก้: PropertyForm(chips ประเภท+จังหวัด+สิ่งอำนวยฯ) · properties list(filter+display) · properties detail(amenity+province) · audit(propertyType diff)** · verify authed 3จอ×EN/TH (EN=Bangkok/Condo/Swimming Pool · TH กลับไทยครบ ไม่ regression · 0 error) · เลื่อน LEAD_SOURCE(leads)+property-requests propertyType ไป entity turn (ทีละ entity)
   - ✅ **C-shared 2/2 · component ร่วมเสร็จ (`c5bcad9`):** ui.tsx(FilterBar/Modal/ConfirmDialog/Combobox/ListView/ErrorState) · DocumentSection(doc_type/status→catalog) · GlobalSearch · NotificationBell · ActivityTimeline · helper `relTime(iso,t)` ร่วมใน [`lib/format.ts`](apps/web-admin/src/lib/format.ts) · +common(15)+time/docType/docStatus/documents/search/notif/activity · verify authed 3จอ×EN/TH (TH เลิกหลุด "Filters"→"ตัวกรอง" · EN "ID card/Attach document/Notifications" · 0 error ไม่ regression)
-  - 🔴 **KNOWN ISSUES เหลือ:**
-    1. ~~master-data ไทยเสมอ~~ ✅ เสร็จ (properties) — LEAD_SOURCE + property-requests type = ทำตอน migrate entity นั้น
-    2. ~~component ยังไม่แปล~~ ✅ เสร็จ — **เหลือแค่ backend-text** (ActivityTimeline summary "เปลี่ยนสถานะ X→Y" · NotificationBell title/body · notify/audit) = **C-backend** (restructure server เป็น key+params · เฟสลึกแยก) — `DocumentSection` (บัตรประชาชน/แนบเอกสาร/ยังไม่มีเอกสาร), `ActivityTimeline`/ประวัติ (เปลี่ยนสถานะ.../แก้ไขทรัพย์...), GlobalSearch, NotificationBell, QuickAddProperty → **โผล่ในทุกหน้า detail** = ภาษาปนทุกที่
-    3. **ยังไม่ทำตาม CYCLE/responsive** — session นี้ผมไล่แปล mechanical ไม่ได้ ติเก่า→เสนอ+รูป 3 จอ→รอเคาะ ต่อหน้า · ไม่ verify 3 อุปกรณ์ต่อหน้า → **ครั้งหน้าต้องทำตามกฎ** ([[ros-rule-discipline-big-tasks]])
+  - ✅ **KNOWN ISSUES (owner จับได้เมื่อ 2 session ก่อน) แก้ครบแล้ว:**
+    1. ~~master-data ไทยเสมอ~~ ✅ (C-shared1 + carry-over ครบทุก entity)
+    2. ~~component ร่วมยังไม่แปล~~ ✅ (C-shared2) — **เหลือแค่ backend-text** (ActivityTimeline summary "เปลี่ยนสถานะ X→Y" · NotificationBell title/body · notify/audit) = **C-backend** (restructure server เป็น key+params · เฟสลึกแยก)
+    3. ~~ไม่ทำตาม CYCLE/responsive~~ ✅ session นี้ทำตามกฎครบทุก entity (ติเก่า→รูปเทียบ 3 จอ→รอเคาะ→verify authed EN/TH mobile+desktop→audit→commit)
   - **📋 แผนที่เหลือ (เสนอ · ให้ owner เคาะก่อนเริ่ม):**
     - ~~**C-shared 1/2** · master-data i18n~~ ✅ **เสร็จ** (`a8aad4d`)
     - ~~**C-shared 2/2** · component ร่วม~~ ✅ **เสร็จ** (`c5bcad9`) · QuickAddProperty = dead code ข้าม (ยังไม่ import ที่ไหน)
     - 🎉 **C-entities ครบ 6/6:** ~~owners~~ (`a883f28`) → ~~leads/ผู้สนใจ~~ (`41ff852`) → ~~appointments/นัดหมาย~~ (`5645b31`) → ~~customers/ลูกค้า~~ (`06109f2`) → ~~contracts/สัญญา~~ (`121e4da`) → ~~property-requests/คำขอทรัพย์~~ (`1a35ace` · เก็บ PROPERTY_TYPE ค้างครบ) · **LEAD_SOURCE + PROPERTY_TYPE carry-over จาก C-shared1 เก็บครบแล้ว** · ทุก entity verify authed EN/TH × mobile+desktop typecheck ผ่าน 0 error
-    - **C-system:** users/settings/community/search/audit (หน้าที่เหลือ)
-    - **C-backend (ลึก):** notify/audit สตริงประกอบ (เช่น "เปลี่ยนสถานะ X → Y", "มีการแก้ข้อมูลเจ้าของ…") — ต้อง restructure เป็น key+params หรือ i18n ฝั่ง server
-  - **แม่แบบต่อหน้า (พิสูจน์แล้ว):** client → `const t = useTranslations()` · ย้าย option const เข้า component แปลด้วย t · confirm dialog ใช้ `t.rich` (<b>{code}</b>) · **ค่า filter/enum/route ห้ามแตะ (flow)** · ฿+ชื่อ/data=คงภาษาเดิม · shared component default param hardcode ก็ต้อง i18n (เจอที่ DetailHeader backLabel) · **audit ท้าย batch:** `grep '": *"[^"]*[A-Za-z]' th.json` (ยกเว้น placeholder) = ต้องว่าง · en.json ต้องไม่มีอักษรไทย
-  - ⚠️ **ก้อนใหญ่ที่สุด · หลาย session** (~1,490 สตริง × 2 ภาษา + master-data + component + backend)
+    - **C-system (ถัดไป · ทีละหน้าตาม CYCLE):** users · settings · community · search · audit — 5 หน้าระบบ (audit บางส่วน migrate แล้ว: status/propertyType → เหลือ FIELD_TH/ENTITY_TH/RANGE_OPTIONS/relTime)
+    - **C-backend (ลึก · ปิดท้าย):** สตริงที่ **server สร้าง** — ActivityTimeline `summary` ("เปลี่ยนสถานะ X → Y", "แก้ไขทรัพย์…") · NotificationBell `title/body` · notify/audit sentences → ต้อง restructure ฝั่ง API เป็น key+params (หรือ i18n server-side) · time.* + activity.* keys ฝั่ง FE พร้อมรับแล้ว
+  - **⭐ แม่แบบต่อ entity/หน้า (พิสูจน์แล้ว 7 entity · ทำเร็วขึ้นเรื่อยๆ):**
+    - สร้าง namespace ต่อ entity ผ่าน **สคริปต์ Python** (`scratchpad/add_*.py` — load json object_pairs_hook=OrderedDict → เพิ่ม key → dump ensure_ascii=False indent=2) แม่นกว่าแก้ JSON มือ
+    - client: `const t = useTranslations()` · ย้าย option const (STATUS/SORT) เข้า component แปลด้วย t · **status options reuse `*_STATUS` labelKey** (`Object.entries(X).map(([v,m])=>({value:v,label:t(m.labelKey)}))`)
+    - confirm dialog / rich text ใช้ `t.rich('key',{name,b:(c)=><b>{c}</b>})` · relative-time helper รับ t: `relTime`/`relUntil(iso,t)` ใน [`lib/format.ts`](apps/web-admin/src/lib/format.ts)
+    - **reuse สูง:** common (save/saving/saved/fullName/address/note/idCard/cancel/back/delete/phone/email…) + owners (noContact/editData/namePlaceholder/addressPlaceholder/sortName) + appts.searchPlaceholder/agentSelf + leads.closeReasonPlaceholder + propertyDetail.perMonth
+    - **⚠️ ค่า filter/enum/route ห้ามแตะ (flow)** · ฿+ชื่อ/data/free-text=คงภาษาเดิม · glossary "Lead→ผู้สนใจ" ในโหมด TH
+    - **⚠️ ระวัง var ชน:** อย่าตั้งชื่อ map param เป็น `t` (contracts เจอ `terms.map((t)=>)` ต้องเปลี่ยนเป็น `term`)
+    - **audit ท้าย batch:** en.json ต้องไม่มีอักษรไทย (`grep -cP '[฀-๿]'`=0) · th.json latin ได้เฉพาะ loanword (Walk-in/BTS/MRT) · typecheck ก่อน commit
+  - **verify recipe (worktree):** worktree ที่ **`/Users/iiamtikm/ros-wt-i18n`** (นอก scratchpad — scratchpad โดนล้างข้ามวัน worktree หาย!) · symlink root node_modules · cp .env.local + ไฟล์ที่แก้ · เพิ่ม launch config wt-i18n autoPort · login keystroke · สลับ locale ผ่าน `document.cookie='NEXT_LOCALE=en/th'` + reload · teardown ครบ
 - **future (ไม่บล็อก):** AI คัดรูป 18+ · customer idCard FE surface (endpoint reveal พร้อม)
 
 ## 6) 🧪 เครื่องมือเทส/ข้อมูล (session นี้สร้าง)
@@ -107,6 +115,6 @@
 - **flow test 3 บทบาท:** เดินเต็มวงจร **0 error · สิทธิ์ 15/15 ผ่าน** (เซลขอ→ผจก convert+เติมทุกช่อง+อัปรูป→ผู้บริหารอนุมัติ→สัญญา verify+sign+receipt→rented) · เซลสร้าง/แก้ทรัพย์=403 · ผจกอนุมัติ/เปิดบัตร/ลบ=403 · bypass changeStatus=409 → **flow ไม่ชน ไม่เพี้ยน · backend production-ready**
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
-- 🔑 **push commit ค้าง (~95 · ต้อง token)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- 🔑 **push commit ค้าง (~154 local · ต้อง token · +14 commit i18n จาก session นี้)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
 - ⚠️ **schema drift:** DB มี trgm search index + `appointments.ends_at` ที่ไม่มีใน `schema.prisma` → **อย่ารัน `prisma migrate dev`** (มันจะเสนอ DROP) · ใช้ manual SQL + `migrate resolve --applied` (ทำแบบนี้ที่ 0013) · งานเก็บตก: sync model ให้ตรง DB
 - 🔸 polish เล็ก: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
