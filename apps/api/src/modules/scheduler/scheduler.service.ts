@@ -97,6 +97,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         category: 'contract', entityType: 'contract', entityId: c.id,
         title: 'สัญญาใกล้หมดอายุ',
         body: `สัญญา ${c.code} จะหมดอายุวันที่ ${thaiDate(c.endDate)} — โปรดดำเนินการต่อสัญญา/ปิดสัญญา`,
+        titleKey: 'notif.contractExpiring.title', bodyKey: 'notif.contractExpiring.body',
+        params: { code: c.code, date: c.endDate?.toISOString() ?? '' },
       });
       count++;
     }
@@ -130,6 +132,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         category: 'appointment', entityType: 'appointment', entityId: a.id,
         title: 'เตือนนัดดูทรัพย์',
         body: `นัด ${a.code} จะถึงในวันที่ ${thaiDateTime(a.scheduledAt)}`,
+        titleKey: 'notif.apptReminder.title', bodyKey: 'notif.apptReminder.body',
+        params: { code: a.code, at: a.scheduledAt.toISOString() },
       });
       count++;
     }

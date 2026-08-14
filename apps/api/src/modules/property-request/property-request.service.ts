@@ -100,6 +100,7 @@ export class PropertyRequestService {
     await this.notifications.notifyRoles(REVIEWER_ROLES, {
       category: 'property', entityType: 'property_request', entityId: req.id,
       title: 'คำขอเพิ่มทรัพย์ใหม่', body: `${req.titleTh} — ส่งโดยพนักงานขาย`,
+      titleKey: 'notif.reqNew.title', bodyKey: 'notif.reqNew.body', params: { title: req.titleTh },
     });
 
     const duplicateHints = await this.findDuplicateHints(dto.ownerPhone, dto.projectName, dto.district);
@@ -154,7 +155,7 @@ export class PropertyRequestService {
     });
     await this.audit.record(user, { action: 'update', entityType: 'property_request', entityId: id, ...meta });
     if (backToPending) {
-      await this.notifications.notifyRoles(REVIEWER_ROLES, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอถูกแก้ไขและส่งใหม่', body: `${updated.titleTh} — พร้อมตรวจอีกครั้ง` });
+      await this.notifications.notifyRoles(REVIEWER_ROLES, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอถูกแก้ไขและส่งใหม่', body: `${updated.titleTh} — พร้อมตรวจอีกครั้ง`, titleKey: 'notif.reqResubmit.title', bodyKey: 'notif.reqResubmit.body', params: { title: updated.titleTh } });
     }
     return updated;
   }
@@ -215,7 +216,7 @@ export class PropertyRequestService {
 
     await this.activity.log({ entityType: 'property_request', entityId: id, action: 'convert', actorId: user.id, summary: `สร้างประกาศ ${property.code} จากคำขอ ${req.code}`, i18nKey: 'activity.request.convert', i18nParams: { code: property.code, reqCode: req.code } });
     await this.audit.record(user, { action: 'convert', entityType: 'property_request', entityId: id, newValue: { propertyId: property.id, code: property.code }, ...meta });
-    await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property', entityId: property.id, title: 'คำขอของคุณถูกสร้างเป็นประกาศแล้ว', body: `${property.code} — อยู่ระหว่างจัดข้อมูล/รออนุมัติ` });
+    await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property', entityId: property.id, title: 'คำขอของคุณถูกสร้างเป็นประกาศแล้ว', body: `${property.code} — อยู่ระหว่างจัดข้อมูล/รออนุมัติ`, titleKey: 'notif.reqConverted.title', bodyKey: 'notif.reqConverted.body', params: { code: property.code } });
     return property;
   }
 
@@ -225,7 +226,7 @@ export class PropertyRequestService {
     if (req.status === 'converted' || req.status === 'rejected') throw new ConflictException('คำขอนี้ปิดแล้ว');
     const updated = await this.prisma.propertyRequest.update({ where: { id }, data: { status: 'needs_info', reviewNote: reason, reviewedById: user.id } });
     await this.audit.record(user, { action: 'needs_info', entityType: 'property_request', entityId: id, newValue: { reason }, ...meta });
-    await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอเพิ่มทรัพย์ต้องการข้อมูลเพิ่ม', body: reason });
+    await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอเพิ่มทรัพย์ต้องการข้อมูลเพิ่ม', body: reason, titleKey: 'notif.reqNeedsInfo.title' });
     return updated;
   }
 
@@ -235,7 +236,7 @@ export class PropertyRequestService {
     if (req.status === 'converted') throw new ConflictException('คำขอนี้ถูกสร้างเป็นประกาศแล้ว');
     const updated = await this.prisma.propertyRequest.update({ where: { id }, data: { status: 'rejected', reviewNote: reason, reviewedById: user.id } });
     await this.audit.record(user, { action: 'reject', entityType: 'property_request', entityId: id, newValue: { reason }, ...meta });
-    await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอเพิ่มทรัพย์ถูกปฏิเสธ', body: reason });
+    await this.notifications.notifyUser(req.submittedById, { category: 'property', entityType: 'property_request', entityId: id, title: 'คำขอเพิ่มทรัพย์ถูกปฏิเสธ', body: reason, titleKey: 'notif.reqRejected.title' });
     return updated;
   }
 

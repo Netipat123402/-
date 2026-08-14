@@ -2,25 +2,31 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { EmptyState, ErrorState, ListSkeleton, PageHeader } from '@/components/ui';
 import { Icon, type IconName } from '@/components/Icon';
+import { relTime, fmtDateTime } from '@/lib/format';
+import { notifTitle, notifBody } from '@/lib/notif';
 
 interface Notif {
   id: string; category: string; title: string; body: string; status: string;
   entityType?: string; entityId?: string; createdAt: string;
+  titleKey?: string | null; bodyKey?: string | null; params?: Record<string, unknown> | null;
 }
 
-const CATEGORY_TH: Record<string, { label: string; color: string; icon: IconName }> = {
-  property: { label: 'ทรัพย์', color: 'bg-success/10 text-success', icon: 'building' },
-  appointment: { label: 'นัดหมาย', color: 'bg-gold/15 text-gold-dark', icon: 'calendar' },
-  lead: { label: 'Lead', color: 'bg-info/10 text-info', icon: 'user-plus' },
-  contract: { label: 'สัญญา', color: 'bg-warning/10 text-warning', icon: 'file-text' },
-  user: { label: 'ผู้ใช้', color: 'bg-info/10 text-info', icon: 'user' },
-  system: { label: 'ระบบ', color: 'bg-border text-ink-soft', icon: 'info' },
+// สี+ไอคอนต่อหมวด (ไม่ผ่าน i18n) · label ผ่าน notif.cat.*
+const CAT_META: Record<string, { color: string; icon: IconName }> = {
+  property: { color: 'bg-success/10 text-success', icon: 'building' },
+  appointment: { color: 'bg-gold/15 text-gold-dark', icon: 'calendar' },
+  lead: { color: 'bg-info/10 text-info', icon: 'user-plus' },
+  contract: { color: 'bg-warning/10 text-warning', icon: 'file-text' },
+  owner: { color: 'bg-warning/10 text-warning', icon: 'key' },
+  user: { color: 'bg-info/10 text-info', icon: 'user' },
+  system: { color: 'bg-border text-ink-soft', icon: 'info' },
 };
 // ลำดับหมวดที่อยากให้แสดงก่อน (หมวดอื่นต่อท้าย)
-const CAT_ORDER = ['property', 'appointment', 'lead', 'contract', 'user', 'system'];
+const CAT_ORDER = ['property', 'appointment', 'lead', 'contract', 'owner', 'user', 'system'];
 
 // deep-link ไป entity "ถูกตัว" (Phase 50): lead/appointment ใช้ ?focus= (เปิด modal) · ที่มีหน้า detail ใช้ /:id
 function entityHref(entityType?: string, entityId?: string): string | undefined {
@@ -36,17 +42,8 @@ function entityHref(entityType?: string, entityId?: string): string | undefined 
   }
 }
 
-function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'เมื่อสักครู่';
-  if (m < 60) return `${m} นาทีที่แล้ว`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h} ชม.ที่แล้ว`;
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
 export default function NotificationsPage() {
+  const t = useTranslations();
   const { api } = useAuth();
   const [rows, setRows] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,34 +77,35 @@ export default function NotificationsPage() {
         const ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
         return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
       })
-      .map((c) => ({ key: c, label: CATEGORY_TH[c]?.label ?? c, icon: CATEGORY_TH[c]?.icon ?? 'bell' as IconName, unread: unreadBy[c] ?? 0 }));
-  }, [rows]);
+      .map((c) => ({ key: c, label: CAT_META[c] ? t(`notif.cat.${c}`) : c, icon: CAT_META[c]?.icon ?? 'bell' as IconName, unread: unreadBy[c] ?? 0 }));
+  }, [rows, t]);
 
   const totalUnread = rows.filter((r) => r.status !== 'read').length;
   const visible = cat ? rows.filter((r) => r.category === cat) : rows;
 
   return (
     <div>
-      <PageHeader title="การแจ้งเตือน" count={`${rows.length} รายการ`}
-        action={totalUnread > 0 && <button className="btn-ghost h-10" onClick={markAll}>อ่านทั้งหมด</button>} />
+      <PageHeader title={t('notif.title')} count={t('notif.count', { n: rows.length })}
+        action={totalUnread > 0 && <button className="btn-ghost h-10" onClick={markAll}>{t('notif.markAll')}</button>} />
 
       {/* แถบหมวดแบบ IG — มือถือ: ปัดซ้ายขวา · เดสก์ท็อป: ปุ่มลูกศร ◄ ► */}
       {cats.length > 0 && (
         <CategoryBar
-          all={{ label: 'ทั้งหมด', icon: 'bell', unread: totalUnread }}
+          all={{ label: t('notif.all'), icon: 'bell', unread: totalUnread }}
           cats={cats} active={cat} onPick={setCat} dep={cats.length}
         />
       )}
 
       <div className="mt-4 card overflow-hidden">
         {loading ? <ListSkeleton /> : error ? (
-          <ErrorState onRetry={load} text="โหลดการแจ้งเตือนไม่สำเร็จ" />
+          <ErrorState onRetry={load} text={t('notif.loadFailed')} />
         ) : visible.length === 0 ? (
-          <EmptyState text={cat ? 'ไม่มีการแจ้งเตือนในหมวดนี้' : 'ยังไม่มีการแจ้งเตือน'} icon="bell" />
+          <EmptyState text={cat ? t('notif.emptyCat') : t('notif.emptyAll')} icon="bell" />
         ) : (
           <ul className="divide-y divide-border">
             {visible.map((n) => {
-              const c = CATEGORY_TH[n.category] ?? CATEGORY_TH.system;
+              const meta = CAT_META[n.category] ?? CAT_META.system;
+              const label = CAT_META[n.category] ? t(`notif.cat.${n.category}`) : n.category;
               const unread = n.status !== 'read';
               const href = entityHref(n.entityType, n.entityId);
               const Body = (
@@ -115,15 +113,15 @@ export default function NotificationsPage() {
                   {unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />}
                   <div className={`min-w-0 flex-1 ${unread ? '' : 'pl-5'}`}>
                     <div className="flex items-center gap-2">
-                      <span className={`badge ${c.color}`}>{c.label}</span>
-                      <span className="text-xs text-muted">{timeAgo(n.createdAt)}</span>
+                      <span className={`badge ${meta.color}`}>{label}</span>
+                      <span className="text-xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateTime(d.toISOString()))}</span>
                     </div>
-                    <p className="mt-1 font-medium">{n.title}</p>
-                    <p className="text-sm text-muted">{n.body}</p>
+                    <p className="mt-1 font-medium">{notifTitle(n, t)}</p>
+                    <p className="text-sm text-muted">{notifBody(n, t)}</p>
                   </div>
                   {unread && (
                     <button onClick={(e) => { e.preventDefault(); markRead(n.id); }}
-                      className="shrink-0 self-center text-xs text-gold-dark hover:underline">ทำเป็นอ่าน</button>
+                      className="shrink-0 self-center text-xs text-gold-dark hover:underline">{t('notif.markThis')}</button>
                   )}
                 </div>
               );
@@ -150,6 +148,7 @@ function CategoryBar({ all, cats, active, onPick, dep }: {
   cats: { key: string; label: string; icon: IconName; unread: number }[];
   active: string; onPick: (k: string) => void; dep: number;
 }) {
+  const t = useTranslations();
   const ref = useRef<HTMLDivElement>(null);
   const [canL, setCanL] = useState(false);
   const [canR, setCanR] = useState(false);
@@ -172,7 +171,7 @@ function CategoryBar({ all, cats, active, onPick, dep }: {
   return (
     <div className="relative mt-4">
       {/* ลูกศรซ้าย — เฉพาะเดสก์ท็อป */}
-      <button type="button" aria-label="เลื่อนซ้าย" onClick={() => nudge(-1)}
+      <button type="button" aria-label={t('notif.scrollLeft')} onClick={() => nudge(-1)}
         className={`absolute left-0 top-1/2 z-10 hidden -translate-y-1/2 mouse:flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-ink-soft shadow-sm transition hover:border-ink/40 hover:text-ink ${canL ? '' : 'pointer-events-none opacity-0'}`}>
         <Icon name="chevron-left" size={18} />
       </button>
@@ -187,7 +186,7 @@ function CategoryBar({ all, cats, active, onPick, dep }: {
       </div>
 
       {/* ลูกศรขวา — เฉพาะเดสก์ท็อป */}
-      <button type="button" aria-label="เลื่อนขวา" onClick={() => nudge(1)}
+      <button type="button" aria-label={t('notif.scrollRight')} onClick={() => nudge(1)}
         className={`absolute right-0 top-1/2 z-10 hidden -translate-y-1/2 mouse:flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-ink-soft shadow-sm transition hover:border-ink/40 hover:text-ink ${canR ? '' : 'pointer-events-none opacity-0'}`}>
         <Icon name="chevron-right" size={18} />
       </button>

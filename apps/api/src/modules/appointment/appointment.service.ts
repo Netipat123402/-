@@ -162,6 +162,9 @@ export class AppointmentService {
       category: 'appointment', entityType: 'appointment', entityId: appt.id,
       title: isViewing ? 'มีนัดดูทรัพย์ใหม่' : 'มีนัดใหม่',
       body: `${appt.title ? `${appt.title} — ` : `นัด ${appt.code} `}วันที่ ${thaiDateTime(dto.scheduledAt)}`,
+      titleKey: isViewing ? 'notif.apptNew.titleViewing' : 'notif.apptNew.title',
+      bodyKey: appt.title ? 'notif.apptNew.bodyTitled' : 'notif.apptNew.body',
+      params: { code: appt.code, name: appt.title ?? '', at: dto.scheduledAt.toISOString() },
     });
     await this.audit.record(user, { action: 'create', entityType: 'appointment', entityId: appt.id, newValue: { code: appt.code }, ...meta });
     return appt;
@@ -242,6 +245,9 @@ export class AppointmentService {
       category: 'appointment', entityType: 'appointment', entityId: id,
       title: 'นัดถูกเลื่อนเวลา',
       body: `นัด ${appt.code} เลื่อนเป็น ${thaiDateTime(dto.scheduledAt)}`,
+      titleKey: 'notif.apptReschedule.title',
+      bodyKey: 'notif.apptReschedule.body',
+      params: { code: appt.code, at: dto.scheduledAt.toISOString() },
     });
     await this.audit.record(user, { action: 'change_status', entityType: 'appointment', entityId: id, oldValue: { scheduledAt: appt.scheduledAt }, newValue: { scheduledAt: dto.scheduledAt }, ...meta });
     return updated;
@@ -254,6 +260,9 @@ export class AppointmentService {
       category: 'appointment', entityType: 'appointment', entityId: id,
       title: 'นัดถูกยกเลิก',
       body: `นัด ${appt.code} ถูกยกเลิก${dto.reason ? ` (${dto.reason})` : ''}`,
+      titleKey: 'notif.apptCancel.title',
+      bodyKey: dto.reason ? 'notif.apptCancel.bodyReason' : 'notif.apptCancel.body',
+      params: { code: appt.code, reason: dto.reason ?? '' },
     });
     return result;
   }

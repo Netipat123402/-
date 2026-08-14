@@ -189,7 +189,7 @@ export class PropertyService {
     });
     // Phase 4b: แก้เนื้อหาทรัพย์ที่เผยแพร่อยู่ → เด้งกลับรอตรวจสอบ + ซ่อนจากเว็บจนอนุมัติใหม่
     const bounced = materialChanged
-      ? await this.bounceLiveToReview(user, updated, 'แก้ไขข้อมูลทรัพย์', meta)
+      ? await this.bounceLiveToReview(user, updated, 'แก้ไขข้อมูลทรัพย์', 'notif.what.editInfo', meta)
       : null;
     this.revalidation.revalidatePublicProperties(existing.code); // ข้อมูลที่โชว์บนเว็บเปลี่ยน
     return bounced ?? updated;
@@ -253,7 +253,7 @@ export class PropertyService {
     });
     await this.audit.record(user, { action: 'upload', entityType: 'property', entityId: id, ...meta });
     this.revalidation.revalidatePublicProperties(prop.code); // รูปใหม่ขึ้นเว็บ
-    await this.bounceLiveToReview(user, prop, 'เพิ่มรูปทรัพย์', meta); // Phase 4b
+    await this.bounceLiveToReview(user, prop, 'เพิ่มรูปทรัพย์', 'notif.what.addPhoto', meta); // Phase 4b
     return media;
   }
 
@@ -267,7 +267,7 @@ export class PropertyService {
     if (res.count === 0) throw new NotFoundException('ไม่พบรูปภาพของทรัพย์นี้');
     await this.audit.record(user, { action: 'delete', entityType: 'property', entityId: id, ...meta });
     this.revalidation.revalidatePublicProperties(prop.code);
-    await this.bounceLiveToReview(user, prop, 'ลบรูปทรัพย์', meta); // Phase 4b
+    await this.bounceLiveToReview(user, prop, 'ลบรูปทรัพย์', 'notif.what.removePhoto', meta); // Phase 4b
     return { success: true };
   }
 
@@ -281,7 +281,7 @@ export class PropertyService {
       this.prisma.propertyMedia.update({ where: { id: mediaId }, data: { isCover: true } }),
     ]);
     this.revalidation.revalidatePublicProperties(prop.code);
-    await this.bounceLiveToReview(user, prop, 'เปลี่ยนรูปปกทรัพย์', meta); // Phase 4b
+    await this.bounceLiveToReview(user, prop, 'เปลี่ยนรูปปกทรัพย์', 'notif.what.setCover', meta); // Phase 4b
     return { success: true };
   }
 
@@ -343,6 +343,7 @@ export class PropertyService {
     await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
       category: 'property', entityType: 'property', entityId: id,
       title: 'มีทรัพย์รออนุมัติเผยแพร่', body: `${p.code} ${p.titleTh} — โปรดตรวจและอนุมัติ`,
+      titleKey: 'notif.propPending.title', bodyKey: 'notif.propPending.body', params: { code: p.code, title: p.titleTh },
     });
     return res;
   }
@@ -360,6 +361,7 @@ export class PropertyService {
     await this.notifications.notifyUser(p.assignedToId, {
       category: 'property', entityType: 'property', entityId: id,
       title: 'ทรัพย์ของคุณเผยแพร่แล้ว', body: `${p.code} ${p.titleTh} ขึ้นเว็บแล้ว`,
+      titleKey: 'notif.propPublished.title', bodyKey: 'notif.propPublished.body', params: { code: p.code, title: p.titleTh },
     });
     return res;
   }
@@ -379,6 +381,7 @@ export class PropertyService {
       await this.notifications.notifyUser(p.assignedToId, {
         category: 'property', entityType: 'property', entityId: id,
         title: 'ทรัพย์ถูกตีกลับให้แก้', body: `${p.code} ${p.titleTh} — เหตุผล: ${reason}`,
+        titleKey: 'notif.propRejected.title', bodyKey: 'notif.propRejected.body', params: { code: p.code, title: p.titleTh, reason },
       });
       return res;
     }
@@ -407,7 +410,7 @@ export class PropertyService {
     const res = await this.applyTransition(user, p, toStatus, 'change_status', reason, meta);
     // Phase 6 (เก็บตก B): กลับมาว่างทั้งที่แก้เนื้อหาตอนไม่ว่าง → เด้งไปตรวจใหม่ (ไม่ให้ขึ้นเว็บพร้อมของยังไม่ตรวจ)
     if (p.status === PropertyStatus.rented && toStatus === PropertyStatus.available && p.contentDirty) {
-      return (await this.bounceLiveToReview(user, res, 'มีการแก้ไขระหว่างไม่ว่าง — โปรดตรวจก่อนขึ้นเว็บ', meta)) ?? res;
+      return (await this.bounceLiveToReview(user, res, 'มีการแก้ไขระหว่างไม่ว่าง — โปรดตรวจก่อนขึ้นเว็บ', 'notif.what.editWhileRented', meta)) ?? res;
     }
     return res;
   }
@@ -510,6 +513,7 @@ export class PropertyService {
     user: AuthenticatedUser,
     property: Property,
     what: string,
+    whatKey: string,
     meta: RequestMeta,
   ): Promise<Property | null> {
     if (property.status !== PropertyStatus.available) return null;
@@ -518,6 +522,8 @@ export class PropertyService {
       category: 'property', entityType: 'property', entityId: property.id,
       title: 'ทรัพย์ที่แก้ไขรอตรวจสอบอีกครั้ง',
       body: `${property.code} ${property.titleTh} — ${what} · ถูกซ่อนจากเว็บจนอนุมัติใหม่`,
+      titleKey: 'notif.propBounce.title', bodyKey: 'notif.propBounce.body',
+      params: { code: property.code, title: property.titleTh, whatKey },
     });
     return res;
   }

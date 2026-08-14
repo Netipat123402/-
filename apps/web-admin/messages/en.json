@@ -416,7 +416,123 @@
     "dueIn": "Due {date} · in {days}d",
     "apptTitle": "Appt {code}",
     "contractTitle": "Contract {code}",
-    "aria": "Notifications"
+    "aria": "Notifications",
+    "count": "{n} items",
+    "loadFailed": "Failed to load notifications",
+    "emptyAll": "No notifications yet",
+    "emptyCat": "No notifications in this category",
+    "all": "All",
+    "markThis": "Mark read",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "cat": {
+      "property": "Properties",
+      "appointment": "Appointments",
+      "lead": "Leads",
+      "contract": "Contracts",
+      "user": "Users",
+      "system": "System",
+      "owner": "Owners"
+    },
+    "apptNew": {
+      "title": "New appointment",
+      "titleViewing": "New viewing",
+      "body": "Appt {code} · {at}",
+      "bodyTitled": "{name} — {at}"
+    },
+    "apptReschedule": {
+      "title": "Appointment rescheduled",
+      "body": "Appt {code} moved to {at}"
+    },
+    "apptCancel": {
+      "title": "Appointment cancelled",
+      "body": "Appt {code} cancelled",
+      "bodyReason": "Appt {code} cancelled ({reason})"
+    },
+    "apptReminder": {
+      "title": "Appointment reminder",
+      "body": "Appt {code} is coming up on {at}"
+    },
+    "reqNew": {
+      "title": "New property request",
+      "body": "{title} — submitted by sales"
+    },
+    "reqResubmit": {
+      "title": "Request edited & resubmitted",
+      "body": "{title} — ready for review again"
+    },
+    "reqConverted": {
+      "title": "Your request became a listing",
+      "body": "{code} — being prepared / pending approval"
+    },
+    "reqNeedsInfo": {
+      "title": "Property request needs more info"
+    },
+    "reqRejected": {
+      "title": "Property request rejected"
+    },
+    "propPending": {
+      "title": "Property awaiting approval",
+      "body": "{code} {title} — please review & approve"
+    },
+    "propPublished": {
+      "title": "Your property is published",
+      "body": "{code} {title} is now live"
+    },
+    "propRejected": {
+      "title": "Property sent back for edits",
+      "body": "{code} {title} — reason: {reason}"
+    },
+    "propBounce": {
+      "title": "Edited property needs re-review",
+      "body": "{code} {title} — {what} · hidden from web until re-approved"
+    },
+    "propBackAvailable": {
+      "title": "Property available again, but needs review",
+      "body": "{code} {title} — edited while rented · held for review before going live"
+    },
+    "contractExpiring": {
+      "title": "Contract expiring soon",
+      "body": "Contract {code} expires on {date} — please renew or close it"
+    },
+    "contractTerm": {
+      "title": "Terms of a signed contract changed",
+      "body": "{name} {what} in contract {code} (active)"
+    },
+    "ownerEdit": {
+      "title": "Owner details edited",
+      "body": "{editor} edited {owner} — {changes}"
+    },
+    "leadWeb": {
+      "title": "New lead from website",
+      "body": "{name} ({phone}) is interested — please call back"
+    },
+    "leadAssigned": {
+      "title": "You were assigned a new lead",
+      "body": "{name} ({phone}) — please follow up"
+    },
+    "communityPost": {
+      "title": "New community post pending",
+      "body": "{name}: {excerpt}"
+    },
+    "what": {
+      "editInfo": "edited property info",
+      "addPhoto": "added a photo",
+      "removePhoto": "removed a photo",
+      "setCover": "changed the cover photo",
+      "editWhileRented": "edited while rented — review before going live",
+      "addTerm": "added term “{term}”",
+      "removeTerm": "removed a term"
+    },
+    "ownerField": {
+      "fullName": "Name: {from} → {to}",
+      "phone": "Phone: {from} → {to}",
+      "email": "Email: {from} → {to}"
+    },
+    "ownerFieldFlag": {
+      "address": "Address",
+      "idCard": "ID card (hidden)"
+    }
   },
   "activity": {
     "none": "No history yet",

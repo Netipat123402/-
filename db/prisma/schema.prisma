@@ -800,6 +800,10 @@ model Notification {
   category        NotificationCategory
   title           String               @db.VarChar(200)
   body            String               @db.Text
+  // i18n (C-backend 2/2) — key+params · FE render t(); title/body คงไว้เป็น fallback (row เก่า) + LINE/email
+  titleKey        String?              @map("title_key") @db.Text
+  bodyKey         String?              @map("body_key") @db.Text
+  params          Json?                @db.JsonB
   entityType      EntityType?          @map("entity_type")
   entityId        String?              @map("entity_id") @db.Uuid
   status          NotificationStatus   @default(queued)

@@ -11,10 +11,15 @@ export interface NotifyInput {
   recipientLineId?: string;
   channel?: NotificationChannel;
   category: NotificationCategory;
+  /** ข้อความ fallback (ไทย) — คงไว้สำหรับ row เก่า/LINE/email · FE ใช้ i18n ก่อนถ้ามี */
   title: string;
   body: string;
   entityType?: EntityType;
   entityId?: string;
+  /** i18n (C-backend 2/2) — key ใน catalog FE `notif.*` + params · FE render `t(key, params)` */
+  titleKey?: string;
+  bodyKey?: string;
+  params?: Prisma.InputJsonValue;
 }
 
 /**
@@ -50,6 +55,7 @@ export class NotificationService {
       data: {
         recipientUserId: input.recipientUserId, recipientLineId: input.recipientLineId,
         channel, category: input.category, title: input.title, body: input.body,
+        titleKey: input.titleKey, bodyKey: input.bodyKey, params: input.params,
         entityType: input.entityType, entityId: input.entityId,
         status: channel === 'in_app' ? 'delivered' : 'queued',
       },
@@ -97,6 +103,7 @@ export class NotificationService {
       data: recipients.map((u) => ({
         recipientUserId: u.id, channel, category: input.category,
         title: input.title, body: input.body,
+        titleKey: input.titleKey, bodyKey: input.bodyKey, params: input.params,
         entityType: input.entityType, entityId: input.entityId,
         status: channel === 'in_app' ? ('delivered' as const) : ('queued' as const),
       })),

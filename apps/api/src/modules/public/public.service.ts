@@ -193,6 +193,7 @@ export class PublicService {
         category: 'lead', entityType: 'lead', entityId: lead.id,
         title: 'Lead ใหม่จากเว็บไซต์',
         body: `${lead.fullName} (${lead.phone}) สนใจทรัพย์ — โปรดติดต่อกลับ`,
+        titleKey: 'notif.leadWeb.title', bodyKey: 'notif.leadWeb.body', params: { name: lead.fullName, phone: lead.phone },
       },
     );
     this.logger.log(`New public lead ${lead.code} (${meta.ip ?? '-'})`);

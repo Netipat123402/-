@@ -178,16 +178,20 @@ export class OwnerService {
   private async notifySensitiveEdit(user: AuthenticatedUser, before: { id: string; fullName: string; phone: string | null; email: string | null; address: string | null }, dto: UpdateOwnerDto) {
     if (user.roles.includes('super_admin')) return;
     const changes: string[] = [];
-    if (dto.fullName !== undefined && dto.fullName !== before.fullName) changes.push(`ชื่อ: ${before.fullName} → ${dto.fullName}`);
-    if (dto.phone !== undefined && dto.phone !== before.phone) changes.push(`เบอร์โทร: ${before.phone ?? '—'} → ${dto.phone ?? '—'}`);
-    if (dto.email !== undefined && dto.email !== before.email) changes.push(`อีเมล: ${before.email ?? '—'} → ${dto.email ?? '—'}`);
-    if (dto.address !== undefined && dto.address !== before.address) changes.push('ที่อยู่');
-    if (dto.idCardNo !== undefined) changes.push('เลขบัตรประชาชน (ไม่แสดงเลข)');
+    // fields = structured (i18n) · changes = ข้อความ fallback ไทย (row เก่า/LINE) — สองอย่างคู่กัน
+    const fields: Array<{ field: string; from?: string; to?: string }> = [];
+    if (dto.fullName !== undefined && dto.fullName !== before.fullName) { changes.push(`ชื่อ: ${before.fullName} → ${dto.fullName}`); fields.push({ field: 'fullName', from: before.fullName, to: dto.fullName }); }
+    if (dto.phone !== undefined && dto.phone !== before.phone) { changes.push(`เบอร์โทร: ${before.phone ?? '—'} → ${dto.phone ?? '—'}`); fields.push({ field: 'phone', from: before.phone ?? '—', to: dto.phone ?? '—' }); }
+    if (dto.email !== undefined && dto.email !== before.email) { changes.push(`อีเมล: ${before.email ?? '—'} → ${dto.email ?? '—'}`); fields.push({ field: 'email', from: before.email ?? '—', to: dto.email ?? '—' }); }
+    if (dto.address !== undefined && dto.address !== before.address) { changes.push('ที่อยู่'); fields.push({ field: 'address' }); }
+    if (dto.idCardNo !== undefined) { changes.push('เลขบัตรประชาชน (ไม่แสดงเลข)'); fields.push({ field: 'idCard' }); }
     if (changes.length === 0) return;
     await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
       category: 'owner', entityType: 'owner', entityId: before.id,
       title: 'มีการแก้ข้อมูลเจ้าของทรัพย์',
       body: `${user.fullName} แก้ ${before.fullName} — ${changes.join(' · ')}`,
+      titleKey: 'notif.ownerEdit.title', bodyKey: 'notif.ownerEdit.body',
+      params: { editor: user.fullName, owner: before.fullName, fields },
     });
   }
 

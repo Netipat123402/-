@@ -39,6 +39,7 @@ export class PropertySyncService {
       await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
         category: 'property', entityType: 'property', entityId: propertyId,
         title: 'ทรัพย์กลับมาว่าง แต่ต้องตรวจก่อน', body: `${prop.code} ${prop.titleTh} — มีการแก้ไขระหว่างเช่า · กันไว้รอตรวจก่อนขึ้นเว็บ`,
+        titleKey: 'notif.propBackAvailable.title', bodyKey: 'notif.propBackAvailable.body', params: { code: prop.code, title: prop.titleTh },
       });
     }
     // ทรัพย์ขึ้น/ลงเว็บจากสัญญา (active→rented หาย, terminated→available กลับมา) → ล้าง cache

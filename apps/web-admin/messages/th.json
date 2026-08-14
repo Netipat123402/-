@@ -416,7 +416,123 @@
     "dueIn": "ครบกำหนด {date} · อีก {days} วัน",
     "apptTitle": "นัด {code}",
     "contractTitle": "สัญญา {code}",
-    "aria": "การแจ้งเตือน"
+    "aria": "การแจ้งเตือน",
+    "count": "{n} รายการ",
+    "loadFailed": "โหลดการแจ้งเตือนไม่สำเร็จ",
+    "emptyAll": "ยังไม่มีการแจ้งเตือน",
+    "emptyCat": "ไม่มีการแจ้งเตือนในหมวดนี้",
+    "all": "ทั้งหมด",
+    "markThis": "ทำเป็นอ่าน",
+    "scrollLeft": "เลื่อนซ้าย",
+    "scrollRight": "เลื่อนขวา",
+    "cat": {
+      "property": "ทรัพย์",
+      "appointment": "นัดหมาย",
+      "lead": "ผู้สนใจ",
+      "contract": "สัญญา",
+      "user": "ผู้ใช้",
+      "system": "ระบบ",
+      "owner": "เจ้าของ"
+    },
+    "apptNew": {
+      "title": "มีนัดใหม่",
+      "titleViewing": "มีนัดดูทรัพย์ใหม่",
+      "body": "นัด {code} · {at}",
+      "bodyTitled": "{name} — {at}"
+    },
+    "apptReschedule": {
+      "title": "นัดถูกเลื่อนเวลา",
+      "body": "นัด {code} เลื่อนเป็น {at}"
+    },
+    "apptCancel": {
+      "title": "นัดถูกยกเลิก",
+      "body": "นัด {code} ถูกยกเลิก",
+      "bodyReason": "นัด {code} ถูกยกเลิก ({reason})"
+    },
+    "apptReminder": {
+      "title": "เตือนนัดดูทรัพย์",
+      "body": "นัด {code} จะถึงในวันที่ {at}"
+    },
+    "reqNew": {
+      "title": "คำขอเพิ่มทรัพย์ใหม่",
+      "body": "{title} — ส่งโดยพนักงานขาย"
+    },
+    "reqResubmit": {
+      "title": "คำขอถูกแก้ไขและส่งใหม่",
+      "body": "{title} — พร้อมตรวจอีกครั้ง"
+    },
+    "reqConverted": {
+      "title": "คำขอของคุณถูกสร้างเป็นประกาศแล้ว",
+      "body": "{code} — อยู่ระหว่างจัดข้อมูล/รออนุมัติ"
+    },
+    "reqNeedsInfo": {
+      "title": "คำขอเพิ่มทรัพย์ต้องการข้อมูลเพิ่ม"
+    },
+    "reqRejected": {
+      "title": "คำขอเพิ่มทรัพย์ถูกปฏิเสธ"
+    },
+    "propPending": {
+      "title": "มีทรัพย์รออนุมัติเผยแพร่",
+      "body": "{code} {title} — โปรดตรวจและอนุมัติ"
+    },
+    "propPublished": {
+      "title": "ทรัพย์ของคุณเผยแพร่แล้ว",
+      "body": "{code} {title} ขึ้นเว็บแล้ว"
+    },
+    "propRejected": {
+      "title": "ทรัพย์ถูกตีกลับให้แก้",
+      "body": "{code} {title} — เหตุผล: {reason}"
+    },
+    "propBounce": {
+      "title": "ทรัพย์ที่แก้ไขรอตรวจสอบอีกครั้ง",
+      "body": "{code} {title} — {what} · ถูกซ่อนจากเว็บจนอนุมัติใหม่"
+    },
+    "propBackAvailable": {
+      "title": "ทรัพย์กลับมาว่าง แต่ต้องตรวจก่อน",
+      "body": "{code} {title} — มีการแก้ไขระหว่างเช่า · กันไว้รอตรวจก่อนขึ้นเว็บ"
+    },
+    "contractExpiring": {
+      "title": "สัญญาใกล้หมดอายุ",
+      "body": "สัญญา {code} จะหมดอายุวันที่ {date} — โปรดดำเนินการต่อสัญญา/ปิดสัญญา"
+    },
+    "contractTerm": {
+      "title": "เปลี่ยนเงื่อนไขสัญญาที่เซ็นแล้ว",
+      "body": "{name} {what} ในสัญญา {code} (active)"
+    },
+    "ownerEdit": {
+      "title": "มีการแก้ข้อมูลเจ้าของทรัพย์",
+      "body": "{editor} แก้ {owner} — {changes}"
+    },
+    "leadWeb": {
+      "title": "ผู้สนใจใหม่จากเว็บไซต์",
+      "body": "{name} ({phone}) สนใจทรัพย์ — โปรดติดต่อกลับ"
+    },
+    "leadAssigned": {
+      "title": "คุณได้รับมอบหมายผู้สนใจใหม่",
+      "body": "{name} ({phone}) — โปรดติดตาม"
+    },
+    "communityPost": {
+      "title": "โพสต์ชุมชนใหม่รออนุมัติ",
+      "body": "{name}: {excerpt}"
+    },
+    "what": {
+      "editInfo": "แก้ไขข้อมูลทรัพย์",
+      "addPhoto": "เพิ่มรูปทรัพย์",
+      "removePhoto": "ลบรูปทรัพย์",
+      "setCover": "เปลี่ยนรูปปกทรัพย์",
+      "editWhileRented": "มีการแก้ไขระหว่างไม่ว่าง — โปรดตรวจก่อนขึ้นเว็บ",
+      "addTerm": "เพิ่มเงื่อนไข “{term}”",
+      "removeTerm": "ลบเงื่อนไข"
+    },
+    "ownerField": {
+      "fullName": "ชื่อ: {from} → {to}",
+      "phone": "เบอร์โทร: {from} → {to}",
+      "email": "อีเมล: {from} → {to}"
+    },
+    "ownerFieldFlag": {
+      "address": "ที่อยู่",
+      "idCard": "เลขบัตรประชาชน (ไม่แสดงเลข)"
+    }
   },
   "activity": {
     "none": "ยังไม่มีประวัติ",

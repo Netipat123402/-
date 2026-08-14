@@ -377,14 +377,14 @@ export class ContractService {
   async addTerm(user: AuthenticatedUser, id: string, termKey: string, termValue: string) {
     const c = await this.requireInScope(user, id, 'update');
     const term = await this.prisma.contractTerm.create({ data: { contractId: id, termKey, termValue } });
-    await this.notifyTermChange(user, c, `เพิ่มเงื่อนไข “${termKey}”`);
+    await this.notifyTermChange(user, c, `เพิ่มเงื่อนไข “${termKey}”`, 'notif.what.addTerm', { term: termKey });
     return term;
   }
 
   async removeTerm(user: AuthenticatedUser, id: string, termId: string) {
     const c = await this.requireInScope(user, id, 'update');
     await this.prisma.contractTerm.deleteMany({ where: { id: termId, contractId: id } });
-    await this.notifyTermChange(user, c, 'ลบเงื่อนไข');
+    await this.notifyTermChange(user, c, 'ลบเงื่อนไข', 'notif.what.removeTerm');
     return { success: true };
   }
 
@@ -392,13 +392,18 @@ export class ContractService {
    * Phase 5: แจ้งเจ้าของระบบเมื่อแก้เงื่อนไขสัญญาที่ "เซ็นแล้ว (active)" — เปลี่ยนเงื่อนไขหลังเซ็น = อ่อนไหว
    * draft = ร่างปกติ (ไม่แจ้ง) · เจ้าของแก้เอง (super_admin) = ไม่แจ้ง
    */
-  private async notifyTermChange(user: AuthenticatedUser, contract: Contract, what: string) {
+  private async notifyTermChange(
+    user: AuthenticatedUser, contract: Contract, what: string,
+    whatKey: string, whatParams?: Record<string, string | number>,
+  ) {
     if (contract.status !== ContractStatus.active) return;
     if (user.roles.includes('super_admin')) return;
     await this.notifications.notifyRoles(OWNER_ALERT_ROLES, {
       category: 'contract', entityType: 'contract', entityId: contract.id,
       title: 'เปลี่ยนเงื่อนไขสัญญาที่เซ็นแล้ว',
       body: `${user.fullName} ${what} ในสัญญา ${contract.code} (active)`,
+      titleKey: 'notif.contractTerm.title', bodyKey: 'notif.contractTerm.body',
+      params: { name: user.fullName, code: contract.code, whatKey, ...(whatParams ? { whatParams } : {}) },
     });
   }
 

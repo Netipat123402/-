@@ -6,12 +6,15 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { Icon, type IconName } from '@/components/Icon';
 import { relTime, fmtDateShort } from '@/lib/format';
+import { notifTitle, notifBody } from '@/lib/notif';
 
 type TFn = (key: string, values?: Record<string, string | number>) => string;
 
 interface Notif {
   id: string; category: string; title: string; body: string; status: string;
   entityType?: string; entityId?: string; createdAt: string;
+  // i18n (C-backend 2/2) — key+params · fallback title/body ถ้าไม่มี key (row เก่า)
+  titleKey?: string | null; bodyKey?: string | null; params?: Record<string, unknown> | null;
 }
 interface Appt { id: string; code: string; title?: string | null; scheduledAt: string; lead?: { fullName: string } | null; property?: { titleTh: string } | null }
 interface Contract { id: string; code: string; endDate?: string | null }
@@ -218,10 +221,10 @@ export default function NotificationBell() {
                         <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${unread ? 'bg-gold' : 'bg-transparent'}`} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-baseline justify-between gap-2">
-                            <span className={`truncate text-sm ${unread ? 'font-semibold text-ink' : 'font-normal text-ink-soft'}`}>{n.title}</span>
+                            <span className={`truncate text-sm ${unread ? 'font-semibold text-ink' : 'font-normal text-ink-soft'}`}>{notifTitle(n, t)}</span>
                             <span className="shrink-0 text-2xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateShort(d.toISOString()))}</span>
                           </span>
-                          <span className="block truncate text-xs text-muted">{n.body}</span>
+                          <span className="block truncate text-xs text-muted">{notifBody(n, t)}</span>
                         </span>
                       </button>
                     );

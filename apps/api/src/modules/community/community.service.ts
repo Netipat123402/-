@@ -50,6 +50,8 @@ export class CommunityService {
       category: 'system',
       title: 'โพสต์ชุมชนใหม่รออนุมัติ',
       body: `${post.displayName}: ${post.body.slice(0, 60)}`,
+      titleKey: 'notif.communityPost.title', bodyKey: 'notif.communityPost.body',
+      params: { name: post.displayName, excerpt: post.body.slice(0, 60) },
     });
     return { success: true, message: 'ส่งโพสต์แล้ว — รอแอดมินอนุมัติก่อนแสดงบนเว็บ' };
   }

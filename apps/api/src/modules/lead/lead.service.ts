@@ -163,6 +163,7 @@ export class LeadService {
         category: 'lead', entityType: 'lead', entityId: id,
         title: 'คุณได้รับมอบหมาย Lead ใหม่',
         body: `${lead.fullName} (${lead.phone}) — โปรดติดตาม`,
+        titleKey: 'notif.leadAssigned.title', bodyKey: 'notif.leadAssigned.body', params: { name: lead.fullName, phone: lead.phone },
       });
     }
     await this.audit.record(user, { action: 'assign', entityType: 'lead', entityId: id, newValue: { assignedToId: dto.assignedToId, ...(alsoStart ? { status: 'working' } : {}) }, ...meta });
