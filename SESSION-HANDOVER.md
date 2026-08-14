@@ -9,7 +9,7 @@
 🎉 **UX แยกตามบทบาท เฟส 1–4 เสร็จครบ** + **Sidebar ขยาย-ยุบได้** · **กำลังทำ: track C = i18n 2 ภาษา (อังกฤษหลัก+ไทยรอง สลับได้ · next-intl cookie)**
 ✅ **สลับ EN↔TH ได้จริง — session นี้คืบเยอะ (ทำตาม CYCLE ครบทุก entity):** shell · dashboard · status badges · **master-data (province/amenity/propertyType/leadSource)** · **component ร่วมทั้งหมด (ui.tsx/DocumentSection/ActivityTimeline/GlobalSearch/NotificationBell)** · **ทั้ง 7 entity: Properties + owners + leads + appointments + customers + contracts + property-requests (list+detail+form)** · ปุ่มสลับ 🌐
 🟢 **owner's "ภาษาปน" แก้แล้ว:** master-data สลับได้ · component ร่วมสลับได้ · LEAD_SOURCE/PROPERTY_TYPE carry-over เก็บครบ · glossary "Lead→ผู้สนใจ" ทั่วแอป
-🔵 **เหลือ:** C-system (users/settings/community/search/audit — 5 หน้า) · C-backend (สตริงที่ server สร้าง: activity summary/notif title-body/audit — ลึก)
+🔵 **เหลือ:** C-backend (สตริงที่ server สร้าง: activity summary/notif title-body — ลึก) — **C-system ครบ 5/5 แล้ว** (search/settings/community/users/audit)
 📊 **DB ตอนนี้ = ข้อมูลจริงสะอาด** (ลบ mock เกลี้ยง + populate ผ่าน flow จริง: 4 ทรัพย์ CD/HS/TH/AP-2026-0001 · CD=rented มีสัญญาครบวงจร+ใบเสร็จ · AP=pending_review · owners/customers/leads/appointments ครบ) — **ไม่ใช่ mock-bulk แล้ว**
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
@@ -97,8 +97,9 @@
     - ~~**C-shared 1/2** · master-data i18n~~ ✅ **เสร็จ** (`a8aad4d`)
     - ~~**C-shared 2/2** · component ร่วม~~ ✅ **เสร็จ** (`c5bcad9`) · QuickAddProperty = dead code ข้าม (ยังไม่ import ที่ไหน)
     - 🎉 **C-entities ครบ 6/6:** ~~owners~~ (`a883f28`) → ~~leads/ผู้สนใจ~~ (`41ff852`) → ~~appointments/นัดหมาย~~ (`5645b31`) → ~~customers/ลูกค้า~~ (`06109f2`) → ~~contracts/สัญญา~~ (`121e4da`) → ~~property-requests/คำขอทรัพย์~~ (`1a35ace` · เก็บ PROPERTY_TYPE ค้างครบ) · **LEAD_SOURCE + PROPERTY_TYPE carry-over จาก C-shared1 เก็บครบแล้ว** · ทุก entity verify authed EN/TH × mobile+desktop typecheck ผ่าน 0 error
-    - **C-system (ถัดไป · ทีละหน้าตาม CYCLE):** users · settings · community · search · audit — 5 หน้าระบบ (audit บางส่วน migrate แล้ว: status/propertyType → เหลือ FIELD_TH/ENTITY_TH/RANGE_OPTIONS/relTime)
-    - **C-backend (ลึก · ปิดท้าย):** สตริงที่ **server สร้าง** — ActivityTimeline `summary` ("เปลี่ยนสถานะ X → Y", "แก้ไขทรัพย์…") · NotificationBell `title/body` · notify/audit sentences → ต้อง restructure ฝั่ง API เป็น key+params (หรือ i18n server-side) · time.* + activity.* keys ฝั่ง FE พร้อมรับแล้ว
+    - ✅ **C-system ครบ 5/5** (ทีละหน้าตาม CYCLE · verify authed EN/TH): ~~search~~ (`8ed1a99` · fix "Lead"→"ผู้สนใจ") → ~~settings~~ (`020f7d0`) → ~~community~~ (`09de39a` · +ลบ timeAgo ท้องถิ่น→relTime ร่วม · refactor act() i18n-safe) → ~~users~~ (`83ac659` · +common role/status/show/hide · fix var ชน `const t=active`→target) → ~~audit~~ (`8a85297` · ACTION/ENTITY/FIELD→helper · ลบ relTime ท้องถิ่น · glossary entity.lead=ผู้สนใจ) · **en.json ทั้งไฟล์ 0 อักษรไทย** · typecheck ผ่านทุกหน้า
+      - 🔸 verify ที่ไม่ครบ (data constraint · ไม่บล็อก): community การ์ด/ปุ่ม (DB ไม่มีโพสต์) · audit entity/FIELD diff (DB ไม่มี entry update-with-changes) — code pattern เดียวกับที่ verify แล้ว
+    - **C-backend (ลึก · ปิดท้าย — งานถัดไป):** สตริงที่ **server สร้าง** — ActivityTimeline `summary` ("เปลี่ยนสถานะ X → Y", "แก้ไขทรัพย์…") · NotificationBell `title/body` · notify/audit sentences → ต้อง restructure ฝั่ง API เป็น key+params (หรือ i18n server-side) · time.* + activity.* keys ฝั่ง FE พร้อมรับแล้ว
   - **⭐ แม่แบบต่อ entity/หน้า (พิสูจน์แล้ว 7 entity · ทำเร็วขึ้นเรื่อยๆ):**
     - สร้าง namespace ต่อ entity ผ่าน **สคริปต์ Python** (`scratchpad/add_*.py` — load json object_pairs_hook=OrderedDict → เพิ่ม key → dump ensure_ascii=False indent=2) แม่นกว่าแก้ JSON มือ
     - client: `const t = useTranslations()` · ย้าย option const (STATUS/SORT) เข้า component แปลด้วย t · **status options reuse `*_STATUS` labelKey** (`Object.entries(X).map(([v,m])=>({value:v,label:t(m.labelKey)}))`)
@@ -115,6 +116,6 @@
 - **flow test 3 บทบาท:** เดินเต็มวงจร **0 error · สิทธิ์ 15/15 ผ่าน** (เซลขอ→ผจก convert+เติมทุกช่อง+อัปรูป→ผู้บริหารอนุมัติ→สัญญา verify+sign+receipt→rented) · เซลสร้าง/แก้ทรัพย์=403 · ผจกอนุมัติ/เปิดบัตร/ลบ=403 · bypass changeStatus=409 → **flow ไม่ชน ไม่เพี้ยน · backend production-ready**
 
 ## 5) เหลือฝั่งเจ้าของ / จุดค้าง (ไม่บล็อก)
-- 🔑 **push commit ค้าง (~154 local · ต้อง token · +14 commit i18n จาก session นี้)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- 🔑 **push commit ค้าง (~159 local · ต้อง token · +5 commit C-system i18n จาก session นี้)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
 - ⚠️ **schema drift:** DB มี trgm search index + `appointments.ends_at` ที่ไม่มีใน `schema.prisma` → **อย่ารัน `prisma migrate dev`** (มันจะเสนอ DROP) · ใช้ manual SQL + `migrate resolve --applied` (ทำแบบนี้ที่ 0013) · งานเก็บตก: sync model ให้ตรง DB
 - 🔸 polish เล็ก: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
