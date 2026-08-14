@@ -34,7 +34,7 @@ export default function PropertyGallery({ images, alt, type, overlay }: {
     return (
       <div className="flex aspect-[16/9] w-full items-center justify-center rounded-card bg-gradient-to-br from-ink/90 to-gold-dark/70 text-center text-white/90 sm:max-h-[380px] lg:max-h-[440px]">
         <div>
-          <div className="text-4xl font-semibold tracking-tight">ROS</div>
+          <div className="text-4xl font-semibold tracking-tight">Notify</div>
           <div className="mt-1 text-sm tracking-wide opacity-80">{typeLabel(type, lang)}</div>
         </div>
       </div>

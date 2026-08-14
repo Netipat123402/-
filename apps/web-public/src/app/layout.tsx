@@ -6,18 +6,18 @@ import { LanguageProvider } from '@/lib/lang';
 import PullToRefresh from '@/components/PullToRefresh';
 
 export const metadata: Metadata = {
-  title: { default: 'ROS — เช่าคอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์', template: '%s · ROS' },
+  title: { default: 'Notify — เช่าคอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์', template: '%s · Notify' },
   description: 'ค้นหาทรัพย์เช่าคุณภาพ คอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์ คัดสรรโดยทีมนายหน้ามืออาชีพ นัดดูง่าย ติดต่อสะดวก',
-  applicationName: 'ROS',
+  applicationName: 'Notify',
   manifest: '/manifest.webmanifest',
   // เปิดเต็มจอเหมือนแอปเมื่อ Add to Home Screen บน iOS (ซ่อนแถบ URL/ปุ่ม Safari)
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ROS' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Notify' },
   other: { 'mobile-web-app-capable': 'yes' }, // standalone บน Android/Chrome ด้วย
   icons: {
     icon: [{ url: '/icon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
-  openGraph: { title: 'ROS Real Estate', type: 'website', locale: 'th_TH' },
+  openGraph: { title: 'Notify Real Estate', type: 'website', locale: 'th_TH' },
 };
 
 // viewport มาตรฐาน: กว้างเท่าจอจริง, ไม่ล็อกซูม — กัน auto-zoom ใช้ฟอนต์ ≥16px แทน

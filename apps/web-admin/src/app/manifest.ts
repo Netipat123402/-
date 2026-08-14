@@ -3,9 +3,9 @@ import type { MetadataRoute } from 'next';
 // PWA manifest — เปิดเต็มจอเหมือนแอป (ไม่มีแถบ URL/ปุ่ม Safari) เมื่อ Add to Home Screen
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ROS — ระบบบริหารงาน',
-    short_name: 'ROS Admin',
-    description: 'ระบบบริหารงานนายหน้าอสังหาริมทรัพย์ ROS',
+    name: 'Notify — ระบบบริหารงาน',
+    short_name: 'Notify Admin',
+    description: 'ระบบบริหารงานนายหน้าอสังหาริมทรัพย์ Notify',
     start_url: '/',
     scope: '/',
     display: 'standalone',

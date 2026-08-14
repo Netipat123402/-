@@ -75,7 +75,7 @@ export default function CommunityBoard() {
     <section className="mx-auto max-w-content px-4 py-14 lg:px-8">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">{tt('ชุมชน ROS', 'ROS Community')}</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">{tt('ชุมชน Notify', 'Notify Community')}</h2>
           <p className="mt-1 text-sm text-muted">{tt('ประกาศหาห้อง · ปล่อยเช่า · ซื้อขาย — โพสต์ได้เลยไม่ต้องสมัคร (ทุกโพสต์ผ่านการอนุมัติก่อนแสดง)', 'Post to find a room, rent out, or trade — no sign-up needed (all posts are reviewed before showing)')}</p>
         </div>
         <button onClick={() => { setOpen((v) => !v); setErr(''); }} className="btn-gold btn-sm">

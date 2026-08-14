@@ -37,9 +37,9 @@ export default function LoginPage() {
         {/* แบรนด์ */}
         <div className="mb-7 flex flex-col items-center text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-ink text-xl font-semibold text-gold shadow-lift">
-            R
+            N
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">ROS</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink">Notify</h1>
           <p className="mt-1 text-sm text-muted">Real estate brokerage system</p>
         </div>
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted">
-          © 2026 ROS · Forgot password? Contact your administrator
+          © 2026 Notify · Forgot password? Contact your administrator
         </p>
       </div>
     </div>

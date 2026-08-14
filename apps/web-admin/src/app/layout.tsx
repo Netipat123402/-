@@ -5,12 +5,12 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { AuthProvider } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: 'ROS — ระบบบริหารงาน',
+  title: 'Notify — ระบบบริหารงาน',
   description: 'Real Estate Operating System — Admin',
-  applicationName: 'ROS Admin',
+  applicationName: 'Notify Admin',
   manifest: '/manifest.webmanifest',
   // เปิดเต็มจอเหมือนแอปเมื่อ Add to Home Screen บน iOS (ซ่อนแถบ URL/ปุ่ม Safari)
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'ROS Admin' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Notify Admin' },
   other: { 'mobile-web-app-capable': 'yes' }, // standalone บน Android/Chrome ด้วย
   icons: {
     icon: [{ url: '/icon-32.png', sizes: '32x32', type: 'image/png' }],

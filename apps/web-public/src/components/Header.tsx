@@ -29,9 +29,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-4 lg:px-8">
-        {/* โลโก้ไอคอนล้วน — เรียบ minimal (เอา wordmark "ROS" ออก) */}
-        <Link href="/" aria-label="ROS หน้าแรก" className="flex items-center">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-base font-semibold text-gold">R</span>
+        {/* โลโก้ไอคอนล้วน — เรียบ minimal (เอา wordmark "Notify" ออก) */}
+        <Link href="/" aria-label="Notify หน้าแรก" className="flex items-center">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-base font-semibold text-gold">N</span>
         </Link>
         {/* ขวา: สลับภาษา + ติดต่อแบบ "pill เส้นทอง" — พรีเมียม minimal (เติมทองตอน hover) ไม่จืดเหมือน outline เทา */}
         <nav className="flex items-center gap-3 text-sm">
@@ -62,8 +62,8 @@ export function Footer() {
         <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-sm font-semibold text-gold">R</span>
-              <span className="text-lg font-semibold">ROS</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-sm font-semibold text-gold">N</span>
+              <span className="text-lg font-semibold">Notify</span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-muted">{t('footerTagline')}</p>
           </div>

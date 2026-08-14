@@ -55,7 +55,7 @@ const DICT = {
   footerTagline: { th: 'บริการนายหน้าปล่อยเช่าอสังหาริมทรัพย์ คอนโด บ้าน ทาวน์โฮม อพาร์ทเมนท์ — คัดสรรคุณภาพโดยทีมงานมืออาชีพ', en: 'Rental brokerage for condos, houses, townhomes and apartments — curated by professional agents.' },
   footerExplore: { th: 'สำรวจ', en: 'Explore' },
   footerContact: { th: 'ติดต่อ', en: 'Contact' },
-  footerRights: { th: '© 2026 ROS Real Estate สงวนลิขสิทธิ์', en: '© 2026 ROS Real Estate. All rights reserved.' },
+  footerRights: { th: '© 2026 Notify Real Estate สงวนลิขสิทธิ์', en: '© 2026 Notify Real Estate. All rights reserved.' },
   // card / spec labels
   perMonth: { th: '/เดือน', en: '/mo' },
   details: { th: 'รายละเอียด', en: 'Details' },

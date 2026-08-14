@@ -90,7 +90,7 @@ export function renderReceiptHtml(data: ReceiptData): string {
   <div class="no-print" style="margin-top:32px;text-align:center">
     <button class="btn" onclick="window.print()">พิมพ์ใบเสร็จ</button>
   </div>
-  <div class="foot">${esc(data.companyName)} · เอกสารนี้ออกจากระบบ ROS</div>
+  <div class="foot">${esc(data.companyName)} · เอกสารนี้ออกจากระบบ Notify</div>
 </body>
 </html>`;
 }

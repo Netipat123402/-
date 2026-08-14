@@ -58,7 +58,7 @@ function CardImages({ code, type, images, cover, alt, lang }: { code: string; ty
       {list.length === 0 ? (
         <div className="flex h-full items-center justify-center text-center text-white/90">
           <div>
-            <div className="text-3xl font-semibold tracking-tight">ROS</div>
+            <div className="text-3xl font-semibold tracking-tight">Notify</div>
             <div className="mt-1 text-xs tracking-wide opacity-80">{typeLabel(type, lang)}</div>
           </div>
         </div>

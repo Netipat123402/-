@@ -70,7 +70,7 @@ export class ReceiptService {
     if (v && typeof v === 'object' && 'value' in v && typeof (v as { value: unknown }).value === 'string') {
       return (v as { value: string }).value;
     }
-    return 'ROS Real Estate';
+    return 'Notify Real Estate';
   }
 
   private async genReceiptNo(): Promise<string> {

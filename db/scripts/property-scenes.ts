@@ -15,7 +15,7 @@ function frame(bg1: string, bg2: string, art: string, label: string, ink = '#463
   <rect width="1200" height="900" fill="url(#bg)"/>
   ${art}
   <text x="72" y="826" font-family="Georgia,'Times New Roman',serif" font-size="46" fill="${ink}" opacity="0.9">${label}</text>
-  <text x="1128" y="826" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="32" letter-spacing="9" fill="${ink}" opacity="0.55">ROS</text>
+  <text x="1128" y="826" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="32" letter-spacing="4" fill="${ink}" opacity="0.55">Notify</text>
 </svg>`;
 }
 
