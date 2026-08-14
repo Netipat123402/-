@@ -797,5 +797,18 @@
     "infoPlaceholder": "เช่น ขอรูป/ราคาที่แน่นอน/เลขห้อง",
     "editTitle": "แก้ไขคำขอ",
     "resubmitBtn": "ส่งใหม่"
+  },
+  "settings": {
+    "title": "ตั้งค่า",
+    "savedToast": "บันทึกการตั้งค่าแล้ว",
+    "companyInfo": "ข้อมูลบริษัท",
+    "companyName": "ชื่อบริษัท",
+    "contactPhone": "เบอร์โทรติดต่อ",
+    "systemPolicy": "ระบบ & นโยบาย",
+    "privacyVersion": "เวอร์ชันนโยบายความเป็นส่วนตัว",
+    "retentionContract": "เก็บข้อมูลสัญญา",
+    "retentionCustomer": "เก็บข้อมูลลูกค้า",
+    "years": "{n} ปี",
+    "systemNote": "ค่าระบบเหล่านี้ปรับได้ในเฟสถัดไป"
   }
 }

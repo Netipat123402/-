@@ -797,5 +797,18 @@
     "infoPlaceholder": "e.g. photos / firm price / unit number",
     "editTitle": "Edit request",
     "resubmitBtn": "Resubmit"
+  },
+  "settings": {
+    "title": "Settings",
+    "savedToast": "Settings saved",
+    "companyInfo": "Company information",
+    "companyName": "Company name",
+    "contactPhone": "Contact phone",
+    "systemPolicy": "System & policy",
+    "privacyVersion": "Privacy policy version",
+    "retentionContract": "Contract data retention",
+    "retentionCustomer": "Customer data retention",
+    "years": "{n} years",
+    "systemNote": "These system values can be adjusted in a later phase."
   }
 }
