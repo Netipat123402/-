@@ -28,6 +28,14 @@ const CAT_META: Record<string, { color: string; icon: IconName }> = {
 // ลำดับหมวดที่อยากให้แสดงก่อน (หมวดอื่นต่อท้าย)
 const CAT_ORDER = ['property', 'appointment', 'lead', 'contract', 'owner', 'user', 'system'];
 
+// role-aware "ต้องคุณทำ" — หมวดที่ต้องบทบาทนั้นลงมือ (เจ้าของ=กันโกง/อนุมัติ/เซ็น · ผจก=ทรัพย์/สัญญา · เซล=ไปป์ไลน์)
+// notification scope ที่ backend อยู่แล้ว → จัดลำดับให้ "งานที่ต้องทำ" ลอยบน (หมวดอื่น = อัปเดต/FYI)
+const ACTION_CAT_BY_ROLE: Record<string, string[]> = {
+  super_admin: ['owner', 'property', 'contract'],
+  property_manager: ['property', 'contract'],
+  sales_agent: ['lead', 'appointment'],
+};
+
 // deep-link ไป entity "ถูกตัว" (Phase 50): lead/appointment ใช้ ?focus= (เปิด modal) · ที่มีหน้า detail ใช้ /:id
 function entityHref(entityType?: string, entityId?: string): string | undefined {
   if (!entityType || !entityId) return undefined;
@@ -44,7 +52,7 @@ function entityHref(entityType?: string, entityId?: string): string | undefined 
 
 export default function NotificationsPage() {
   const t = useTranslations();
-  const { api } = useAuth();
+  const { api, user } = useAuth();
   const [rows, setRows] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false); // MR-26
@@ -83,6 +91,46 @@ export default function NotificationsPage() {
   const totalUnread = rows.filter((r) => r.status !== 'read').length;
   const visible = cat ? rows.filter((r) => r.category === cat) : rows;
 
+  // แยก "ต้องคุณทำ" (หมวด action ตามบทบาท) / "อัปเดต" — เฉพาะตอนดูทั้งหมด (ไม่กรองหมวด) และมีทั้งสองฝั่ง
+  const actionCats = ACTION_CAT_BY_ROLE[user?.roles[0] ?? ''] ?? [];
+  const actionItems = cat ? [] : visible.filter((n) => actionCats.includes(n.category));
+  const fyiItems = cat ? visible : visible.filter((n) => !actionCats.includes(n.category));
+  const sectioned = !cat && actionItems.length > 0 && fyiItems.length > 0;
+
+  const renderRow = (n: Notif) => {
+    const meta = CAT_META[n.category] ?? CAT_META.system;
+    const label = CAT_META[n.category] ? t(`notif.cat.${n.category}`) : n.category;
+    const unread = n.status !== 'read';
+    const href = entityHref(n.entityType, n.entityId);
+    const Body = (
+      <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-raised`}>
+        {unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />}
+        <div className={`min-w-0 flex-1 ${unread ? '' : 'pl-5'}`}>
+          <div className="flex items-center gap-2">
+            <span className={`badge ${meta.color}`}>{label}</span>
+            <span className="text-xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateTime(d.toISOString()))}</span>
+          </div>
+          <p className="mt-1 font-medium">{notifTitle(n, t)}</p>
+          <p className="text-sm text-muted">{notifBody(n, t)}</p>
+        </div>
+        {unread && (
+          <button onClick={(e) => { e.preventDefault(); markRead(n.id); }}
+            className="shrink-0 self-center text-xs text-gold-dark hover:underline">{t('notif.markThis')}</button>
+        )}
+      </div>
+    );
+    return (
+      <li key={n.id}>
+        {href ? <Link href={href} onClick={() => unread && markRead(n.id)}>{Body}</Link> : Body}
+      </li>
+    );
+  };
+  const SectionHead = ({ icon, text, tone }: { icon: IconName; text: string; tone?: boolean }) => (
+    <p className={`flex items-center gap-1.5 border-b border-border px-5 py-2 text-2xs font-medium uppercase tracking-wide ${tone ? 'text-gold-dark' : 'text-muted'}`}>
+      <Icon name={icon} size={13} /> {text}
+    </p>
+  );
+
   return (
     <div>
       <PageHeader title={t('notif.title')} count={t('notif.count', { n: rows.length })}
@@ -101,37 +149,15 @@ export default function NotificationsPage() {
           <ErrorState onRetry={load} text={t('notif.loadFailed')} />
         ) : visible.length === 0 ? (
           <EmptyState text={cat ? t('notif.emptyCat') : t('notif.emptyAll')} icon="bell" />
+        ) : sectioned ? (
+          <>
+            <SectionHead icon="alert-triangle" text={t('notif.needsAction')} tone />
+            <ul className="divide-y divide-border">{actionItems.map(renderRow)}</ul>
+            <SectionHead icon="bell" text={t('notif.updates')} />
+            <ul className="divide-y divide-border">{fyiItems.map(renderRow)}</ul>
+          </>
         ) : (
-          <ul className="divide-y divide-border">
-            {visible.map((n) => {
-              const meta = CAT_META[n.category] ?? CAT_META.system;
-              const label = CAT_META[n.category] ? t(`notif.cat.${n.category}`) : n.category;
-              const unread = n.status !== 'read';
-              const href = entityHref(n.entityType, n.entityId);
-              const Body = (
-                <div className={`flex gap-3 px-5 py-4 transition ${unread ? 'bg-gold/[0.03]' : ''} hover:bg-raised`}>
-                  {unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold" />}
-                  <div className={`min-w-0 flex-1 ${unread ? '' : 'pl-5'}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`badge ${meta.color}`}>{label}</span>
-                      <span className="text-xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateTime(d.toISOString()))}</span>
-                    </div>
-                    <p className="mt-1 font-medium">{notifTitle(n, t)}</p>
-                    <p className="text-sm text-muted">{notifBody(n, t)}</p>
-                  </div>
-                  {unread && (
-                    <button onClick={(e) => { e.preventDefault(); markRead(n.id); }}
-                      className="shrink-0 self-center text-xs text-gold-dark hover:underline">{t('notif.markThis')}</button>
-                  )}
-                </div>
-              );
-              return (
-                <li key={n.id}>
-                  {href ? <Link href={href} onClick={() => unread && markRead(n.id)}>{Body}</Link> : Body}
-                </li>
-              );
-            })}
-          </ul>
+          <ul className="divide-y divide-border">{visible.map(renderRow)}</ul>
         )}
       </div>
     </div>

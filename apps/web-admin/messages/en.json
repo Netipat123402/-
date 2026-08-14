@@ -536,7 +536,8 @@
     "ownerFieldFlag": {
       "address": "Address",
       "idCard": "ID card (hidden)"
-    }
+    },
+    "needsAction": "Needs your action"
   },
   "activity": {
     "none": "No history yet",

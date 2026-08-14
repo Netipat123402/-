@@ -536,7 +536,8 @@
     "ownerFieldFlag": {
       "address": "ที่อยู่",
       "idCard": "เลขบัตรประชาชน (ไม่แสดงเลข)"
-    }
+    },
+    "needsAction": "ต้องคุณทำ"
   },
   "activity": {
     "none": "ยังไม่มีประวัติ",
