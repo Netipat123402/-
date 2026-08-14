@@ -189,10 +189,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </nav>
   );
 
+  // แบรนด์ = wordmark "Notify" (ไม่มีโลโก้/กล่องไอคอน) · ยุบ = ตัวย่อ "N"
   const Brand = () => (
-    <div className={`flex h-16 shrink-0 items-center ${railCollapsed ? 'justify-center' : 'gap-2.5 px-4'}`}>
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold text-base font-semibold text-[#1c1b18]">R</div>
-      {!railCollapsed && <span className="text-lg font-semibold tracking-tight">ROS</span>}
+    <div className={`flex h-16 shrink-0 items-center ${railCollapsed ? 'justify-center' : 'px-4'}`}>
+      <span className="text-lg font-semibold tracking-tight">{railCollapsed ? 'N' : 'Notify'}</span>
     </div>
   );
 

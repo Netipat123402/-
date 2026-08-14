@@ -400,7 +400,10 @@
     "goto": "Go to",
     "addProperty": "Add property",
     "pageTitle": "Search",
-    "pageSubtitle": "Properties · Leads · Customers · Owners — or type a command to jump to a page"
+    "pageSubtitle": "Properties · Leads · Customers · Owners — or type a command to jump to a page",
+    "create": "Create",
+    "addLead": "New lead",
+    "addAppt": "New appointment"
   },
   "notif": {
     "title": "Notifications",

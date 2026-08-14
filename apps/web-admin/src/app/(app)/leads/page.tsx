@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
@@ -54,6 +54,11 @@ export default function LeadsPage() {
 
   // create walk-in lead
   const [open, setOpen] = useState(false);
+  // deep-link จาก command palette: /leads?new=1 → เปิดฟอร์มเพิ่มผู้สนใจ (ล้าง param กันเปิดซ้ำ)
+  useEffect(() => {
+    if (sp.get('new') && can('lead', 'create')) { setOpen(true); router.replace('/leads'); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [form, setForm] = useState({ fullName: '', phone: '', email: '', message: '' });
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { Icon, type IconName } from '@/components/Icon';
+import { resolveNav } from '@/lib/nav';
 
 interface Results {
   properties: { id: string; code: string; titleTh: string }[];
@@ -14,20 +15,13 @@ interface Results {
 }
 const EMPTY: Results = { properties: [], leads: [], customers: [], owners: [] };
 
-// F2: คำสั่ง/ทางลัด (command palette) — ไปยังหน้า + สร้างใหม่ · กรองตามสิทธิ์เหมือน sidebar · labelKey แปลตอน render
-type Action = { id: string; labelKey: string; icon: IconName; href: string; perm?: [string, string] };
-const ALL_ACTIONS: Action[] = [
-  { id: 'a-home', labelKey: 'nav.dashboard', icon: 'home', href: '/' },
-  { id: 'a-prop', labelKey: 'nav.properties', icon: 'building', href: '/properties', perm: ['property', 'read'] },
-  { id: 'a-prop-new', labelKey: 'search.addProperty', icon: 'plus', href: '/properties/new', perm: ['property', 'create'] },
-  { id: 'a-owner', labelKey: 'nav.owners', icon: 'key', href: '/owners', perm: ['owner', 'read'] },
-  { id: 'a-lead', labelKey: 'nav.leads', icon: 'user-plus', href: '/leads', perm: ['lead', 'read'] },
-  { id: 'a-appt', labelKey: 'nav.appointments', icon: 'clock', href: '/appointments', perm: ['appointment', 'read'] },
-  { id: 'a-cal', labelKey: 'nav.calendar', icon: 'calendar', href: '/calendar', perm: ['appointment', 'read'] },
-  { id: 'a-cust', labelKey: 'nav.customers', icon: 'users', href: '/customers', perm: ['customer', 'read'] },
-  { id: 'a-contract', labelKey: 'nav.contracts', icon: 'file-text', href: '/contracts', perm: ['contract', 'read'] },
-  { id: 'a-users', labelKey: 'nav.users', icon: 'users', href: '/users', perm: ['user', 'read'] },
-  { id: 'a-settings', labelKey: 'nav.settings', icon: 'menu', href: '/settings', perm: ['setting', 'read'] },
+// F2: command palette — "ไปยัง" ขับจาก resolveNav (โครง/ลำดับ/กลุ่มตามบทบาท · ตัวเดียวกับ sidebar) +
+// หมวด "สร้างใหม่" (ตามสิทธิ์) + ผลค้นหา entity · role-aware ครบ · เพิ่มบทบาทใหม่แก้ที่ nav.ts ที่เดียว
+type Action = { id: string; labelKey: string; icon: IconName; href: string; perm: [string, string] };
+const CREATE_ACTIONS: Action[] = [
+  { id: 'c-prop', labelKey: 'search.addProperty', icon: 'plus', href: '/properties/new', perm: ['property', 'create'] },
+  { id: 'c-lead', labelKey: 'search.addLead', icon: 'user-plus', href: '/leads?new=1', perm: ['lead', 'create'] },
+  { id: 'c-appt', labelKey: 'search.addAppt', icon: 'clock', href: '/appointments?new=1', perm: ['appointment', 'create'] },
 ];
 
 type Item = { id: string; label: string; sub?: string; href: string; icon?: IconName };
@@ -36,7 +30,7 @@ export default function GlobalSearch({ variant }: {
   variant?: 'page'; // 'page' = เรนเดอร์เป็นเนื้อหาในหน้า /search (ไม่ใช่ overlay/dropdown)
 } = {}) {
   const t = useTranslations();
-  const { api, can } = useAuth();
+  const { api, can, user } = useAuth();
   const router = useRouter();
   const [q, setQ] = useState('');
   const [res, setRes] = useState<Results>(EMPTY);
@@ -84,22 +78,38 @@ export default function GlobalSearch({ variant }: {
 
   function go(href: string) { setOpen(false); setQ(''); router.push(href); }
 
-  // F2: รวมคำสั่ง (กรองสิทธิ์ + ตามคำค้น) + ผลค้นหา entity เป็น "section" เดียวกัน
+  // โครงเมนูตามบทบาท (ตัวเดียวกับ sidebar) — กรอง can()/modOnly ให้แล้ว
+  const navGroups = useMemo(() => (user ? resolveNav(user.roles, can) : []), [user, can]);
+
+  // F2: สร้างใหม่ (ตามสิทธิ์) + ไปยัง (role-aware จาก nav) + ผลค้นหา entity เป็น "section" เดียวกัน
   const ql = q.trim().toLowerCase();
   const sections = useMemo(() => {
-    const actions = ALL_ACTIONS
-      .filter((a) => !a.perm || can(a.perm[0], a.perm[1]))
-      .map((a): Item => ({ id: a.id, label: t(a.labelKey), href: a.href, icon: a.icon }))
-      .filter((a) => !ql || a.label.toLowerCase().includes(ql));
+    const byQ = (label: string) => !ql || label.toLowerCase().includes(ql);
     const out: { title: string; items: Item[] }[] = [];
-    if (actions.length) out.push({ title: ql ? t('search.commands') : t('search.goto'), items: actions });
+
+    // สร้างใหม่ (บนสุด — action-first) · gate ตามสิทธิ์
+    const creates = CREATE_ACTIONS
+      .filter((a) => can(a.perm[0], a.perm[1]))
+      .map((a): Item => ({ id: a.id, label: t(a.labelKey), href: a.href, icon: a.icon }))
+      .filter((it) => byQ(it.label));
+    if (creates.length) out.push({ title: t('search.create'), items: creates });
+
+    // ไปยัง — จาก resolveNav (กลุ่ม/ลำดับตามบทบาท) · กลุ่มไม่มีป้าย = "ไปยัง"
+    for (const g of navGroups) {
+      const items = g.items
+        .map((it): Item => ({ id: `nav-${it.href}`, label: t(it.label), href: it.href, icon: it.icon }))
+        .filter((it) => byQ(it.label));
+      if (items.length) out.push({ title: g.label ? t(g.label) : t('search.goto'), items });
+    }
+
+    // ผลค้นหา entity (ตามคำค้น)
     if (res.properties.length) out.push({ title: t('nav.properties'), items: res.properties.map((p) => ({ id: p.id, label: p.titleTh, sub: p.code, href: `/properties/${p.id}` })) });
     if (res.leads.length) out.push({ title: t('nav.leads'), items: res.leads.map((l) => ({ id: l.id, label: l.fullName, sub: l.phone, href: `/leads/${l.id}` })) });
     if (res.customers.length) out.push({ title: t('nav.customers'), items: res.customers.map((c) => ({ id: c.id, label: c.fullName, sub: c.phone, href: `/customers/${c.id}` })) });
     if (res.owners.length) out.push({ title: t('nav.owners'), items: res.owners.map((o) => ({ id: o.id, label: o.fullName, sub: o.phone, href: `/owners/${o.id}` })) });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ql, res, can, t]);
+  }, [ql, res, navGroups, can, t]);
 
   const flat = useMemo(() => sections.flatMap((s) => s.items), [sections]);
   useEffect(() => { setSel(0); }, [ql, res]); // รีเซ็ตแถวที่เลือกเมื่อรายการเปลี่ยน

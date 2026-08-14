@@ -118,6 +118,12 @@ export default function AppointmentsPage() {
       .catch(() => toast.error(t('appts.errNoLead')));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newLeadId]);
+
+  // deep-link จาก command palette: /appointments?new=1 → เปิดฟอร์มนัดเปล่า (ล้าง param กันเปิดซ้ำ)
+  useEffect(() => {
+    if (sp.get('new') && can('appointment', 'create')) { setOpen(true); router.replace('/appointments'); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // deep-link จากหน้าทรัพย์: /appointments?newProperty={id} → เปิดฟอร์ม "นัดดูทรัพย์" prefill ทรัพย์ (ผู้ใช้เลือก Lead เอง)
   // กัน flow ชน: ถ้ามี newLead มาด้วย → ยกให้ flow lead ก่อน (newProperty ไม่ทำงาน)
   const newPropId = sp.get('newProperty');
