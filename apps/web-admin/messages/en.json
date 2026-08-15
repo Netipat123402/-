@@ -905,6 +905,7 @@
     "toastDeleted": "Draft contract deleted"
   },
   "propReq": {
+    "tabConverted": "Converted",
     "colRequest": "Request",
     "submittedBy": "By {name}",
     "colExpected": "Expected price",

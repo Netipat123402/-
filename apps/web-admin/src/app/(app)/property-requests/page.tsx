@@ -31,9 +31,12 @@ export default function PropertyRequestsPage() {
   const { api, can } = useAuth();
   const toast = useToast();
   const router = useRouter();
+  // แท็บกรอง: ใช้ label สั้นสำหรับ "converted" (badge บน row คงคำเต็ม "แปลงเป็นทรัพย์แล้ว")
+  // เลี่ยงพิลล์ยาวเกินจนอ่านชนกันบนมือถือ (chip ควรกระชับ · หลักเดียวกับ properties.tab.*)
+  const STATUS_TAB_LABEL: Record<string, string> = { converted: t('propReq.tabConverted') };
   const STATUS_OPTIONS = [
     { value: '', label: t('common.all') },
-    ...Object.entries(PROPERTY_REQUEST_STATUS).map(([v, m]) => ({ value: v, label: t(m.labelKey) })),
+    ...Object.entries(PROPERTY_REQUEST_STATUS).map(([v, m]) => ({ value: v, label: STATUS_TAB_LABEL[v] ?? t(m.labelKey) })),
   ];
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');

@@ -83,12 +83,13 @@
   .field {
     @apply h-11 w-full rounded-lg border border-border bg-canvas px-3 text-base outline-none focus:border-gold focus:ring-2 focus:ring-gold/20 sm:text-sm;
   }
-  /* segmented filter (chip เดียวเลือกได้ทีละอัน) · v2: track recessed + pill ยกชั้น subtle */
+  /* segmented filter (chip เดียวเลือกได้ทีละอัน) · v2: track recessed + pill ยกชั้น subtle
+     มือถือแคบลง (px-2.5 · 13px) ให้ 5 ตัวเลือกพอดี 375px · ≥sm คืนขนาดปกติ */
   .seg {
-    @apply inline-flex rounded-lg border border-border bg-canvas p-0.5 text-sm;
+    @apply inline-flex rounded-lg border border-border bg-canvas p-0.5 text-[13px] sm:text-sm;
   }
   .seg-item {
-    @apply rounded-md px-3 py-1.5 font-medium text-muted transition;
+    @apply rounded-md px-2.5 py-1.5 font-medium text-muted transition sm:px-3;
   }
   /* pill "ยกชั้น": ดาร์กพอปด้วย bg-raised · light (raised≈canvas) อาศัย ring กรอบนิยาม (กฎ elevation=กรอบ) */
   .seg-item-on { @apply bg-raised text-ink shadow-sm ring-1 ring-border; }

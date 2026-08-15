@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -714,18 +714,46 @@ export function PhoneLink({ phone, className = '' }: { phone?: string | null; cl
   );
 }
 
-/** ตัวกรองแบบ segmented (เลือกทีละอัน) — แทน FilterChips เดิม ดูสะอาดกว่า */
+/** ตัวกรองแบบ segmented (เลือกทีละอัน) — แทน FilterChips เดิม ดูสะอาดกว่า
+ *  มือถือ: พิลล์แคบลง (css) ให้ 5 ตัวเลือกพอดี 375px + ซ่อน scrollbar + scroll-snap · เลื่อน active เข้าจอ (กรณี ?status=…)
+ *  label ยาว (เช่น EN "Converted to property") → เลื่อนได้ + เงาไล่สีขอบบอกว่ามีต่อ (edge-fade) แทน scrollbar — เนียนทุกภาษา/ทุกหน้า */
 export function Segmented({ options, value, onChange }: {
   options: { value: string; label: string }[]; value: string; onChange: (v: string) => void;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState({ l: false, r: false });
+  const update = useCallback(() => {
+    const el = ref.current; if (!el) return;
+    setEdge({ l: el.scrollLeft > 2, r: el.scrollLeft + el.clientWidth < el.scrollWidth - 2 });
+  }, []);
+  useEffect(() => {
+    update();
+    const el = ref.current;
+    el?.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el?.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [update, options.length]);
+  // เลื่อน active เข้าจอเมื่อค่าเปลี่ยน (เฉพาะตอนหลุดขอบ — ไม่กวนถ้าเห็นอยู่แล้ว)
+  useEffect(() => {
+    const el = ref.current;
+    const on = el?.querySelector<HTMLElement>('[data-on="true"]');
+    if (!el || !on) return;
+    const cr = el.getBoundingClientRect(), br = on.getBoundingClientRect();
+    if (br.left < cr.left || br.right > cr.right) { el.scrollLeft += br.left - cr.left - 8; update(); }
+  }, [value, update]);
   return (
-    <div className="seg max-w-full overflow-x-auto">
-      {options.map((o) => (
-        <button key={o.value || 'all'} onClick={() => onChange(o.value)}
-          className={`seg-item whitespace-nowrap ${value === o.value ? 'seg-item-on' : 'hover:text-ink'}`}>
-          {o.label}
-        </button>
-      ))}
+    <div className="relative inline-block max-w-full">
+      <div ref={ref}
+        className="seg flex snap-x overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {options.map((o) => (
+          <button key={o.value || 'all'} data-on={value === o.value} onClick={() => onChange(o.value)}
+            className={`seg-item snap-start whitespace-nowrap ${value === o.value ? 'seg-item-on' : 'hover:text-ink'}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+      {edge.l && <span aria-hidden className="pointer-events-none absolute inset-y-0.5 left-0.5 w-6 rounded-l-md bg-gradient-to-r from-canvas to-transparent" />}
+      {edge.r && <span aria-hidden className="pointer-events-none absolute inset-y-0.5 right-0.5 w-6 rounded-r-md bg-gradient-to-l from-canvas to-transparent" />}
     </div>
   );
 }

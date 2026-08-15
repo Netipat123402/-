@@ -905,6 +905,7 @@
     "toastDeleted": "ลบสัญญาร่างแล้ว"
   },
   "propReq": {
+    "tabConverted": "แปลงแล้ว",
     "colRequest": "คำขอ",
     "submittedBy": "ส่งโดย {name}",
     "colExpected": "ราคาคาด",
