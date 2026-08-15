@@ -142,11 +142,12 @@
 - ⚠️ **RESTART web-public :3000** — fix รูป (`43e5019`) แก้ next.config + .env.local → เจ้าของต้อง restart dev server :3000 ให้รับ config ใหม่ (worktree verify แล้วรูปขึ้นจริง)
 - 🖼 **web-public รูปทรัพย์ (`43e5019`) — 2 เรื่อง:** (1) **fix hydration mismatch** ที่ทำรูปแตกทั้งหมด — `mediaUrl` เดิมคืน env LAN IP (SSR) ≠ window.location (client) → React เก็บค่า server (192.168.1.2) → localhost เข้าไม่ถึง · แก้เป็น relative `/uploads/*` + next.config rewrite proxy (localhost+LAN+prod ใช้ได้) (2) **รูป illustration พรีเมียม** — `db/scripts/property-scenes.ts` (11 ฉาก line-study โทนครีม/ทอง) + `regen-demo-images.ts` แนบ 6 รูป/ทรัพย์ (4 ทรัพย์ demo) · web-admin โชว์อัตโนมัติ · CD=rented ไม่ขึ้น public
   - 🔸 minor: ป้ายห้องใน SVG เป็นไทย baked (โหมด EN ก็เห็นไทย) — future ถ้าต้องการ label 2 ภาษา; รูปใหม่/regen: `cd db && DATABASE_URL=... npx tsx scripts/regen-demo-images.ts` (แตะเฉพาะ media 4 ทรัพย์) · uploads+.env.local = gitignored (บน disk แล้ว)
-- 🔑 **push commit ค้าง (~174 local · ต้อง token · +23 commit จากช่วงหลัง)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- 🔑 **push commit ค้าง (~174 local · ต้อง token · +25 commit จากช่วงหลัง)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
 - ⚠️ **RESTART web-public :3000 + web-admin :3001** รับ rebrand Notify (`dfd6b38`) — เจ้าของทดสอบต้อง restart dev server ให้เห็น "Notify" (worktree verify แล้วขึ้นจริง 3 จอ) · รูป SVG demo regen แล้วบน disk (uploads gitignored)
 - 📌 **งานเสนอไว้ (รอเจ้าของเคาะ · session หน้า):**
   1. ~~rebrand "Notify" เต็มระบบ~~ ✅ **เสร็จ** (`dfd6b38`)
   2. ~~bell dropdown จัด action-first~~ ✅ **เสร็จ** (`5b98595`)
-  3. 🔸 polish: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้) — งานถัดไปตามลำดับ
+  3. ~~polish Segmented 5 ตัวเลือกแน่นบนมือถือ 375px~~ ✅ **เสร็จ** (`88c0a8e`): `.seg-item` มือถือ px-2.5 + text-13px (≥sm เดิม) → properties ครบ 5 พอดี · Segmented +edge-fade +scroll-snap +ซ่อน scrollbar +เลื่อน active เข้าจอ (robust ทุก label เผื่ออนาคต) · property-requests tab "converted" ย่อ (`propReq.tabConverted`=Converted/แปลงแล้ว · แยกจาก badge บน row ที่คงเต็ม) · shared 8 หน้า · verify 375/768/desktop×EN/TH DOM ไม่ overflow · fresh server 0 error
+  - 🎉 **งานเสนอทั้ง 3 (session นี้) เสร็จครบ** — rebrand + bell action-first + segmented polish
 - ⚠️ **schema drift:** DB มี trgm search index + `appointments.ends_at` ที่ไม่มีใน `schema.prisma` → **อย่ารัน `prisma migrate dev`** (มันจะเสนอ DROP) · ใช้ manual SQL + `migrate resolve --applied` (ทำแบบนี้ที่ 0013) · งานเก็บตก: sync model ให้ตรง DB
 - 🔸 polish เล็ก: Segmented 5 ตัวเลือกแน่นบนมือถือ 375px (พออ่านได้)
