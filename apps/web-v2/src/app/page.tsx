@@ -1,7 +1,8 @@
 import Link from 'next/link';
+import FeaturedCard from '@/components/FeaturedCard';
 import PropertyCard from '@/components/PropertyCard';
 import {
-  DEMO_PROPERTIES, DEMO_CITIES, DEMO_STEPS, DEMO_TESTIMONIALS, DEMO_ARTICLES,
+  FEATURED_LISTINGS, DEMO_PROPERTIES, DEMO_CITIES, DEMO_STEPS, DEMO_TESTIMONIALS, DEMO_ARTICLES,
 } from '@/lib/demo';
 
 const IStar = (
@@ -42,18 +43,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FEATURED */}
+      {/* FEATURED — pixel-clone Findit "Explore our featured listings" · bento 3-col (การ์ดแรกกว้าง 2) */}
       <section className="wrap py-20 md:py-28">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <Eyebrow>ทรัพย์แนะนำ</Eyebrow>
-            <h2 className="mt-3 max-w-xl text-[30px] font-semibold leading-tight sm:text-[42px]">ทรัพย์คัดสรรสำหรับคุณ</h2>
-            <p className="mt-3 max-w-md text-muted">ตั้งแต่คอนโดใจกลางเมือง ถึงบ้านพร้อมสวน — เลือกหลังที่ใช่สำหรับคุณ</p>
-          </div>
-          <Link href="/property" className="btn-outline shrink-0">ดูทั้งหมด</Link>
-        </div>
+        <h2 className="max-w-2xl text-[30px] font-medium leading-tight sm:text-[42px]">Explore our featured listings</h2>
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {DEMO_PROPERTIES.map((p) => <PropertyCard key={p.slug} p={p} />)}
+          {FEATURED_LISTINGS.map((p) => <FeaturedCard key={p.slug} p={p} />)}
         </div>
       </section>
 

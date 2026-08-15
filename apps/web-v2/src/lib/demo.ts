@@ -28,6 +28,25 @@ export const DEMO_PROPERTIES: DemoProperty[] = [
 export const dealLabel = (d: DemoProperty['deal']) => (d === 'rent' ? 'ให้เช่า' : 'ขาย');
 export const priceSuffix = (d: DemoProperty['deal']) => (d === 'rent' ? '/เดือน' : '');
 
+// Featured listings (Home bento) — pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม เพื่อ diff)
+// การ์ดมินิมอล: รูป+ป้าย+ชื่อ+ที่อยู่ (ไม่มีราคา/specs ตาม Findit) · จะสลับ Notify/ไทยที่ STAGE2
+export interface FeaturedListing {
+  slug: string;
+  name: string;
+  address: string;
+  img: string;
+  category?: string; // ป้ายหมวด (ดำ) — เว้นว่าง = การ์ดกว้างแถวบน (ตาม Findit)
+  deal?: string; // ป้ายดีล (ขาว)
+  wide?: boolean; // การ์ดกว้าง 2 คอลัมน์
+}
+export const FEATURED_LISTINGS: FeaturedListing[] = [
+  { slug: 'marble-house', name: 'Marble House', address: '161-03 84th Ave, Queens, NY 11432, USA Queens New York', img: '/assets/asset-011.jpg', wide: true },
+  { slug: 'family-mansion', name: 'Family Mansion', address: '654 Water St, New York, NY 10002, USA Manhattan', img: '/assets/asset-005.jpg' },
+  { slug: 'south-side-garden', name: 'South Side Garden', address: '161-03 84th Ave, Queens, NY 11432, USA Queens New York', img: '/assets/asset-002.jpg', category: 'Houses', deal: 'Sell' },
+  { slug: 'modern-family-home', name: 'Modern Family Home', address: '654 Water St, New York, NY 10002, USA Manhattan', img: '/assets/asset-004.jpg', category: 'Apartments', deal: 'Rent' },
+  { slug: 'rustic-forest-cabin', name: 'Rustic Forest Cabin', address: '1845 Tenbroeck Ave, The Bronx, NY 10461, USA The Bronx', img: '/assets/asset-007.jpg', category: 'Condos', deal: 'Rent' },
+];
+
 // ทำเล (Our location) — Notify · กรุงเทพฯ
 export interface DemoCity { name: string; count: string; img: string; }
 export const DEMO_CITIES: DemoCity[] = [
