@@ -50,6 +50,13 @@ function TCard({ t }: { t: { title: string; quote: string; name: string } }) {
   );
 }
 
+// Stats band (Findit) — เลขใหญ่ + label + desc · STAGE1 เนื้อหา Findit เดิม
+const STATS = [
+  { num: '$150M+', label: 'Properties sold', desc: 'Over $150M in sales, helping clients find homes and investments with ease and confidence.' },
+  { num: '500+', label: 'Happy clients', desc: 'More than 500 satisfied clients trust us to make their real estate journey smooth and successful.' },
+  { num: '20+', label: 'Years of expertise', desc: 'Over 20 years of experience guiding clients with market insight and professional advice.' },
+];
+
 // 3 การ์ดเลข (Findit "OUR BENEFITS") — STAGE1 เนื้อหา Findit เดิม
 const ABOUT_BENEFITS = [
   { no: '01', title: 'Buy a new home', desc: 'Discover your dream home effortlessly. Explore diverse properties and expert guidance for a seamless buying experience.' },
@@ -226,6 +233,21 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* STATS band — pixel-clone Findit · แถบดำ 3 สถิติ คั่นเส้นตั้ง */}
+      <section className="bg-black text-white">
+        <div className="wrap py-14 md:py-[50px]">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-0">
+            {STATS.map((s, i) => (
+              <div key={s.label} className={i > 0 ? 'sm:border-l sm:border-white/15 sm:pl-10' : 'sm:pr-10'}>
+                <p className="text-[44px] font-medium leading-none sm:text-[54px]">{s.num}</p>
+                <p className="mt-4 text-base text-white">{s.label}</p>
+                <p className="mt-2 max-w-[340px] text-sm leading-relaxed text-white/80">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
