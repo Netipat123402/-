@@ -20,25 +20,25 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 export default function Home() {
   return (
     <>
-      {/* HERO */}
-      <section className="wrap flex flex-col items-center pt-16 text-center md:pt-24">
-        <span className="inline-flex items-center gap-2 rounded-pill border border-line bg-surface px-4 py-2 text-sm font-medium text-body shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink text-white">{IStar}</span>
-          พาร์ตเนอร์อสังหาฯ ที่คุณไว้ใจ
+      {/* HERO — pixel-clone Findit (STAGE1 · EN) · centered: badge → H1 72/600 → subtext → 2 ปุ่ม → รูปกว้าง */}
+      <section className="wrap flex flex-col items-center pt-20 text-center md:pt-24">
+        <span className="inline-flex items-center gap-2 rounded-pill bg-white py-1 pl-2 pr-4 text-base font-normal text-ink shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white">{IStar}</span>
+          Your trusted partner in real estate
         </span>
-        <h1 className="mt-7 max-w-4xl text-[40px] font-semibold leading-[1.08] tracking-tightish sm:text-[64px] md:text-[76px]">
-          บ้าน·ทรัพย์ในฝัน<br />อยู่ใกล้แค่เอื้อม
+        <h1 className="mt-6 text-[40px] font-semibold leading-[1.05] tracking-tight sm:text-[56px] md:text-[72px]">
+          Your dream home,<br />just a step away
         </h1>
-        <p className="mt-6 max-w-xl text-lg text-muted">
-          ค้นหาทรัพย์คัดสรรที่ตรงไลฟ์สไตล์คุณ ไม่ว่าจะซื้อ ขาย เช่า หรือลงทุน — ทีมงานมืออาชีพดูแลทุกขั้นตอน
+        <p className="mt-6 max-w-[500px] text-lg leading-relaxed text-body">
+          Discover handpicked properties that match your lifestyle, whether you&rsquo;re buying, selling, or investing.
         </p>
         <div className="mt-9 flex flex-wrap justify-center gap-3">
-          <Link href="/property" className="btn-dark">ดูทรัพย์ทั้งหมด</Link>
-          <Link href="/contact" className="btn-outline">นัดชมทรัพย์</Link>
+          <Link href="/property" className="inline-flex items-center justify-center rounded-pill bg-ink px-4 py-2.5 text-[15px] font-semibold text-white transition hover:opacity-90">Explore properties</Link>
+          <Link href="/contact" className="inline-flex items-center justify-center rounded-pill border border-ink bg-white px-4 py-2.5 text-[15px] font-semibold text-ink transition hover:bg-ink hover:text-white">Book a visit</Link>
         </div>
         <div className="mt-14 w-full overflow-hidden rounded-card md:mt-16">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/asset-009.jpg" alt="ทรัพย์คุณภาพจาก Notify" className="aspect-[16/10] w-full object-cover md:aspect-[16/8]" />
+          <img src="/assets/asset-001.jpg" alt="Premium real estate interior" className="aspect-[16/10] w-full object-cover md:aspect-[16/9]" />
         </div>
       </section>
 
