@@ -14,6 +14,20 @@
 ⭐ **3 บทบาท operating เท่านั้น** (super_admin/property_manager/sales_agent) · อีก 5 dormant (`isActive=false` เปิดคืนได้) · ห้ามอ้าง dormant ในตรรกะ operating → [`operating-roles.ts`](apps/api/src/common/auth/operating-roles.ts)
 ⚠️ เจ้าของทดสอบบน :3001 · ค้างบ่อย hard refresh (Cmd+Shift+R)
 
+## 1.5) 🔴 งานปัจจุบัน (session นี้ pivot มาทำ) — **web-v2: pixel-clone Findit template**
+> รายละเอียดเต็ม + สเปก + แผน → auto-memory [[web-v2-findit-clone-plan]] (โหลดอัตโนมัติ)
+- เจ้าของสั่งทำ **เว็บ public ใหม่ `apps/web-v2`** โคลนจาก Framer template **"Findit"** (published: `entire-level-141896-5db7153b9.framer.app`) — **ไม่แตะ `web-public` เดิม**
+- **🔴 RE-SCOPE กลาง session (สำคัญมาก):** ดราฟต์แรก (ไทย/หยาบ กะสายตา) เจ้าของบอก **ยังไม่ pixel-accurate** → **ทำใหม่จริงจัง** = โคลนเหมือนแป๊ะก่อน (**อังกฤษ · เนื้อหา Findit เดิม** เพื่อ diff ตรง) → แล้วค่อยใส่ **Notify 4 เสา** (อังกฤษ) → แล้วค่อย**ไทย** · **ห้ามตีความดีไซน์ใหม่**
+- **วิธี = Playwright visual-regression:** harness `apps/web-v2/.visual/` (gitignored · playwright+chromium ติดตั้งแล้ว) — `capture.js` แคป full-page **1440×900/1024×768/390×844** · `measure-nav.js` วัด computed style/rect · `clip-nav.js` แคปเฉพาะส่วน · loop: **วัด→สร้าง→แคปเทียบ ref vs built→ปรับ CSS จนตรง** · รันด้วย `dangerouslyDisableSandbox` (ต้อง network)
+- **⚠️ ภาษาอังกฤษก่อน** (เจ้าของสั่ง) · Framer editor (framer.com) เข้าไม่ได้ (login) → ใช้ published framer.app เป็นต้นแบบ · asset 11 ไฟล์โหลด+optimize ลง `public/assets` แล้ว
+- **แผน 14 phase:** STAGE1 pixel-clone P0-P11 (nav·footer·home 8sec·property·detail·agent·about·blog·contact·forms·motion·QA) → STAGE2 Notify 4เสา อังกฤษ (P12) → STAGE3 ไทย (P13)
+- **📊 สถานะ: STAGE1 ~22%** — ✅ **P0** (harness+capture Home reference@3+measure · Playwright loop พิสูจน์แล้ว) · 🔄 **P1** (Nav desktop = **pixel-match** ✅ · เหลือ Footer + verify nav tablet/mobile) · ⬜ P2 Home(8 sec) · P3–P11
+- **commit web-v2:** `ef77845`(scaffold) · `c51343a`(fonts+assets+nav/footer **v0**) · `a0a2745`+`a9ad501`(home **v0**) · `a565192`(property list **v0**) · `0147282`(P0 Playwright harness) · **`05cb4ab`(P1 Nav pixel-accurate)** · ⚠️ **v0 = ดราฟต์ไทย/หยาบ กำลังถูกรื้อ pixel-accurate อังกฤษ ทีละหน้า** (Nav รื้อแล้ว · footer/home/property ยังเป็น v0)
+- **⚠️ Findit Home โครงจริง (จาก reference · v0 ทำขาด):** hero(badge+2ปุ่ม+รูปกว้าง) · Featured 6 การ์ด · **About collage รูปซ้อน+ป้ายลอย+ลิสต์ 01Buy/02Rent/03Sell** · Cities 6 · **Steps การ์ดดำ split 01Discover/02Experience/03Secure** · **Fresh มี filter tabs+6การ์ด** · Testimonials **6**การ์ด · **Stats band $150M+/500+/20+** · Insights 3 · **CTA band "Ready to find your dream home?"** · Footer 4 คอลัมน์
+- **👉 งานต่อไปทันที:** ปิด **P1** (Footer + CTA band pixel-accurate · วัด→สร้าง→เทียบ) + verify nav tablet/mobile → เข้า **P2 Home** ไล่ทีละ section แบบ pixel-match
+- ⚠️ **Stage 1 หน้าจอชั่วคราวเป็นเนื้อหา Findit อังกฤษล้วน** (โลโก้ Findit · Home/About us/Properties/Agents/Blog) จนโคลนครบ ค่อย swap Notify 4 เสา ที่ P12
+- **5 เสา (เข็มทิศ Stage 2):** TRANSACTION(ซื้อ/ขาย/เช่า) · SERVICE(Property Management=พระเอก) · ACQUISITION(ฝากทรัพย์) · NETWORK(agent/partner) · INVESTMENT(เผื่ออนาคต) · nav ที่เคาะ: Home·Properties·Services·Network·About·[Contact][ฝากทรัพย์]
+
 ## 2) ⭐ RBAC + governance (งานหลักตอนนี้) — org จริง: **สำนักงานเดียว · คุณ=admin+เจ้าของคนเดียว · คนอื่น=ขาย/หาทรัพย์**
 **บทบาท operating จริง = 3** (data-driven · อีก 5 เดิม dormant/demo คงไว้ future):
 - **Owner** (`super_admin`) — ทุกสิทธิ์ + control (อนุมัติ/เงิน/ลบ/ระบบ/PII)
@@ -29,6 +43,7 @@
 - ✅ **ค้นหา role-aware** (`79f714a`): GlobalSearch "ไปยัง" ขับจาก `resolveNav` ตัวเดียวกับ sidebar → กลุ่ม/ลำดับตามบทบาท + หมวด "สร้างใหม่" (gate สิทธิ์) · leads/appointments +`?new=1` เปิด modal · verify admin(create property+lead+appt) vs sales(lead+appt) · เพิ่มบทบาทแก้ที่ nav.ts ที่เดียว
 - ✅ **แจ้งเตือน role-aware** (`06546a2`): หน้า /notifications แยก "ต้องคุณทำ"(⚠️) → "อัปเดต"(FYI) · `ACTION_CAT_BY_ROLE` (เจ้าของ=owner/property/contract · ผจก=property/contract · เซล=lead/appointment) · robust กับ row เก่า (ใช้ category)
 - ✅ **bell dropdown action-first เสร็จ** (`5b98595`): จัด bell แบบเดียวกับหน้าเต็ม — **ต้องคุณทำ** (event หมวด action ตามบทบาท + งานวันนี้ · โทนทอง alert-triangle) → **อัปเดต** (งานสัปดาห์/เดือน + event FYI) · ย้าย `ACTION_CAT_BY_ROLE`+`actionCatsFor()` ไป [`lib/notif.ts`](apps/web-admin/src/lib/notif.ts) ใช้ร่วม page+bell (ตัด logic ซ้ำ) · reuse notif.needsAction/updates + renderWork/renderEvent helper ร่วม · verify authed owner desktop EN + มือถือ/iPad TH (event ทรัพย์รออนุมัติ/แก้เจ้าของ/คำขอ ลอยบน) · 🔸 ชั้น "อัปเดต" ไม่ได้ถ่ายสด (data เจ้าของมีแต่ event action) แต่ helper เดียวกับชั้นบนที่ verified + typecheck ผ่าน
+- ✅ **Segmented 5 ตัวเลือกพอดีมือถือ 375px** (`88c0a8e`): `.seg-item` มือถือ px-2.5+13px (≥sm เดิม) → properties ครบ 5 พอดี · Segmented +edge-fade+scroll-snap+เลื่อน active เข้าจอ (robust ทุก label) · property-requests tab "converted" ย่อ (`propReq.tabConverted`=Converted/แปลงแล้ว · แยกจาก badge เต็มบน row) · shared 8 หน้า · verify 375/768/desktop×EN/TH DOM ไม่ overflow · fresh server 0 error
 - ✅ **รูปทรัพย์พรีเมียม** (`43e5019`+`5f5881c`): SVG "architectural line study" (`db/scripts/property-scenes.ts`+`regen-demo-images.ts`) 6 ฉาก/ทรัพย์ แทน 1×1 · verify web-public grid+carousel สวยทุกจอ · uploads gitignored (regen ได้) · ⚠️ web-public :3000 ต้อง restart รับรูปใหม่
 - ✅ **บัญชี → ล่าง sidebar** (`c99159f`+`a13481a`): SidebarAccount (Linear/Slack) · popover ขึ้นบน · ตัด System ซ้ำ · `translate="no"` กัน Google Translate ดัน DOM
 
@@ -142,7 +157,7 @@
 - ⚠️ **RESTART web-public :3000** — fix รูป (`43e5019`) แก้ next.config + .env.local → เจ้าของต้อง restart dev server :3000 ให้รับ config ใหม่ (worktree verify แล้วรูปขึ้นจริง)
 - 🖼 **web-public รูปทรัพย์ (`43e5019`) — 2 เรื่อง:** (1) **fix hydration mismatch** ที่ทำรูปแตกทั้งหมด — `mediaUrl` เดิมคืน env LAN IP (SSR) ≠ window.location (client) → React เก็บค่า server (192.168.1.2) → localhost เข้าไม่ถึง · แก้เป็น relative `/uploads/*` + next.config rewrite proxy (localhost+LAN+prod ใช้ได้) (2) **รูป illustration พรีเมียม** — `db/scripts/property-scenes.ts` (11 ฉาก line-study โทนครีม/ทอง) + `regen-demo-images.ts` แนบ 6 รูป/ทรัพย์ (4 ทรัพย์ demo) · web-admin โชว์อัตโนมัติ · CD=rented ไม่ขึ้น public
   - 🔸 minor: ป้ายห้องใน SVG เป็นไทย baked (โหมด EN ก็เห็นไทย) — future ถ้าต้องการ label 2 ภาษา; รูปใหม่/regen: `cd db && DATABASE_URL=... npx tsx scripts/regen-demo-images.ts` (แตะเฉพาะ media 4 ทรัพย์) · uploads+.env.local = gitignored (บน disk แล้ว)
-- 🔑 **push commit ค้าง (~174 local · ต้อง token · +25 commit จากช่วงหลัง)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
+- 🔑 **push commit ค้าง (~174 local · ต้อง token · +~32 commit จาก session นี้ รวม web-v2)** · 🖼 `apps/web-public/public/hero.jpg` (ถ้ายัง)
 - ⚠️ **RESTART web-public :3000 + web-admin :3001** รับ rebrand Notify (`dfd6b38`) — เจ้าของทดสอบต้อง restart dev server ให้เห็น "Notify" (worktree verify แล้วขึ้นจริง 3 จอ) · รูป SVG demo regen แล้วบน disk (uploads gitignored)
 - 📌 **งานเสนอไว้ (รอเจ้าของเคาะ · session หน้า):**
   1. ~~rebrand "Notify" เต็มระบบ~~ ✅ **เสร็จ** (`dfd6b38`)
