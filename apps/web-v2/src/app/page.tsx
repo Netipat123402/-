@@ -123,23 +123,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CITIES — "Our location for you" */}
+      {/* CITIES — pixel-clone Findit "Our location for you" · header กลาง + bento (3 + 2 กว้าง) */}
       <section className="wrap py-20 md:py-28">
-        <div className="max-w-xl">
-          <Eyebrow>ทำเล</Eyebrow>
-          <h2 className="mt-3 text-[30px] font-semibold leading-tight sm:text-[42px]">ทำเลสำหรับคุณ</h2>
-          <p className="mt-3 text-muted">แต่ละย่านมีเรื่องราวของตัวเอง — เลือกทำเลที่ใช่กับไลฟ์สไตล์คุณ</p>
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
+            <span className="text-ink">{ITarget}</span>Explore Cities
+          </p>
+          <h2 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">Our location for you</h2>
+          <p className="mx-auto mt-4 max-w-[540px] text-base leading-relaxed text-body">
+            Each neighborhood has its own story. Discover the areas that match your lifestyle &mdash; whether you seek vibrant city energy, peaceful family communities, or exclusive luxury living.
+          </p>
         </div>
-        <div className="mt-10 grid grid-cols-2 gap-5 lg:grid-cols-4">
+        <div className="mt-12 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-6">
           {DEMO_CITIES.map((c) => (
-            <Link key={c.name} href="/property" className="group relative aspect-[3/4] overflow-hidden rounded-card">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.img} alt={c.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 p-5 text-white">
-                <p className="text-lg font-semibold">{c.name}</p>
-                <p className="text-sm text-white/80">{c.count}</p>
+            <Link key={c.name} href="/property" className={`group block ${c.wide ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
+              <div className={`overflow-hidden rounded-card ${c.wide ? 'aspect-[16/8]' : 'aspect-[4/3]'}`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={c.img} alt={c.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
               </div>
+              <h3 className="mt-4 text-xl font-medium text-ink">{c.name}</h3>
+              <p className="mt-1 text-sm text-body">{c.count}</p>
             </Link>
           ))}
         </div>

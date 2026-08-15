@@ -47,13 +47,15 @@ export const FEATURED_LISTINGS: FeaturedListing[] = [
   { slug: 'rustic-forest-cabin', name: 'Rustic Forest Cabin', address: '1845 Tenbroeck Ave, The Bronx, NY 10461, USA The Bronx', img: '/assets/asset-007.jpg', category: 'Condos', deal: 'Rent' },
 ];
 
-// ทำเล (Our location) — Notify · กรุงเทพฯ
-export interface DemoCity { name: string; count: string; img: string; }
+// ทำเล (Our location for you) — pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม)
+// bento: 3 การ์ดแรกเท่ากัน + 2 การ์ดกว้างครึ่ง (wide) · การ์ด = รูป+ชื่อ+count ใต้รูป (ไม่มี overlay)
+export interface DemoCity { name: string; count: string; img: string; wide?: boolean; }
 export const DEMO_CITIES: DemoCity[] = [
-  { name: 'สุขุมวิท', count: '120 ทรัพย์', img: '/assets/asset-011.jpg' },
-  { name: 'สาทร · สีลม', count: '86 ทรัพย์', img: '/assets/asset-001.jpg' },
-  { name: 'รัชดา · ลาดพร้าว', count: '74 ทรัพย์', img: '/assets/asset-005.jpg' },
-  { name: 'ริมแม่น้ำ', count: '52 ทรัพย์', img: '/assets/asset-002.jpg' },
+  { name: 'Brooklyn', count: '3 Property', img: '/assets/asset-001.jpg' },
+  { name: 'Manhattan', count: '4 Property', img: '/assets/asset-005.jpg' },
+  { name: 'Queens', count: '6 Property', img: '/assets/asset-011.jpg' },
+  { name: 'The Bronx', count: '4 Property', img: '/assets/asset-002.jpg', wide: true },
+  { name: 'Staten Island', count: '4 Property', img: '/assets/asset-004.jpg', wide: true },
 ];
 
 // 3 ขั้น (Simple steps)
