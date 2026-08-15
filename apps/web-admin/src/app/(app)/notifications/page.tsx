@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { EmptyState, ErrorState, ListSkeleton, PageHeader } from '@/components/ui';
 import { Icon, type IconName } from '@/components/Icon';
 import { relTime, fmtDateTime } from '@/lib/format';
-import { notifTitle, notifBody } from '@/lib/notif';
+import { notifTitle, notifBody, actionCatsFor } from '@/lib/notif';
 
 interface Notif {
   id: string; category: string; title: string; body: string; status: string;
@@ -28,13 +28,7 @@ const CAT_META: Record<string, { color: string; icon: IconName }> = {
 // ลำดับหมวดที่อยากให้แสดงก่อน (หมวดอื่นต่อท้าย)
 const CAT_ORDER = ['property', 'appointment', 'lead', 'contract', 'owner', 'user', 'system'];
 
-// role-aware "ต้องคุณทำ" — หมวดที่ต้องบทบาทนั้นลงมือ (เจ้าของ=กันโกง/อนุมัติ/เซ็น · ผจก=ทรัพย์/สัญญา · เซล=ไปป์ไลน์)
-// notification scope ที่ backend อยู่แล้ว → จัดลำดับให้ "งานที่ต้องทำ" ลอยบน (หมวดอื่น = อัปเดต/FYI)
-const ACTION_CAT_BY_ROLE: Record<string, string[]> = {
-  super_admin: ['owner', 'property', 'contract'],
-  property_manager: ['property', 'contract'],
-  sales_agent: ['lead', 'appointment'],
-};
+// role-aware "ต้องคุณทำ" → ย้ายไป lib/notif.ts (actionCatsFor) ใช้ร่วมกับ NotificationBell
 
 // deep-link ไป entity "ถูกตัว" (Phase 50): lead/appointment ใช้ ?focus= (เปิด modal) · ที่มีหน้า detail ใช้ /:id
 function entityHref(entityType?: string, entityId?: string): string | undefined {
@@ -92,7 +86,7 @@ export default function NotificationsPage() {
   const visible = cat ? rows.filter((r) => r.category === cat) : rows;
 
   // แยก "ต้องคุณทำ" (หมวด action ตามบทบาท) / "อัปเดต" — เฉพาะตอนดูทั้งหมด (ไม่กรองหมวด) และมีทั้งสองฝั่ง
-  const actionCats = ACTION_CAT_BY_ROLE[user?.roles[0] ?? ''] ?? [];
+  const actionCats = actionCatsFor(user?.roles[0]);
   const actionItems = cat ? [] : visible.filter((n) => actionCats.includes(n.category));
   const fyiItems = cat ? visible : visible.filter((n) => !actionCats.includes(n.category));
   const sectioned = !cat && actionItems.length > 0 && fyiItems.length > 0;

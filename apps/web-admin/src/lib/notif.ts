@@ -30,3 +30,12 @@ export function notifValues(raw: Record<string, unknown> | null | undefined, t: 
 /** title/body ของ notification: ใช้ i18n key ถ้ามี · fallback ข้อความ persist (row เก่า/LINE) */
 export const notifTitle = (n: NotifI18n, t: TFn) => (n.titleKey ? t(n.titleKey, notifValues(n.params, t)) : n.title);
 export const notifBody = (n: NotifI18n, t: TFn) => (n.bodyKey ? t(n.bodyKey, notifValues(n.params, t)) : n.body);
+
+/** หมวดแจ้งเตือนที่ต้องบทบาทนั้น "ลงมือทำ" (action-first) — เจ้าของ=กันโกง/อนุมัติ/เซ็น · ผจก=ทรัพย์/สัญญา · เซล=ไปป์ไลน์
+ *  notification scope ที่ backend อยู่แล้ว → จัดลำดับให้งานที่ต้องทำลอยบน · ใช้ร่วม /notifications + NotificationBell (mental model เดียว) */
+export const ACTION_CAT_BY_ROLE: Record<string, string[]> = {
+  super_admin: ['owner', 'property', 'contract'],
+  property_manager: ['property', 'contract'],
+  sales_agent: ['lead', 'appointment'],
+};
+export const actionCatsFor = (role?: string): string[] => ACTION_CAT_BY_ROLE[role ?? ''] ?? [];

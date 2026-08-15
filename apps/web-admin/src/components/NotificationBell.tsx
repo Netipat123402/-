@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { Icon, type IconName } from '@/components/Icon';
 import { relTime, fmtDateShort } from '@/lib/format';
-import { notifTitle, notifBody } from '@/lib/notif';
+import { notifTitle, notifBody, actionCatsFor } from '@/lib/notif';
 
 type TFn = (key: string, values?: Record<string, string | number>) => string;
 
@@ -68,7 +68,7 @@ function contractMeta(ts: number, t: TFn) {
 
 export default function NotificationBell() {
   const t = useTranslations();
-  const { api, can } = useAuth();
+  const { api, can, user } = useAuth();
   const router = useRouter();
   const [rows, setRows] = useState<Notif[]>([]);
   const [unreadEvents, setUnreadEvents] = useState(0);
@@ -135,6 +135,16 @@ export default function NotificationBell() {
   const badge = byBucket.today.length + unreadEvents;
   const hasAnything = byBucket.today.length + byBucket.week.length + byBucket.month.length + rows.length > 0;
 
+  // action-first — โครงเดียวกับหน้า /notifications (2 ชั้น: ต้องคุณทำ / อัปเดต)
+  // ต้องคุณทำ = event หมวด action ตามบทบาท + งานวันนี้ · อัปเดต = งานสัปดาห์/เดือนที่จะถึง + event FYI
+  const actionCats = actionCatsFor(user?.roles[0]);
+  const actionEvents = rows.filter((n) => actionCats.includes(n.category));
+  const fyiEvents = rows.filter((n) => !actionCats.includes(n.category));
+  const upcomingWork = [...byBucket.week, ...byBucket.month]; // week ทั้งหมด < month → เรียงตามเวลาอยู่แล้ว
+  const todayWork = byBucket.today;
+  const hasAction = actionEvents.length + todayWork.length > 0;
+  const hasUpdates = upcomingWork.length + fyiEvents.length > 0;
+
   async function markAll() {
     try { await api('/notifications/read-all', { method: 'PATCH' }); setRows((r) => r.map((n) => ({ ...n, status: 'read' }))); setUnreadEvents(0); } catch { /* */ }
   }
@@ -149,6 +159,36 @@ export default function NotificationBell() {
     const href = entityHref(n.entityType, n.entityId);
     if (href) router.push(href);
   }
+
+  // แถวงานตามเวลา (นัด/สัญญา) — ไอคอน + ชื่อ + เวลา + chevron
+  const renderWork = (it: WorkItem) => (
+    <button key={it.id} onClick={() => go(it.href)}
+      className="flex w-full items-center gap-2.5 px-4 py-2 text-left transition hover:bg-raised">
+      <Icon name={it.icon} size={16} className="shrink-0 text-muted" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm text-ink">{it.title}</span>
+        <span className="block truncate text-xs text-muted">{it.meta}</span>
+      </span>
+      <Icon name="chevron-right" size={15} className="shrink-0 text-faint" />
+    </button>
+  );
+  // แถว event (แจ้งเตือน) — จุดยังไม่อ่าน + title/body i18n + เวลาสัมพัทธ์
+  const renderEvent = (n: Notif) => {
+    const unread = n.status !== 'read';
+    return (
+      <button key={n.id} onClick={() => openEvent(n)}
+        className={`flex w-full gap-2.5 px-4 py-2 text-left transition hover:bg-raised ${unread ? 'bg-gold/[0.04]' : ''}`}>
+        <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${unread ? 'bg-gold' : 'bg-transparent'}`} />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-baseline justify-between gap-2">
+            <span className={`truncate text-sm ${unread ? 'font-semibold text-ink' : 'font-normal text-ink-soft'}`}>{notifTitle(n, t)}</span>
+            <span className="shrink-0 text-2xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateShort(d.toISOString()))}</span>
+          </span>
+          <span className="block truncate text-xs text-muted">{notifBody(n, t)}</span>
+        </span>
+      </button>
+    );
+  };
 
   return (
     <div className="relative" ref={boxRef}>
@@ -175,60 +215,35 @@ export default function NotificationBell() {
             <p className="px-4 py-10 text-center text-sm text-muted">{t('notif.empty')}</p>
           ) : (
             <div className="max-h-[24rem] divide-y divide-border overflow-y-auto overscroll-contain">
-              {/* งานตามเวลา */}
-              {(['today', 'week', 'month'] as Bucket[]).map((b) => {
-                const list = byBucket[b];
-                if (list.length === 0) return null;
-                const shown = list.slice(0, 4);
-                return (
-                  <div key={b} className="py-1">
-                    <div className="flex items-center justify-between px-4 pb-1 pt-1.5">
-                      <span className={`text-2xs font-semibold uppercase tracking-wide ${b === 'today' ? 'text-gold-dark' : 'text-muted'}`}>{t(b === 'today' ? 'notif.bucketToday' : b === 'week' ? 'notif.bucketWeek' : 'notif.bucketMonth')}</span>
-                      <span className="text-2xs text-muted">{list.length}</span>
-                    </div>
-                    {shown.map((it) => (
-                      <button key={it.id} onClick={() => go(it.href)}
-                        className="flex w-full items-center gap-2.5 px-4 py-2 text-left transition hover:bg-raised">
-                        <Icon name={it.icon} size={16} className="shrink-0 text-muted" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm text-ink">{it.title}</span>
-                          <span className="block truncate text-xs text-muted">{it.meta}</span>
-                        </span>
-                        <Icon name="chevron-right" size={15} className="shrink-0 text-faint" />
-                      </button>
-                    ))}
-                    {list.length > shown.length && (
-                      <button onClick={() => go(b === 'today' ? '/calendar' : '/appointments')}
-                        className="px-4 pb-1.5 pt-0.5 text-xs text-gold-dark hover:underline">
-                        {t('notif.moreItems', { n: list.length - shown.length })}
-                      </button>
-                    )}
+              {/* ต้องคุณทำ — event หมวด action ตามบทบาท + งานวันนี้ (โทนทอง เหมือนหน้าเต็ม) */}
+              {hasAction && (
+                <div className="bg-gold/[0.03] py-1">
+                  <div className="flex items-center gap-1.5 px-4 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-wide text-gold-dark">
+                    <Icon name="alert-triangle" size={13} className="shrink-0" /> {t('notif.needsAction')}
                   </div>
-                );
-              })}
+                  {actionEvents.slice(0, 5).map((n) => renderEvent(n))}
+                  {todayWork.slice(0, 4).map((it) => renderWork(it))}
+                  {todayWork.length > 4 && (
+                    <button onClick={() => go('/calendar')} className="px-4 pb-1.5 pt-0.5 text-xs text-gold-dark hover:underline">
+                      {t('notif.moreItems', { n: todayWork.length - 4 })}
+                    </button>
+                  )}
+                </div>
+              )}
 
-              {/* อัปเดตงาน (event เดิม) */}
-              {rows.length > 0 && (
+              {/* อัปเดต — งานสัปดาห์/เดือนที่จะถึง + event FYI */}
+              {hasUpdates && (
                 <div className="py-1">
-                  <div className="px-4 pb-1 pt-1.5">
-                    <span className="text-2xs font-semibold uppercase tracking-wide text-muted">{t('notif.updates')}</span>
+                  <div className="flex items-center gap-1.5 px-4 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-wide text-muted">
+                    <Icon name="bell" size={13} className="shrink-0" /> {t('notif.updates')}
                   </div>
-                  {rows.slice(0, 5).map((n) => {
-                    const unread = n.status !== 'read';
-                    return (
-                      <button key={n.id} onClick={() => openEvent(n)}
-                        className={`flex w-full gap-2.5 px-4 py-2 text-left transition hover:bg-raised ${unread ? 'bg-gold/[0.04]' : ''}`}>
-                        <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${unread ? 'bg-gold' : 'bg-transparent'}`} />
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-baseline justify-between gap-2">
-                            <span className={`truncate text-sm ${unread ? 'font-semibold text-ink' : 'font-normal text-ink-soft'}`}>{notifTitle(n, t)}</span>
-                            <span className="shrink-0 text-2xs text-muted">{relTime(n.createdAt, t, (d) => fmtDateShort(d.toISOString()))}</span>
-                          </span>
-                          <span className="block truncate text-xs text-muted">{notifBody(n, t)}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
+                  {upcomingWork.slice(0, 4).map((it) => renderWork(it))}
+                  {upcomingWork.length > 4 && (
+                    <button onClick={() => go('/appointments')} className="px-4 pb-1.5 pt-0.5 text-xs text-gold-dark hover:underline">
+                      {t('notif.moreItems', { n: upcomingWork.length - 4 })}
+                    </button>
+                  )}
+                  {fyiEvents.slice(0, 5).map((n) => renderEvent(n))}
                 </div>
               )}
             </div>
