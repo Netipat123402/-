@@ -68,12 +68,17 @@ export const DEMO_STEPS: DemoStep[] = [
   { no: '03', title: 'Secure', desc: 'From negotiation to closing, we ensure a seamless, stress-free transaction.' },
 ];
 
-// เสียงจากลูกค้า (Testimonials) — ⚠️ placeholder รอเจ้าของแทนด้วยรีวิวจริง
-export interface DemoTestimonial { quote: string; name: string; role: string; }
+// เสียงจากลูกค้า (Testimonials) — pixel-clone Findit · marquee 2 แถว · copy ทั่วไป (STAGE1) รอเจ้าของแทนรีวิวจริง
+export interface DemoTestimonial { title: string; quote: string; name: string; }
 export const DEMO_TESTIMONIALS: DemoTestimonial[] = [
-  { quote: 'ทีมงานคัดทรัพย์ตรงโจทย์มาก ไม่ต้องเสียเวลาดูหลายที่ ได้คอนโดที่ชอบในสัปดาห์เดียว', name: 'ณิชา ป.', role: 'ผู้เช่า · คอนโดสุขุมวิท' },
-  { quote: 'ปล่อยเช่าบ้านผ่าน Notify ได้ผู้เช่าเร็ว ดูแลเอกสารให้ครบ ไม่ต้องกังวลเรื่องจุกจิก', name: 'สมชาย ว.', role: 'เจ้าของทรัพย์' },
-  { quote: 'ให้คำปรึกษาการลงทุนดีมาก มองภาพทำเลและผลตอบแทนให้ชัด ตัดสินใจซื้อได้มั่นใจ', name: 'อรุณี ก.', role: 'นักลงทุน' },
+  { title: 'A Seamless Journey', quote: 'Smooth and professional service. They guided us through every step and made buying our first home feel effortless.', name: 'Anna V.' },
+  { title: 'Trusted Expertise', quote: 'Incredible knowledge of the market. They showed us the best options and secured a property beyond our expectations.', name: 'Lucas G.' },
+  { title: 'Support You Can Rely On', quote: 'Truly dedicated and reliable. From the first meeting to closing, their support made the entire process stress-free.', name: 'Mia F.' },
+  { title: 'Exceptional Service', quote: 'Every detail was handled with care. Their team made us feel confident and informed during the whole process.', name: 'David S.' },
+  { title: 'Professional Guidance', quote: 'From property selection to closing, they provided clear advice and hands-on support every step of the way.', name: 'Sofia R.' },
+  { title: 'Confident Decisions', quote: 'Their insights and market knowledge gave us confidence to invest wisely and choose a home we truly love.', name: 'James T.' },
+  { title: 'Reliable Partner', quote: 'They were always available to answer questions and made sure the buying process was transparent and worry-free.', name: 'Olivia P.' },
+  { title: 'Personalized Attention', quote: 'They took the time to understand exactly what we wanted and found a home that exceeded our expectations.', name: 'Noah K.' },
 ];
 
 // ความรู้·อัปเดต (Insights) — ⚠️ placeholder · โครง Findit "Insights & Updates"

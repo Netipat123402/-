@@ -34,6 +34,22 @@ function Benefit({ label, className }: { label: string; className: string }) {
   );
 }
 
+// การ์ดรีวิว (Testimonials marquee) — ดาวทอง 5 + title + quote + avatar initials + ชื่อ
+function TCard({ t }: { t: { title: string; quote: string; name: string } }) {
+  const initials = t.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  return (
+    <figure className="flex w-[300px] shrink-0 flex-col rounded-card bg-white p-7 sm:w-[340px]">
+      <div className="flex gap-1 text-[#f5a623]">{Array.from({ length: 5 }).map((_, i) => <span key={i}>{IStar}</span>)}</div>
+      <p className="mt-4 text-[17px] font-medium text-ink">{t.title}</p>
+      <blockquote className="mt-2 text-sm leading-relaxed text-body">&ldquo;{t.quote}&rdquo;</blockquote>
+      <figcaption className="mt-6 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink/10 text-xs font-semibold text-ink">{initials}</span>
+        <span className="text-[15px] text-ink">{t.name}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
 // 3 การ์ดเลข (Findit "OUR BENEFITS") — STAGE1 เนื้อหา Findit เดิม
 const ABOUT_BENEFITS = [
   { no: '01', title: 'Buy a new home', desc: 'Discover your dream home effortlessly. Explore diverse properties and expert guidance for a seamless buying experience.' },
@@ -191,25 +207,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIALS — "What our clients say" */}
-      <section className="bg-ink text-white">
-        <div className="wrap py-20 md:py-28">
-          <div className="max-w-xl">
-            <Eyebrow><span className="text-white/60">เสียงจากลูกค้า</span></Eyebrow>
-            <h2 className="mt-3 text-[30px] font-semibold leading-tight text-white sm:text-[42px]">เรื่องจริงจากคนที่ไว้ใจเรา</h2>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {DEMO_TESTIMONIALS.map((t) => (
-              <figure key={t.name} className="rounded-card border border-white/15 bg-white/5 p-7">
-                <div className="flex gap-1 text-white">{Array.from({ length: 5 }).map((_, i) => <span key={i}>{IStar}</span>)}</div>
-                <blockquote className="mt-4 text-white/90">“{t.quote}”</blockquote>
-                <figcaption className="mt-5">
-                  <p className="font-semibold text-white">{t.name}</p>
-                  <p className="text-sm text-white/60">{t.role}</p>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+      {/* TESTIMONIALS — pixel-clone Findit "What our clients say" · header กลาง + marquee 2 แถวสวนทาง */}
+      <section className="overflow-hidden bg-soft py-20 md:py-28">
+        <div className="wrap text-center">
+          <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
+            <span className="text-ink">{ITarget}</span>Testimonials
+          </p>
+          <h2 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">What our clients say</h2>
+          <p className="mx-auto mt-4 max-w-[520px] text-base leading-relaxed text-body">
+            Real stories from homeowners and investors who trusted us to guide their real estate journey.
+          </p>
+        </div>
+        <div className="mt-14 space-y-6">
+          {[DEMO_TESTIMONIALS.slice(0, 4), DEMO_TESTIMONIALS.slice(4, 8)].map((row, ri) => (
+            <div key={ri} className="marquee-row group overflow-hidden">
+              <div className={`marquee-track flex gap-6 ${ri === 1 ? 'reverse' : ''}`}>
+                {[...row, ...row].map((t, i) => <TCard key={i} t={t} />)}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
