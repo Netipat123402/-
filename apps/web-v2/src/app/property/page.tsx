@@ -4,84 +4,86 @@ import { useMemo, useState } from 'react';
 import PropertyCard from '@/components/PropertyCard';
 import { DEMO_PROPERTIES, CATEGORIES, type PropertyCategory } from '@/lib/demo';
 
+// /property — pixel-clone Findit · header "Fresh on the market" + filter sidebar + grid 2-col
 type DealFilter = 'all' | 'sale' | 'rent';
-const DEAL_TABS: { v: DealFilter; label: string }[] = [
-  { v: 'all', label: 'ทั้งหมด' }, { v: 'sale', label: 'ขาย' }, { v: 'rent', label: 'เช่า' },
+const TYPE_TABS: { v: DealFilter; label: string }[] = [
+  { v: 'all', label: 'All' }, { v: 'sale', label: 'Sell' }, { v: 'rent', label: 'Rent' },
 ];
-const LOCATIONS = ['ทั้งหมด', 'กรุงเทพฯ', 'สมุทรปราการ'];
+const LOCATIONS = ['Brooklyn', 'Manhattan', 'Queens', 'Staten Island', 'The Bronx'];
+
+const ITarget = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none" /></svg>
+);
 
 function Pill({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick}
-      className={`rounded-pill px-4 py-2 text-sm font-medium transition ${on ? 'bg-ink text-white' : 'bg-soft text-body hover:bg-line'}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-pill px-4 py-2 text-[13px] font-medium transition ${on ? 'bg-ink text-white' : 'bg-[#f2f4f7] text-ink hover:bg-line'}`}
+    >
       {children}
     </button>
   );
 }
 
 export default function PropertyListPage() {
-  const [deal, setDeal] = useState<DealFilter>('all');
+  const [type, setType] = useState<DealFilter>('all');
   const [cat, setCat] = useState<PropertyCategory | 'all'>('all');
-  const [loc, setLoc] = useState('ทั้งหมด');
+  const [loc, setLoc] = useState<string | 'all'>('all');
 
   const results = useMemo(() => DEMO_PROPERTIES.filter((p) =>
-    (deal === 'all' || p.deal === deal) &&
+    (type === 'all' || p.deal === type) &&
     (cat === 'all' || p.category === cat) &&
-    (loc === 'ทั้งหมด' || p.location.includes(loc)),
-  ), [deal, cat, loc]);
+    (loc === 'all' || p.location === loc),
+  ), [type, cat, loc]);
 
-  const reset = () => { setDeal('all'); setCat('all'); setLoc('ทั้งหมด'); };
-  const dealLabel = DEAL_TABS.find((t) => t.v === deal)?.label ?? 'ทั้งหมด';
+  const exploreLabel = TYPE_TABS.find((t) => t.v === type)?.label ?? 'All';
 
   return (
     <div className="wrap py-16 md:py-20">
-      {/* heading — โคลน "LATEST PROPERTIES / Fresh on the market" */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      {/* header — เหมือน home "Fresh on the market" */}
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-end">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">ทรัพย์ทั้งหมด</p>
-          <h1 className="mt-3 text-[36px] font-semibold leading-tight sm:text-[52px]">ค้นหาทรัพย์ที่ใช่</h1>
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
+            <span className="text-ink">{ITarget}</span>Latest Properties
+          </p>
+          <h1 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">Fresh on the market</h1>
         </div>
-        <p className="max-w-sm text-muted md:text-right">
-          ทรัพย์คุณภาพคัดสรร — กรองตามประเภท ดีล และทำเล เพื่อเจอหลังที่ตรงใจ
+        <p className="max-w-[420px] text-base leading-relaxed text-body lg:justify-self-end">
+          Stay ahead of the curve with our newest listings &mdash; handpicked homes and investments recently added to the market.
         </p>
       </div>
 
-      <div className="mt-12 lg:grid lg:grid-cols-[280px_1fr] lg:gap-10">
+      <div className="mt-12 lg:grid lg:grid-cols-[360px_1fr] lg:gap-10">
         {/* Filter sidebar */}
-        <aside className="mb-8 self-start rounded-card border border-line bg-surface p-6 lg:sticky lg:top-24 lg:mb-0">
-          <h2 className="text-xl font-semibold text-ink">สำรวจ : {cat === 'all' ? dealLabel : cat}</h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            เลือกดูทรัพย์ — ตั้งแต่คอนโดใจกลางเมือง ถึงบ้านพร้อมสวน คัดสรรทุกหลังเพื่อไลฟ์สไตล์ที่ต่างกัน
+        <aside className="mb-8 self-start rounded-[10px] bg-white px-5 py-8 shadow-[0_4px_28px_rgba(0,0,0,0.05)] ring-1 ring-line lg:sticky lg:top-24 lg:mb-0">
+          <h2 className="text-2xl font-medium text-ink">Explore : {exploreLabel}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-body">
+            Browse our latest properties &mdash; from cozy family homes to luxury estates. Each listing is carefully selected to match different lifestyles and budgets.
           </p>
 
-          <p className="mt-7 text-sm font-semibold text-ink">ดีล</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {DEAL_TABS.map((t) => <Pill key={t.v} on={deal === t.v} onClick={() => setDeal(t.v)}>{t.label}</Pill>)}
+          <h3 className="mt-8 text-xl font-medium text-ink">Type</h3>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {TYPE_TABS.map((t) => <Pill key={t.v} on={type === t.v} onClick={() => setType(t.v)}>{t.label}</Pill>)}
           </div>
 
-          <p className="mt-7 text-sm font-semibold text-ink">ประเภท</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Pill on={cat === 'all'} onClick={() => setCat('all')}>ทั้งหมด</Pill>
-            {CATEGORIES.map((c) => <Pill key={c} on={cat === c} onClick={() => setCat(c)}>{c}</Pill>)}
+          <h3 className="mt-7 text-xl font-medium text-ink">Category</h3>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {CATEGORIES.map((c) => <Pill key={c} on={cat === c} onClick={() => setCat(cat === c ? 'all' : c)}>{c}</Pill>)}
           </div>
 
-          <p className="mt-7 text-sm font-semibold text-ink">ทำเล</p>
-          <select value={loc} onChange={(e) => setLoc(e.target.value)}
-            className="mt-3 h-11 w-full rounded-pill border border-line bg-surface px-4 text-sm outline-none focus:border-ink">
-            {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
-          </select>
-
-          <button onClick={reset} className="mt-7 text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline">
-            ล้างตัวกรอง
-          </button>
+          <h3 className="mt-7 text-xl font-medium text-ink">Location</h3>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            {LOCATIONS.map((l) => <Pill key={l} on={loc === l} onClick={() => setLoc(loc === l ? 'all' : l)}>{l}</Pill>)}
+          </div>
         </aside>
 
-        {/* Results */}
+        {/* Results grid */}
         <div>
-          <p className="mb-6 text-sm text-muted">พบ {results.length} ทรัพย์</p>
           {results.length === 0 ? (
-            <div className="rounded-card border border-line bg-soft py-20 text-center text-muted">
-              ไม่พบทรัพย์ตามเงื่อนไข — ลองปรับตัวกรอง
+            <div className="rounded-[10px] bg-soft py-24 text-center text-muted">
+              No properties match your filters &mdash; try adjusting them.
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
