@@ -251,25 +251,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INSIGHTS — "Insights & Updates" (⚠️ placeholder · เราเลื่อน blog — รอเจ้าของตัดสินเก็บ/ตัด) */}
+      {/* INSIGHTS — pixel-clone Findit "Insights & Updates" · header (H2 ซ้าย + sub ขวา) + 3 การ์ดบทความ */}
       <section className="wrap py-20 md:py-28">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-end">
           <div>
-            <Eyebrow>ความรู้·อัปเดต</Eyebrow>
-            <h2 className="mt-3 text-[30px] font-semibold leading-tight sm:text-[42px]">บทความ·เคล็ดลับอสังหาฯ</h2>
-            <p className="mt-3 max-w-md text-muted">ความรู้และเทรนด์ตลาด ช่วยให้ทุกการตัดสินใจของคุณมั่นใจขึ้น</p>
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
+              <span className="text-ink">{ITarget}</span>Latest New
+            </p>
+            <h2 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">Insights &amp; Updates</h2>
           </div>
+          <p className="max-w-[420px] text-base leading-relaxed text-body lg:justify-self-end">
+            Stay informed with expert tips, market trends, and property advice to guide your real estate journey.
+          </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {DEMO_ARTICLES.map((a) => (
-            <Link key={a.slug} href="/blog" className="group block overflow-hidden rounded-card border border-line bg-surface transition hover:shadow-[0_12px_40px_rgba(0,0,0,0.10)]">
-              <div className="aspect-[16/10] overflow-hidden bg-soft">
+            <Link key={a.slug} href="/blog" className="group flex flex-col overflow-hidden rounded-card bg-soft transition hover:shadow-[0_14px_44px_rgba(0,0,0,0.10)]">
+              <div className="aspect-[4/3] overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={a.img} alt={a.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <img src={a.img} alt={a.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
               </div>
               <div className="p-6">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">{a.category} · {a.date}</p>
-                <h3 className="mt-2 text-lg font-semibold leading-snug text-ink">{a.title}</h3>
+                <h3 className="text-xl font-medium leading-snug text-ink">{a.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-body">{a.excerpt}</p>
               </div>
             </Link>
           ))}

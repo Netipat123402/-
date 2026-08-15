@@ -81,10 +81,11 @@ export const DEMO_TESTIMONIALS: DemoTestimonial[] = [
   { title: 'Personalized Attention', quote: 'They took the time to understand exactly what we wanted and found a home that exceeded our expectations.', name: 'Noah K.' },
 ];
 
-// ความรู้·อัปเดต (Insights) — ⚠️ placeholder · โครง Findit "Insights & Updates"
-export interface DemoArticle { slug: string; category: string; title: string; date: string; img: string; }
+// ความรู้·อัปเดต (Insights & Updates) — pixel-clone Findit · การ์ด รูป+title+excerpt
+// title/excerpt = copy ทั่วไป (STAGE1) รอเจ้าของแทนบทความจริง
+export interface DemoArticle { slug: string; title: string; excerpt: string; img: string; }
 export const DEMO_ARTICLES: DemoArticle[] = [
-  { slug: 'rent-checklist', category: 'คู่มือผู้เช่า', title: 'เช็กลิสต์ก่อนเซ็นสัญญาเช่า ที่มือใหม่มักลืม', date: '10 ส.ค. 2026', img: '/assets/asset-004.jpg' },
-  { slug: 'sell-timing', category: 'เจ้าของทรัพย์', title: 'จังหวะไหนควรปล่อยขาย·ปล่อยเช่าให้ได้ราคาดี', date: '2 ส.ค. 2026', img: '/assets/asset-007.jpg' },
-  { slug: 'invest-2026', category: 'การลงทุน', title: 'ทำเลน่าลงทุนปี 2026 ที่ผลตอบแทนยังน่าสนใจ', date: '28 ก.ค. 2026', img: '/assets/asset-010.png' },
+  { slug: 'natural-light-design', title: 'The Power of Natural Light in Architectural Design', excerpt: 'Natural light plays a crucial role in shaping architectural design, offering both aesthetic and functional benefits for modern homes.', img: '/assets/asset-004.jpg' },
+  { slug: 'buying-vs-renting', title: 'Buying vs. Renting: Which Path Fits Your Life', excerpt: 'A clear look at the trade-offs between owning and renting, so you can choose the option that matches your goals and budget.', img: '/assets/asset-007.jpg' },
+  { slug: 'smart-homes-future', title: 'The Future of Smart Homes and Interior Design', excerpt: 'The rise of smart homes is transforming the way we live, blending cutting-edge technology with thoughtful, comfortable design.', img: '/assets/asset-010.png' },
 ];
