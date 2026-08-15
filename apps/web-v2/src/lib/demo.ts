@@ -58,12 +58,12 @@ export const DEMO_CITIES: DemoCity[] = [
   { name: 'Staten Island', count: '4 Property', img: '/assets/asset-004.jpg', wide: true },
 ];
 
-// 3 ขั้น (Simple steps)
+// 3 ขั้น (Steps timeline) — pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม)
 export interface DemoStep { no: string; title: string; desc: string; }
 export const DEMO_STEPS: DemoStep[] = [
-  { no: '01', title: 'บอกโจทย์ของคุณ', desc: 'บอกงบ ทำเล และไลฟ์สไตล์ที่ต้องการ — เราคัดทรัพย์ที่ใช่มาให้' },
-  { no: '02', title: 'นัดชมทรัพย์', desc: 'เลือกวันสะดวก ทีมงานพาชมจริง พร้อมให้คำแนะนำตรงไปตรงมา' },
-  { no: '03', title: 'ปิดดีล·รับกุญแจ', desc: 'ดูแลสัญญา เอกสาร และการโอน จนคุณเข้าอยู่ได้อย่างสบายใจ' },
+  { no: '01', title: 'Discover', desc: 'We start by understanding your goals and lifestyle, then curate properties that match.' },
+  { no: '02', title: 'Experience', desc: 'Guided viewings and expert insights help you explore the best options with confidence.' },
+  { no: '03', title: 'Secure', desc: 'From negotiation to closing, we ensure a seamless, stress-free transaction.' },
 ];
 
 // เสียงจากลูกค้า (Testimonials) — ⚠️ placeholder รอเจ้าของแทนด้วยรีวิวจริง

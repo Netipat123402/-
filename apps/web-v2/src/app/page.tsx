@@ -148,20 +148,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* STEPS — "Simple steps" */}
-      <section className="bg-soft">
-        <div className="wrap py-20 text-center md:py-28">
-          <Eyebrow>ขั้นตอน</Eyebrow>
-          <h2 className="mx-auto mt-3 max-w-xl text-[30px] font-semibold leading-tight sm:text-[42px]">ง่ายในไม่กี่ขั้น สู่บ้านในฝัน</h2>
-          <p className="mx-auto mt-3 max-w-md text-muted">ไม่ว่าจะซื้อ เช่า หรือลงทุน เราทำให้ทุกขั้นตอนเรียบง่าย</p>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {DEMO_STEPS.map((s) => (
-              <div key={s.no} className="rounded-card border border-line bg-surface p-8 text-left">
-                <span className="text-3xl font-bold text-ink/20">{s.no}</span>
-                <h3 className="mt-3 text-xl font-semibold text-ink">{s.title}</h3>
-                <p className="mt-2 text-muted">{s.desc}</p>
-              </div>
-            ))}
+      {/* STEPS — pixel-clone Findit · รูปบ้าน full-bleed + การ์ดขาว timeline (01/02/03) ซ้าย */}
+      <section className="relative overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/asset-005.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="wrap relative py-16 md:py-24">
+          <div className="max-w-[500px] rounded-[10px] bg-white p-7 sm:p-8">
+            <div className="flex flex-col">
+              {DEMO_STEPS.map((s, i) => (
+                <div key={s.no} className="flex gap-5">
+                  <div className="flex flex-col items-center">
+                    <span className="whitespace-nowrap text-[26px] font-medium leading-none text-ink">{s.no}.</span>
+                    {i < DEMO_STEPS.length - 1 && <span className="my-2 w-px grow bg-line" />}
+                  </div>
+                  <div className={i < DEMO_STEPS.length - 1 ? 'pb-8' : ''}>
+                    <h3 className="text-[22px] font-medium leading-snug text-ink">{s.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-body">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Link href="/contact" className="mt-2 inline-flex items-center justify-center rounded-pill bg-ink px-4 py-2.5 text-[15px] font-semibold text-white transition hover:opacity-90">Start your journey</Link>
           </div>
         </div>
       </section>
