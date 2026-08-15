@@ -30,6 +30,14 @@ export const DEMO_PROPERTIES: DemoProperty[] = [
 export const dealLabel = (d: DemoProperty['deal']) => (d === 'rent' ? 'Rent' : 'Sell');
 export const priceSuffix = (_d: DemoProperty['deal']) => '';
 
+// Agents (Meet the experts) — pixel-clone Findit · การ์ด monogram (ไม่มี asset รูปหน้า)
+export interface DemoAgent { name: string; email: string; }
+export const DEMO_AGENTS: DemoAgent[] = [
+  { name: 'Steve Parker', email: 'steveparker@example.com' },
+  { name: 'Rachel Gray', email: 'rachelgray@example.com' },
+  { name: 'Maya Chen', email: 'mayachen@example.com' },
+];
+
 // Featured listings (Home bento) — pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม เพื่อ diff)
 // การ์ดมินิมอล: รูป+ป้าย+ชื่อ+ที่อยู่ (ไม่มีราคา/specs ตาม Findit) · จะสลับ Notify/ไทยที่ STAGE2
 export interface FeaturedListing {

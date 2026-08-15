@@ -1,31 +1,11 @@
 import Link from 'next/link';
 import FeaturedCard from '@/components/FeaturedCard';
-import FreshListings from '@/components/FreshListings';
+import AboutBenefits from '@/components/AboutBenefits';
+import FreshSection from '@/components/FreshSection';
+import { IStar, ITarget } from '@/components/icons';
 import {
   FEATURED_LISTINGS, DEMO_CITIES, DEMO_STEPS, DEMO_TESTIMONIALS, DEMO_ARTICLES,
 } from '@/lib/demo';
-
-const IStar = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z" />
-  </svg>
-);
-const ICheckSm = (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5" /></svg>
-);
-const ITarget = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none" /></svg>
-);
-
-// ป้าย benefit ลอยบน collage (Findit) — pill ขาว + ✓ วงกลมดำ · ตำแหน่งส่งผ่าน className (absolute + %)
-function Benefit({ label, className }: { label: string; className: string }) {
-  return (
-    <span className={`absolute inline-flex items-center gap-2 whitespace-nowrap rounded-pill bg-white py-2 pl-2 pr-4 text-[13px] font-normal text-ink shadow-[3px_3px_12px_rgba(0,0,0,0.08)] sm:py-2.5 sm:text-[15px] ${className}`}>
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-white">{ICheckSm}</span>
-      {label}
-    </span>
-  );
-}
 
 // การ์ดรีวิว (Testimonials marquee) — ดาวทอง 5 + title + quote + avatar initials + ชื่อ
 function TCard({ t }: { t: { title: string; quote: string; name: string } }) {
@@ -48,13 +28,6 @@ const STATS = [
   { num: '$150M+', label: 'Properties sold', desc: 'Over $150M in sales, helping clients find homes and investments with ease and confidence.' },
   { num: '500+', label: 'Happy clients', desc: 'More than 500 satisfied clients trust us to make their real estate journey smooth and successful.' },
   { num: '20+', label: 'Years of expertise', desc: 'Over 20 years of experience guiding clients with market insight and professional advice.' },
-];
-
-// 3 การ์ดเลข (Findit "OUR BENEFITS") — STAGE1 เนื้อหา Findit เดิม
-const ABOUT_BENEFITS = [
-  { no: '01', title: 'Buy a new home', desc: 'Discover your dream home effortlessly. Explore diverse properties and expert guidance for a seamless buying experience.' },
-  { no: '02', title: 'Rent a home', desc: 'Discover your perfect rental effortlessly. Explore a diverse variety of listings tailored precisely to suit your unique lifestyle needs.' },
-  { no: '03', title: 'Sell a home', desc: "Sell confidently with expert guidance and effective strategies, showcasing your property's best features for a successful sale." },
 ];
 
 export default function Home() {
@@ -90,54 +63,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ABOUT — pixel-clone Findit "OUR BENEFITS" · collage (% positioning) + 3 การ์ดเลข */}
-      <section className="bg-soft">
-        <div className="wrap grid items-center gap-14 py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
-          {/* LEFT — image collage + floating benefit pills */}
-          <div className="relative mx-auto w-full max-w-[550px]">
-            <div className="relative w-full pb-[150%]">
-              {/* main tall image */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/asset-007.jpg" alt="" className="absolute left-[7.5%] top-[10%] h-[80%] w-[85%] rounded-[10px] object-cover" />
-              {/* top-right */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/asset-001.jpg" alt="" className="absolute right-0 top-0 h-[28.5%] w-[45%] rounded-[10px] object-cover shadow-lg" />
-              {/* bottom-left */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/asset-004.jpg" alt="" className="absolute bottom-0 left-0 h-[28.5%] w-[45%] rounded-[10px] object-cover shadow-lg" />
-              {/* floating pills */}
-              <Benefit label="Trusted Expertise" className="left-[33%] top-[7%]" />
-              <Benefit label="Tailored to You" className="left-0 top-[29%]" />
-              <Benefit label="Seamless Process" className="left-[54%] top-[40%]" />
-              <Benefit label="Strong Market Insights" className="left-0 top-[60%]" />
-              <Benefit label="After-Sales Support" className="left-[28%] top-[87%]" />
-            </div>
-          </div>
-
-          {/* RIGHT — content */}
-          <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
-              <span className="text-ink">{ITarget}</span>Our Benefits
-            </p>
-            <h2 className="mt-4 text-[30px] font-medium leading-[1.15] sm:text-[42px]">Building dreams, one home at a time</h2>
-            <p className="mt-5 max-w-[520px] text-base leading-relaxed text-body">
-              Our mission goes beyond real estate &mdash; it&rsquo;s about guiding you through one of life&rsquo;s biggest milestones with heart, expertise, and unwavering commitment.
-            </p>
-            <div className="mt-8 space-y-4">
-              {ABOUT_BENEFITS.map((b) => (
-                <div key={b.no} className="flex gap-4 rounded-[10px] bg-white p-5 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-                  <span className="shrink-0 text-[28px] font-medium leading-none text-ink">{b.no}.</span>
-                  <div>
-                    <h3 className="text-[22px] font-medium leading-snug text-ink">{b.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-body">{b.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Link href="/about" className="mt-8 inline-flex items-center justify-center rounded-pill bg-ink px-4 py-2.5 text-[15px] font-semibold text-white transition hover:opacity-90">More about us</Link>
-          </div>
-        </div>
-      </section>
+      {/* ABOUT — reuse component (Home + Agents) */}
+      <AboutBenefits />
 
       {/* CITIES — pixel-clone Findit "Our location for you" · header กลาง + bento (3 + 2 กว้าง) */}
       <section className="wrap py-20 md:py-28">
@@ -189,23 +116,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FRESH — pixel-clone Findit "Fresh on the market" · header (H2 ซ้าย + sub ขวา) + filter tabs + grid */}
-      <section className="wrap py-20 md:py-28">
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-end">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
-              <span className="text-ink">{ITarget}</span>Latest Properties
-            </p>
-            <h2 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">Fresh on the market</h2>
-          </div>
-          <p className="max-w-[420px] text-base leading-relaxed text-body lg:justify-self-end">
-            Stay ahead of the curve with our newest listings &mdash; handpicked homes and investments recently added to the market.
-          </p>
-        </div>
-        <div className="mt-10">
-          <FreshListings />
-        </div>
-      </section>
+      {/* FRESH — reuse component (Home + Agents) */}
+      <FreshSection />
 
       {/* TESTIMONIALS — pixel-clone Findit "What our clients say" · header กลาง + marquee 2 แถวสวนทาง */}
       <section className="overflow-hidden bg-soft py-20 md:py-28">
