@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import FeaturedCard from '@/components/FeaturedCard';
-import PropertyCard from '@/components/PropertyCard';
+import FreshListings from '@/components/FreshListings';
 import {
-  FEATURED_LISTINGS, DEMO_PROPERTIES, DEMO_CITIES, DEMO_STEPS, DEMO_TESTIMONIALS, DEMO_ARTICLES,
+  FEATURED_LISTINGS, DEMO_CITIES, DEMO_STEPS, DEMO_TESTIMONIALS, DEMO_ARTICLES,
 } from '@/lib/demo';
 
 const IStar = (
@@ -173,18 +173,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FRESH on the market — 3 ทรัพย์มาใหม่ */}
+      {/* FRESH — pixel-clone Findit "Fresh on the market" · header (H2 ซ้าย + sub ขวา) + filter tabs + grid */}
       <section className="wrap py-20 md:py-28">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-end">
           <div>
-            <Eyebrow>ทรัพย์มาใหม่</Eyebrow>
-            <h2 className="mt-3 text-[30px] font-semibold leading-tight sm:text-[42px]">อัปเดตล่าสุดในตลาด</h2>
-            <p className="mt-3 max-w-md text-muted">ทรัพย์คุณภาพที่เพิ่งเข้าสู่ตลาด — คว้าก่อนใคร</p>
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
+              <span className="text-ink">{ITarget}</span>Latest Properties
+            </p>
+            <h2 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">Fresh on the market</h2>
           </div>
-          <Link href="/property" className="btn-outline shrink-0">ดูทั้งหมด</Link>
+          <p className="max-w-[420px] text-base leading-relaxed text-body lg:justify-self-end">
+            Stay ahead of the curve with our newest listings &mdash; handpicked homes and investments recently added to the market.
+          </p>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {DEMO_PROPERTIES.slice(0, 3).map((p) => <PropertyCard key={p.slug} p={p} />)}
+        <div className="mt-10">
+          <FreshListings />
         </div>
       </section>
 

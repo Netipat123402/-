@@ -1,32 +1,34 @@
 // Demo property data (Phase 1) — static · เนื้อหา Notify (ไทย · ฿)
 // Phase 2+ ค่อยต่อ API จริง · รูปใช้ asset ที่โหลดจาก template
-export type PropertyCategory = 'คอนโด' | 'บ้าน' | 'ทาวน์โฮม' | 'อพาร์ตเมนต์' | 'วิลล่า';
-export const CATEGORIES: PropertyCategory[] = ['คอนโด', 'บ้าน', 'ทาวน์โฮม', 'อพาร์ตเมนต์', 'วิลล่า'];
+// pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม) — การ์ดทรัพย์ rich (Fresh + หน้า /property)
+export type PropertyCategory = 'Apartments' | 'Condos' | 'Houses' | 'Villas';
+export const CATEGORIES: PropertyCategory[] = ['Apartments', 'Condos', 'Houses', 'Villas'];
 
 export interface DemoProperty {
   slug: string;
   name: string;
   location: string;
-  price: string; // format พร้อมแสดง
+  price: string; // format พร้อมแสดง ($)
   deal: 'rent' | 'sale';
   category: PropertyCategory;
   beds: number;
   baths: number;
-  area: number; // ตร.ม.
+  area: number; // Sqft
+  agent: string; // นายหน้า
   img: string;
 }
 
 export const DEMO_PROPERTIES: DemoProperty[] = [
-  { slug: 'the-river-condo', name: 'เดอะ ริเวอร์ คอนโด', location: 'เจริญนคร · กรุงเทพฯ', price: '฿25,000', deal: 'rent', category: 'คอนโด', beds: 1, baths: 1, area: 35, img: '/assets/asset-001.jpg' },
-  { slug: 'baan-klang-suan', name: 'บ้านกลางสวน รามอินทรา', location: 'รามอินทรา · กรุงเทพฯ', price: '฿12,500,000', deal: 'sale', category: 'บ้าน', beds: 3, baths: 2, area: 180, img: '/assets/asset-002.jpg' },
-  { slug: 'lumpini-townhome', name: 'ลุมพินี ทาวน์โฮม', location: 'ศรีนครินทร์ · สมุทรปราการ', price: '฿18,000', deal: 'rent', category: 'ทาวน์โฮม', beds: 2, baths: 2, area: 110, img: '/assets/asset-004.jpg' },
-  { slug: 'modern-villa-sukhumvit', name: 'โมเดิร์น วิลล่า สุขุมวิท', location: 'สุขุมวิท · กรุงเทพฯ', price: '฿45,000', deal: 'rent', category: 'วิลล่า', beds: 3, baths: 3, area: 220, img: '/assets/asset-005.jpg' },
-  { slug: 'the-nature-house', name: 'เดอะ เนเชอร์ เฮาส์', location: 'พระโขนง · กรุงเทพฯ', price: '฿8,900,000', deal: 'sale', category: 'บ้าน', beds: 2, baths: 2, area: 95, img: '/assets/asset-007.jpg' },
-  { slug: 'sky-garden-apartment', name: 'สกาย การ์เดน อพาร์ตเมนต์', location: 'ลาดพร้าว · กรุงเทพฯ', price: '฿15,000', deal: 'rent', category: 'อพาร์ตเมนต์', beds: 1, baths: 1, area: 42, img: '/assets/asset-011.jpg' },
+  { slug: 'south-sunlight-apartment', name: 'South Sunlight Apartment', location: 'Staten Island', price: '$1,200', deal: 'rent', category: 'Apartments', beds: 4, baths: 2, area: 160, agent: 'Rachel Gray', img: '/assets/asset-001.jpg' },
+  { slug: 'marble-house', name: 'Marble House', location: 'Queens', price: '$550,000', deal: 'sale', category: 'Houses', beds: 4, baths: 3, area: 250, agent: 'Steve Parker', img: '/assets/asset-011.jpg' },
+  { slug: 'family-mansion', name: 'Family Mansion', location: 'Manhattan', price: '$2,200', deal: 'rent', category: 'Apartments', beds: 2, baths: 2, area: 150, agent: 'Rachel Gray', img: '/assets/asset-005.jpg' },
+  { slug: 'urban-loft-condo', name: 'Urban Loft Condo', location: 'Brooklyn', price: '$1,800', deal: 'rent', category: 'Condos', beds: 2, baths: 1, area: 95, agent: 'Steve Parker', img: '/assets/asset-002.jpg' },
+  { slug: 'hillside-villa', name: 'Hillside Villa', location: 'The Bronx', price: '$780,000', deal: 'sale', category: 'Villas', beds: 5, baths: 4, area: 320, agent: 'Rachel Gray', img: '/assets/asset-004.jpg' },
+  { slug: 'cozy-studio-flat', name: 'Cozy Studio Flat', location: 'Manhattan', price: '$1,400', deal: 'rent', category: 'Apartments', beds: 1, baths: 1, area: 55, agent: 'Steve Parker', img: '/assets/asset-007.jpg' },
 ];
 
-export const dealLabel = (d: DemoProperty['deal']) => (d === 'rent' ? 'ให้เช่า' : 'ขาย');
-export const priceSuffix = (d: DemoProperty['deal']) => (d === 'rent' ? '/เดือน' : '');
+export const dealLabel = (d: DemoProperty['deal']) => (d === 'rent' ? 'Rent' : 'Sell');
+export const priceSuffix = (_d: DemoProperty['deal']) => '';
 
 // Featured listings (Home bento) — pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม เพื่อ diff)
 // การ์ดมินิมอล: รูป+ป้าย+ชื่อ+ที่อยู่ (ไม่มีราคา/specs ตาม Findit) · จะสลับ Notify/ไทยที่ STAGE2
