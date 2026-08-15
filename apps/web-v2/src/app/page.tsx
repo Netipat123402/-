@@ -2,7 +2,7 @@
 // Phase 1 จะแทนด้วย Home จริง (โคลน Findit + เนื้อหา Notify)
 export default function Home() {
   return (
-    <main className="wrap flex min-h-screen flex-col items-center justify-center text-center">
+    <main className="wrap flex min-h-[70vh] flex-col items-center justify-center py-20 text-center">
       <span className="mb-6 inline-flex items-center gap-2 rounded-pill border border-line px-4 py-2 text-sm font-medium text-body">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-ink text-xs font-bold text-white">N</span>
         Notify · web-v2

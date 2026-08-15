@@ -8,8 +8,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'system-ui', 'sans-serif'],
-        inter: ['Inter', 'system-ui', 'sans-serif'],
+        // Latin ใช้ Manrope · glyph ไทยตกไป IBM Plex Sans Thai (per-glyph fallback)
+        sans: ['Manrope', 'IBM Plex Sans Thai', 'system-ui', 'sans-serif'],
+        inter: ['Inter', 'IBM Plex Sans Thai', 'system-ui', 'sans-serif'],
       },
       colors: {
         ink: '#111111', // หัวข้อ/ปุ่มดำ (Findit ใช้ #000; #111 นุ่มกว่านิด กันดำสนิท)
