@@ -13,6 +13,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "-w", "@ros/web-public"],
       "port": 3000
+    },
+    {
+      "name": "web-v2",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "@ros/web-v2"],
+      "port": 3002
     }
   ]
 }
