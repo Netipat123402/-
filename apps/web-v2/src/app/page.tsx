@@ -2,33 +2,12 @@ import Link from 'next/link';
 import FeaturedCard from '@/components/FeaturedCard';
 import AboutBenefits from '@/components/AboutBenefits';
 import FreshSection from '@/components/FreshSection';
+import Testimonials from '@/components/Testimonials';
+import StatsBand from '@/components/StatsBand';
 import { IStar, ITarget } from '@/components/icons';
 import {
-  FEATURED_LISTINGS, DEMO_CITIES, DEMO_STEPS, DEMO_TESTIMONIALS, DEMO_ARTICLES,
+  FEATURED_LISTINGS, DEMO_CITIES, DEMO_STEPS, DEMO_ARTICLES,
 } from '@/lib/demo';
-
-// การ์ดรีวิว (Testimonials marquee) — ดาวทอง 5 + title + quote + avatar initials + ชื่อ
-function TCard({ t }: { t: { title: string; quote: string; name: string } }) {
-  const initials = t.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-  return (
-    <figure className="flex w-[300px] shrink-0 flex-col rounded-card bg-white p-7 sm:w-[340px]">
-      <div className="flex gap-1 text-[#f5a623]">{Array.from({ length: 5 }).map((_, i) => <span key={i}>{IStar}</span>)}</div>
-      <p className="mt-4 text-[17px] font-medium text-ink">{t.title}</p>
-      <blockquote className="mt-2 text-sm leading-relaxed text-body">&ldquo;{t.quote}&rdquo;</blockquote>
-      <figcaption className="mt-6 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink/10 text-xs font-semibold text-ink">{initials}</span>
-        <span className="text-[15px] text-ink">{t.name}</span>
-      </figcaption>
-    </figure>
-  );
-}
-
-// Stats band (Findit) — เลขใหญ่ + label + desc · STAGE1 เนื้อหา Findit เดิม
-const STATS = [
-  { num: '$150M+', label: 'Properties sold', desc: 'Over $150M in sales, helping clients find homes and investments with ease and confidence.' },
-  { num: '500+', label: 'Happy clients', desc: 'More than 500 satisfied clients trust us to make their real estate journey smooth and successful.' },
-  { num: '20+', label: 'Years of expertise', desc: 'Over 20 years of experience guiding clients with market insight and professional advice.' },
-];
 
 export default function Home() {
   return (
@@ -119,42 +98,9 @@ export default function Home() {
       {/* FRESH — reuse component (Home + Agents) */}
       <FreshSection />
 
-      {/* TESTIMONIALS — pixel-clone Findit "What our clients say" · header กลาง + marquee 2 แถวสวนทาง */}
-      <section className="overflow-hidden bg-soft py-20 md:py-28">
-        <div className="wrap text-center">
-          <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-ink">
-            <span className="text-ink">{ITarget}</span>Testimonials
-          </p>
-          <h2 className="mt-4 text-[30px] font-medium leading-tight sm:text-[42px]">What our clients say</h2>
-          <p className="mx-auto mt-4 max-w-[520px] text-base leading-relaxed text-body">
-            Real stories from homeowners and investors who trusted us to guide their real estate journey.
-          </p>
-        </div>
-        <div className="mt-14 space-y-6">
-          {[DEMO_TESTIMONIALS.slice(0, 4), DEMO_TESTIMONIALS.slice(4, 8)].map((row, ri) => (
-            <div key={ri} className="marquee-row group overflow-hidden">
-              <div className={`marquee-track flex gap-6 ${ri === 1 ? 'reverse' : ''}`}>
-                {[...row, ...row].map((t, i) => <TCard key={i} t={t} />)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* STATS band — pixel-clone Findit · แถบดำ 3 สถิติ คั่นเส้นตั้ง */}
-      <section className="bg-black text-white">
-        <div className="wrap py-14 md:py-[50px]">
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-0">
-            {STATS.map((s, i) => (
-              <div key={s.label} className={i > 0 ? 'sm:border-l sm:border-white/15 sm:pl-10' : 'sm:pr-10'}>
-                <p className="text-[44px] font-medium leading-none sm:text-[54px]">{s.num}</p>
-                <p className="mt-4 text-base text-white">{s.label}</p>
-                <p className="mt-2 max-w-[340px] text-sm leading-relaxed text-white/80">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* TESTIMONIALS + STATS — reuse component (Home + About) */}
+      <Testimonials />
+      <StatsBand variant="dark" />
 
       {/* INSIGHTS — pixel-clone Findit "Insights & Updates" · header (H2 ซ้าย + sub ขวา) + 3 การ์ดบทความ */}
       <section className="wrap py-20 md:py-28">

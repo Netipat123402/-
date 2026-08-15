@@ -38,6 +38,35 @@ export const DEMO_AGENTS: DemoAgent[] = [
   { name: 'Maya Chen', email: 'mayachen@example.com' },
 ];
 
+// Team (About "Dedicated experts") — monogram + role
+export interface DemoTeam { name: string; role: string; }
+export const DEMO_TEAM: DemoTeam[] = [
+  { name: 'Michael Carter', role: 'Founder & Lead Consultant' },
+  { name: 'Sophia Martinez', role: 'Senior Property Advisor' },
+  { name: 'Daniel Wong', role: 'Investment Specialist' },
+  { name: 'Emma Johnson', role: 'Client Relations Manager' },
+];
+
+// Company timeline (About "A legacy of trust and growth")
+export interface DemoMilestone { year: string; label: string; desc: string; }
+export const DEMO_TIMELINE: DemoMilestone[] = [
+  { year: '2005', label: 'Founded', desc: 'Started with a simple mission: to make real estate transparent, accessible, and client-focused.' },
+  { year: '2010', label: 'Building reputation', desc: 'Earned trust through successful transactions and expanded services in residential and commercial real estate.' },
+  { year: '2015', label: 'Expanding horizons', desc: 'Reached 250+ closed deals and introduced specialized support for investors and luxury buyers.' },
+  { year: '2025', label: 'Leading today', desc: 'With $150M+ in sales and a trusted partner in every real estate journey.' },
+];
+
+// FAQ (About) — คำถามทั่วไป
+export interface DemoFaq { q: string; a: string; }
+export const DEMO_FAQ: DemoFaq[] = [
+  { q: 'How do I start the process of buying a home?', a: 'Simply reach out to us for a consultation. We’ll discuss your goals, budget, and preferences, then guide you step by step.' },
+  { q: 'Do I need to get pre-approved for a mortgage first?', a: 'Pre-approval is recommended — it clarifies your budget and makes your offer stronger, but we can help you explore options either way.' },
+  { q: 'What types of properties do you specialize in?', a: 'We work across apartments, condos, houses, and villas — from cozy family homes to luxury estates.' },
+  { q: 'How long does the buying process usually take?', a: 'It varies by property and financing, but most purchases move from first viewing to closing within a few weeks to a couple of months.' },
+  { q: 'Do you assist with selling properties as well?', a: 'Yes. We provide expert guidance, market insight, and effective strategies to showcase and sell your property with confidence.' },
+  { q: 'What makes your agency different from others?', a: 'Local knowledge, a genuine client-first approach, and dedicated support at every step of your real estate journey.' },
+];
+
 // Featured listings (Home bento) — pixel-clone Findit (STAGE1 · เนื้อหา Findit เดิม เพื่อ diff)
 // การ์ดมินิมอล: รูป+ป้าย+ชื่อ+ที่อยู่ (ไม่มีราคา/specs ตาม Findit) · จะสลับ Notify/ไทยที่ STAGE2
 export interface FeaturedListing {
