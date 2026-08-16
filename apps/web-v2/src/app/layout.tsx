@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+import ScrollReveal from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: { default: 'Notify — Real Estate', template: '%s · Notify' },
@@ -29,8 +30,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Nav />
-        {children}
+        <main>{children}</main>
         <Footer />
+        <ScrollReveal />
       </body>
     </html>
   );
