@@ -1,21 +1,19 @@
 import Link from 'next/link';
 
-// Footer — pixel-clone Findit (STAGE1)
-// ⚠️ เนื้อหา/อังกฤษ = Findit เดิมชั่วคราว เพื่อให้ pixel-diff ตรง (จะสลับเป็น Notify/ไทยใน STAGE2)
-// โครง Findit (วัด DOM สด 1440): footer ดำ · CTA = การ์ดรูปมุมโค้ง 10px ลอยคร่อมรอยตัดขาว→ดำ
-// · 4 คอลัมน์ขาวบนดำ (3 แคบ + 1 กว้าง newsletter) · bottom bar
+// Footer — เลย์เอาต์ pixel-clone Findit (คงเป๊ะ) · เนื้อหา = Notify (STAGE2 · 5 เสา)
+// footer ดำ · CTA card ลอยคร่อมรอยตัดขาว→ดำ · 4 คอลัมน์ (Contact/Explore/Company/Newsletter) · bottom bar
 
-const OUR_COMPANY = [
+const EXPLORE = [
   { label: 'All Properties', href: '/property' },
-  { label: 'Property for Buy', href: '/property?for=buy' },
-  { label: 'Property for Rent', href: '/property?for=rent' },
-  { label: 'Our Agents', href: '/agents' },
+  { label: 'For Sale', href: '/property?for=sale' },
+  { label: 'For Rent', href: '/property?for=rent' },
+  { label: 'Services', href: '/services' },
 ];
-const QUICK_LINKS = [
-  { label: 'About Us', href: '/about' },
-  { label: 'Contact Us', href: '/contact' },
-  { label: 'Latest News', href: '/blog' },
-  { label: '404', href: '/404' },
+const COMPANY = [
+  { label: 'Network', href: '/network' },
+  { label: 'Investment', href: '/investment' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 export default function Footer() {
@@ -50,32 +48,31 @@ export default function Footer() {
 
         {/* 4 คอลัมน์ — ขาวบนดำ */}
         <div className="grid grid-cols-1 gap-x-12 gap-y-10 pt-16 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1.5fr] lg:pt-20">
-          {/* Contact Us */}
+          {/* Contact */}
           <div>
-            <h6 className="text-[20px] font-medium leading-6 text-white">Contact Us</h6>
+            <h6 className="text-[20px] font-medium leading-6 text-white">Contact</h6>
             <address className="mt-4 space-y-3 text-sm not-italic leading-relaxed text-white/80">
-              <p className="max-w-[220px]">123 Main Street, Suite 456, Cityville, ST 78901</p>
-              <p><a href="tel:+11234567890" className="transition hover:text-white">(123) 456-7890</a></p>
-              <p><a href="tel:+19876543210" className="transition hover:text-white">(987) 654-3210</a></p>
-              <p><a href="mailto:info@findit.com" className="transition hover:text-white">info@findit.com</a></p>
+              <p className="max-w-[220px]">Bangkok, Thailand</p>
+              <p><a href="tel:+6620000000" className="transition hover:text-white">+66 2 000 0000</a></p>
+              <p><a href="mailto:hello@notify.co" className="transition hover:text-white">hello@notify.co</a></p>
             </address>
           </div>
 
-          {/* Our Company */}
+          {/* Explore */}
           <div>
-            <h6 className="text-[20px] font-medium leading-6 text-white">Our Company</h6>
+            <h6 className="text-[20px] font-medium leading-6 text-white">Explore</h6>
             <ul className="mt-4 space-y-3 text-sm text-white/80">
-              {OUR_COMPANY.map((l) => (
+              {EXPLORE.map((l) => (
                 <li key={l.label}><Link href={l.href} className="transition hover:text-white">{l.label}</Link></li>
               ))}
             </ul>
           </div>
 
-          {/* Quick Links */}
+          {/* Company */}
           <div>
-            <h6 className="text-[20px] font-medium leading-6 text-white">Quick Links</h6>
+            <h6 className="text-[20px] font-medium leading-6 text-white">Company</h6>
             <ul className="mt-4 space-y-3 text-sm text-white/80">
-              {QUICK_LINKS.map((l) => (
+              {COMPANY.map((l) => (
                 <li key={l.label}><Link href={l.href} className="transition hover:text-white">{l.label}</Link></li>
               ))}
             </ul>
@@ -112,7 +109,7 @@ export default function Footer() {
         {/* bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/15 py-7 sm:flex-row">
           <p className="text-sm text-white/80">
-            Copyright &copy; 2025 - Findit by <span className="font-bold">Marcframe</span>. All rights reserved.
+            Copyright &copy; 2026 <span className="font-bold">Notify</span> Real Estate. All rights reserved.
           </p>
           <div className="flex items-center gap-5 text-sm">
             <span className="text-white">Follow us :</span>
