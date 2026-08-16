@@ -118,11 +118,22 @@ export const DEMO_TESTIMONIALS: DemoTestimonial[] = [
   { title: 'Personalized Attention', quote: 'They took the time to understand exactly what we wanted and found a home that exceeded our expectations.', name: 'Noah K.' },
 ];
 
-// ความรู้·อัปเดต (Insights & Updates) — pixel-clone Findit · การ์ด รูป+title+excerpt
-// title/excerpt = copy ทั่วไป (STAGE1) รอเจ้าของแทนบทความจริง
-export interface DemoArticle { slug: string; title: string; excerpt: string; img: string; }
+// ความรู้·อัปเดต (Insights & Updates / Blog) — pixel-clone Findit · การ์ด รูป+title+excerpt
+// title/excerpt/body = copy ทั่วไป (STAGE1) รอเจ้าของแทนบทความจริง
+export interface DemoArticle { slug: string; title: string; excerpt: string; img: string; category: string; date: string; body: string[]; }
+const LOREM = [
+  'When it comes to real estate, small decisions early in the process often make the biggest difference later. Understanding the fundamentals helps you move with confidence and avoid common pitfalls.',
+  'Location, timing, and preparation all play a part. A well-informed approach — grounded in current market data and clear priorities — turns a stressful process into a smooth one.',
+  'Whether you are buying your first home, selling an investment, or simply exploring options, working with a team that listens and guides you makes all the difference in the outcome.',
+];
 export const DEMO_ARTICLES: DemoArticle[] = [
-  { slug: 'natural-light-design', title: 'The Power of Natural Light in Architectural Design', excerpt: 'Natural light plays a crucial role in shaping architectural design, offering both aesthetic and functional benefits for modern homes.', img: '/assets/asset-004.jpg' },
-  { slug: 'buying-vs-renting', title: 'Buying vs. Renting: Which Path Fits Your Life', excerpt: 'A clear look at the trade-offs between owning and renting, so you can choose the option that matches your goals and budget.', img: '/assets/asset-007.jpg' },
-  { slug: 'smart-homes-future', title: 'The Future of Smart Homes and Interior Design', excerpt: 'The rise of smart homes is transforming the way we live, blending cutting-edge technology with thoughtful, comfortable design.', img: '/assets/asset-010.png' },
+  { slug: 'natural-light-design', title: 'The Power of Natural Light in Architectural Design', excerpt: 'Natural light plays a crucial role in shaping architectural design, offering both aesthetic and functional benefits for modern homes.', img: '/assets/asset-004.jpg', category: 'Design', date: 'Aug 10, 2026', body: LOREM },
+  { slug: 'buying-vs-renting', title: 'Buying vs. Renting: Which Path Fits Your Life', excerpt: 'A clear look at the trade-offs between owning and renting, so you can choose the option that matches your goals and budget.', img: '/assets/asset-007.jpg', category: 'Guide', date: 'Aug 2, 2026', body: LOREM },
+  { slug: 'smart-homes-future', title: 'The Future of Smart Homes and Interior Design', excerpt: 'The rise of smart homes is transforming the way we live, blending cutting-edge technology with thoughtful, comfortable design.', img: '/assets/asset-010.png', category: 'Technology', date: 'Jul 28, 2026', body: LOREM },
+  { slug: 'interior-design-inspire', title: 'The Art of Interior Design: Creating Spaces That Inspire', excerpt: 'Interior design is more than arranging furniture and choosing colors — it is about crafting spaces that feel like home.', img: '/assets/asset-001.jpg', category: 'Design', date: 'Jul 20, 2026', body: LOREM },
+  { slug: 'first-time-buyer-guide', title: 'A First-Time Buyer’s Guide to a Confident Purchase', excerpt: 'From budgeting to closing, here is a clear, step-by-step path to buying your first home without the guesswork.', img: '/assets/asset-002.jpg', category: 'Guide', date: 'Jul 12, 2026', body: LOREM },
+  { slug: 'staging-sell-faster', title: 'Home Staging Tips to Help Your Property Sell Faster', excerpt: 'Thoughtful staging highlights your home’s best features and helps buyers picture themselves living there.', img: '/assets/asset-005.jpg', category: 'Selling', date: 'Jul 4, 2026', body: LOREM },
+  { slug: 'neighborhood-matters', title: 'Why the Right Neighborhood Matters More Than You Think', excerpt: 'The area around your home shapes daily life, long-term value, and the lifestyle you can enjoy.', img: '/assets/asset-011.jpg', category: 'Lifestyle', date: 'Jun 26, 2026', body: LOREM },
+  { slug: 'investing-basics', title: 'Real Estate Investing Basics for Beginners', excerpt: 'A practical introduction to building wealth through property, from rental income to long-term appreciation.', img: '/assets/asset-004.jpg', category: 'Investment', date: 'Jun 18, 2026', body: LOREM },
+  { slug: 'sustainable-homes', title: 'Sustainable Architecture: Building a Greener Future', excerpt: 'Sustainable design reduces impact and running costs while creating healthier, more comfortable homes.', img: '/assets/asset-007.jpg', category: 'Sustainability', date: 'Jun 10, 2026', body: LOREM },
 ];

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import FeaturedCard from '@/components/FeaturedCard';
+import ArticleCard from '@/components/ArticleCard';
 import AboutBenefits from '@/components/AboutBenefits';
 import FreshSection from '@/components/FreshSection';
 import Testimonials from '@/components/Testimonials';
@@ -116,18 +117,7 @@ export default function Home() {
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {DEMO_ARTICLES.map((a) => (
-            <Link key={a.slug} href="/blog" className="group flex flex-col overflow-hidden rounded-card bg-soft transition hover:shadow-[0_14px_44px_rgba(0,0,0,0.10)]">
-              <div className="aspect-[4/3] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={a.img} alt={a.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-medium leading-snug text-ink">{a.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-body">{a.excerpt}</p>
-              </div>
-            </Link>
-          ))}
+          {DEMO_ARTICLES.slice(0, 3).map((a) => <ArticleCard key={a.slug} a={a} />)}
         </div>
       </section>
     </>
